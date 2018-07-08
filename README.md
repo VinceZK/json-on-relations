@@ -13,7 +13,7 @@ Ideas like OData and JSON API will just yield to SQL as it always be.
 The only meaningful work should be done is to set the mapping between JSON and SQL in domain specific areas.
 Json-on-relations is focusing on Line-of-Business applications(ERP, CRM, and HR). 
 
-*In Construction...*
+*Under Construction...*
 
 ![Meta Data Model](DataModeling.png)
 
