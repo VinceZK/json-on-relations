@@ -1,27 +1,18 @@
 # JsonOnRelations
+Json-on-relations try to bundle the merits from both JSON and relational structures.
+Nowadays, JSON is the de-facto standard for data transmitting and UI consumption.
+Comparing to other data format standards like XML, it is much simpler and more human readable. 
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.8.
+Relational database is still strong enough, just no one can replace it. 
+Existing ORM solutions focus too much on "object".
+Ignoring the relational nature of data limits their abilities on building real-world applications.
+SQL is still proven to be the only meaningful abstraction of data manipulation. 
+Any attempts to rebuild the wheel always end with ignorant.
+Ideas like OData and JSON API will just yield to SQL as it always be. 
 
-## Development server
+*In Construction...*
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+![Meta Data Model](DataModeling.png)
 
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+## License
+[The MIT License](http://opensource.org/licenses/MIT)

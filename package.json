@@ -1,32 +1,50 @@
 {
   "name": "json-on-relations",
   "version": "0.0.0",
+  "description": "A data model that leverages the merits of both JSON and Relations",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build  --prod --build-optimizer",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "prod": "node server.js"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^6.0.3",
     "@angular/common": "^6.0.3",
-    "@angular/compiler": "^6.0.3",
     "@angular/core": "^6.0.3",
+    "@angular/compiler": "^6.0.3",
+    "@angular/animations": "^6.0.3",
     "@angular/forms": "^6.0.3",
     "@angular/http": "^6.0.3",
     "@angular/platform-browser": "^6.0.3",
     "@angular/platform-browser-dynamic": "^6.0.3",
     "@angular/router": "^6.0.3",
     "core-js": "^2.5.4",
+    "bootstrap": "^4.1.1",
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "async": "^2.6.1",
+    "mysql": "^2.15.0",
+    "node-authorization": "^1.0.5",
+    "node-uuid": "^1.4.8",
+    "express-session": "^1.15.6",
+    "ui-message": "^1.1.1",
+    "underscore": "^1.9.1",
+    "passport": "^0.4.0",
+    "path": "^0.12.7",
     "rxjs": "^6.0.0",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^6.0.3",
+    "@angular-devkit/build-ng-packagr": "~0.6.8",
     "@angular-devkit/build-angular": "~0.6.6",
+    "ng-packagr": "^3.0.0-rc.2",
+    "tsickle": ">=0.25.5",
+    "tslib": "^1.7.1",
     "typescript": "~2.7.2",
     "@angular/cli": "~6.0.8",
     "@angular/language-service": "^6.0.3",
@@ -41,8 +59,29 @@
     "karma-coverage-istanbul-reporter": "~2.0.0",
     "karma-jasmine": "~1.1.1",
     "karma-jasmine-html-reporter": "^0.2.2",
+    "should": "^13.2.1",
+    "mocha": "^5.2.0",
     "protractor": "~5.3.0",
     "ts-node": "~5.0.1",
     "tslint": "~5.9.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VinceZK/Portal.git"
+  },
+  "keywords": [
+    "portal",
+    "navigation",
+    "console",
+    "admin template",
+    "software system",
+    "nodejs",
+    "angular"
+  ],
+  "author": "vincezk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/VinceZK/Portal/issues"
+  },
+  "homepage": "https://github.com/VinceZK/Portal#readme"
 }
