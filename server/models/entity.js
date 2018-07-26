@@ -44,6 +44,9 @@ const message = new Message(msgStore, 'EN');
 
 module.exports = {
   entityDB: entityDB,
+  getEntityMeta: getEntityMeta,
+  getRelationMeta: getRelationMeta,
+  getRelationMetaOfEntity: getRelationMetaOfEntity,
   createInstance: createInstance,
   getInstanceByGUID: getInstanceByGUID,
   getInstanceByID: getInstanceByID,
@@ -56,6 +59,26 @@ module.exports = {
   hardDeleteByID: hardDeleteByID
 };
 
+function getEntityMeta(entityID) {
+  let entityMeta = entityDB.getEntityMeta(entityID);
+  return entityMeta? entityMeta : message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', entityID);
+}
+
+function getRelationMeta(relationID) {
+  let entityMeta = entityDB.getRelationMeta(relationID);
+  return entityMeta? entityMeta : message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID);
+}
+
+function getRelationMetaOfEntity(entityID) {
+  let entityMeta = entityDB.getEntityMeta(entityID);
+  let relationMetas = [];
+  entityMeta.ROLES.forEach(function (role) {
+    role.RELATIONS.forEach(function (relation) {
+      relationMetas.push(entityDB.getRelationMeta(relation.RELATION_ID));
+    })
+  });
+  return relationMetas;
+}
 /**
  * save the entity JSON object in DB
  * @param instance = JSON object, for example:
@@ -312,7 +335,7 @@ function getInstanceByID(idAttr, callback) {
  * @param callback(err,instance)
  * instance is a JSON object or NULL if the ID is not exist!
  * Here is an example:
- * {  ENTITY_ID: 'people',
+ * {  ENTITY_ID: 'people', INSTANCE_GUID: '9718C0E8783C1F86EC212C8436A958C5',
       HOBBY: ['Reading', 'Movie', 'Coding'], HEIGHT: 170, GENDER: 'male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E',
       r_user: {action: 'add', USER_ID: 'DH001', USER_NAME:'VINCEZK', DISPLAY_NAME: 'Vincent Zhang'},
       r_email: [{EMAIL: 'zklee@hotmail.com', TYPE: 'private', PRIMARY:1},
@@ -326,7 +349,7 @@ function getInstanceByID(idAttr, callback) {
                    TYPE: 'Born Place', PRIMARY:0}],
       r_employee: {USER_ID: 'DH001', COMPANY:'Darkhouse', DEPARTMENT: 'Development', TITLE: 'Developer', GENDER:'Male'},
       relationships:[
-         {RELATIONSHIP_ID: 'user_role', PARTNER_ENTITY_ID: 'system_role',PARTNER_ENTITY_ID: 'system_role',
+         {RELATIONSHIP_ID: 'user_role', PARTNER_ENTITY_ID: 'system_role',PARTNER_ROLE_ID: 'system_role',
             values:[{INSTANCE_GUID: '5F50DE92743683E1ED7F964E5B9F6167',
                        VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2030-12-31 00:00:00'}]
            }]
@@ -468,7 +491,7 @@ function getInstancePieceByGUID(instanceGUID, piece) {
  *   relation1: [{action: 'add', a: '1', b: '2'}, {action: 'delete', a: '3', b: '4'}],
  *   relation2: {c: '3', b: '4'}, ... ,
  *   relationships:[
- *     {RELATIONSHIP_ID: 'user_role', PARTNER_ENTITY_ID: 'system_role',
+ *     {RELATIONSHIP_ID: 'user_role', PARTNER_ROLE_ID: 'system_role', PARTNER_ENTITY_ID: 'system_role',
  *      values:[{INSTANCE_GUID: '8BFB602731CBCD2090D7F9347957C4C5',
  *               VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2030-12-31 00:00:00'}]
  *     }]
@@ -832,11 +855,7 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
         results = _generateInsertSingleRelationSQL(relationMeta, value, instanceGUID);
         break;
       case 'update':
-        relationMeta.ASSOCIATIONS.forEach(function(association){
-          if(association.FOREIGN_KEY_CHECK === 1)
-            foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
-        });
-        results = _generateUpdateSingleRelationSQL(relationMeta, value);
+        results = _generateUpdateSingleRelationSQL(relationMeta, value, foreignRelations);
         break;
       case 'delete':
         if(roleRelationMeta.CARDINALITY === '[1..1]')
@@ -931,7 +950,7 @@ function _generateInsertSingleRelationSQL(relationMeta, relationRow, instanceGUI
  * @returns {Array}
  * @private
  */
-function _generateUpdateSingleRelationSQL(relationMeta, relationRow) {
+function _generateUpdateSingleRelationSQL(relationMeta, relationRow, foreignRelations) {
   let errorMessages = [];
   let updateSQLs = [];
   let updateColumns;
@@ -958,6 +977,17 @@ function _generateUpdateSingleRelationSQL(relationMeta, relationRow) {
       }else{
         updateColumns?updateColumns = updateColumns + "," + entityDB.pool.escapeId(key) + "=" + entityDB.pool.escape(value):
           updateColumns = entityDB.pool.escapeId(key) + "=" + entityDB.pool.escape(value);
+
+        const association = relationMeta.ASSOCIATIONS.find(function (association) {
+          if (association.FOREIGN_KEY_CHECK === 1) {
+            const index = association.FIELDS_MAPPING.findIndex(function (fieldMap) {
+              return fieldMap.LEFT_FIELD === key;
+            });
+            if (index !== -1) return true;
+          }
+        });
+        if (association)
+          foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: relationRow, association: association});
       }
     } else {
       errorMessages.push(message.report('ENTITY','RELATION_ATTRIBUTE_NOT_EXIST', 'E', key, relationMeta.RELATION_ID));

@@ -75,9 +75,10 @@ describe('entity tests', function () {
     })
   });
 
-  it('should create an instance of person', function (done) {
+  it.only('should create an instance of person', function (done) {
     entity.createInstance(instance,function (err, instance) {
       should(err).eql(null);
+      console.log(instance);
       done();
     });
   });
@@ -252,6 +253,7 @@ describe('entity tests', function () {
   });
 
   it('should soft delete an instance by GUID', function (done) {
+    // instance.INSTANCE_GUID = '268EF7E0877411E8899D2B99F104EFB0';
     entity.softDeleteInstanceByGUID(instance.INSTANCE_GUID, function (err) {
       should(err).eql(null);
       done();
@@ -259,6 +261,7 @@ describe('entity tests', function () {
   });
 
   it('should delete the instance from DB', function (done) {
+    // instance.INSTANCE_GUID = '268EF7E0877411E8899D2B99F104EFB0';
     entity.hardDeleteByGUID(instance.INSTANCE_GUID, function (err) {
       should(err).eql(null);
       done();
@@ -266,7 +269,7 @@ describe('entity tests', function () {
   });
 
   after('Close the MDB', function (done) {
-    // entity.entityDB.closeMDB(done);
-    done();
+    entity.entityDB.closeMDB(done);
+    //done();
   })
 });

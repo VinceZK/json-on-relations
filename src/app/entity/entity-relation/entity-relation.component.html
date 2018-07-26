@@ -1,0 +1,34 @@
+<div class="card mt-2">
+  <div class="card-header">
+    <span class="fas fa-table"></span>
+    Relation: <strong>{{entityRelation.RELATION_ID}}</strong>{{entityRelation.CARDINALITY}} in Role: <strong>{{entityRelation.ROLE_ID}}</strong>
+
+    <div *ngIf="entityRelation.CARDINALITY !== '[1..1]'" class="float-right">
+      <button *ngIf="entityRelation.CARDINALITY === '[0..1]'"
+              class="btn btn-sm btn-outline-secondary" type="button" [disabled]="readonly" (click)="deleteRelationInstance()">
+        <span class="far fa-trash-alt"></span>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary ml-2" type="button" [disabled]="readonly" (click)="addNewRelationInstance()">
+        <span class="fas fa-plus"></span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!entityRelation.EMPTY && (entityRelation.CARDINALITY === '[0..1]' || entityRelation.CARDINALITY === '[1..1]')"
+       class="card-body row" [formGroup]="formGroup">
+    <app-attribute-form class="col-6" *ngFor="let attributeControl of attributeControls" [readonly]="readonly"
+                        [attributeControl]="attributeControl" [formGroup]="formGroup">
+
+    </app-attribute-form>
+  </div>
+
+  <div
+    *ngIf="!entityRelation.EMPTY && (entityRelation.CARDINALITY === '[0..n]' || entityRelation.CARDINALITY === '[1..n]')"
+    class="card-body">
+
+    <app-attribute-table class="mt-2 mb-4" [formArray]="formGroup" [parentFormGroup]="parentFormGroup" [readonly]="readonly"
+                         [attributeControls]="attributeControls" [entityRelation]="entityRelation">
+
+    </app-attribute-table>
+  </div>
+</div>

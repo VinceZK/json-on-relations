@@ -1,0 +1,13 @@
+<div [formGroup]="formGroup">
+  <div [ngSwitch]="attributeControl.controlType">
+    <input *ngSwitchCase="'text'" [formControlName]="attributeControl.name" [id]="attributeControl.key"
+           [type]="attributeControl.type" [readonly]="isReadonly" class="form-control form-control-sm">
+
+    <select *ngSwitchCase="'dropdown'" [formControlName]="attributeControl.name" [id]="attributeControl.key">
+      <option *ngFor="let opt of attributeControl.options" [value]="opt.key">{{opt.value}}</option>
+    </select>
+  </div>
+
+  <div class="errorMessage" *ngIf="!isValid">{{attributeControl.label}} is required</div>
+</div>
+

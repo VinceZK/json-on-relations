@@ -1,0 +1,30 @@
+<table class="table table-bordered table-sm relation-table" [formGroup]="parentFormGroup">
+  <thead class="thead-light">
+  <tr>
+    <th scope="col">
+      Action
+    </th>
+    <th scope="col" *ngFor="let attributeControl of attributeControls">
+      {{attributeControl.label}}<strong *ngIf="attributeControl.primaryKey" class="primaryKey">*</strong>
+    </th>
+  </tr>
+  </thead>
+
+  <tbody [formArrayName]="entityRelation.RELATION_ID">
+    <tr *ngFor="let formGroup of formArray.controls; let i = index">
+      <td class="actions">
+        <button class="btn btn-sm" type="button">
+          <span class="fas fa-search"></span>
+        </button>
+        <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)">
+          <span class="far fa-trash-alt"></span>
+        </button>
+      </td>
+      <td *ngFor="let attributeControl of attributeControls">
+        <app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup" [readonly]="readonly">
+
+        </app-attribute>
+      </td>
+    </tr>
+  </tbody>
+</table>

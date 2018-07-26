@@ -248,7 +248,6 @@ describe('mysql connections tests', function () {
   });
 
   after('Close the MDB', function (done) {
-    // entityDB.closeMDB(done);
-    done();
+    entityDB.closeMDB(done);
   })
 });

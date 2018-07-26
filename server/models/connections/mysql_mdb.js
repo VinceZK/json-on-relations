@@ -103,7 +103,8 @@ function loadEntity(entityID, done) {
 }
 
 function _getEntityAttributes(entity, callback) {
-  let selectSQL = "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(entity.ENTITY_ID);
+  let selectSQL = "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(entity.ENTITY_ID) +
+                  " order by `ORDER`";
   pool.query(selectSQL, function (err, attrRows) {
     if (err)return callback(err, 'Get Attributes Error');
     entity.ATTRIBUTES = attrRows;
@@ -258,7 +259,8 @@ function _getRelationAssociations(relation, callback) {
 
 function _getRelationAttributes(relation, callback) {
   let selectSQL =
-    "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(relation.RELATION_ID);
+    "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(relation.RELATION_ID) +
+    " order by `ORDER`";
   pool.query(selectSQL, function (err, attrRows) {
     if (err)return callback(err, 'Get Relation Attributes Error');
 

@@ -1,0 +1,14 @@
+.primaryKey {
+  color:red;
+}
+.relation-table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  border: none;
+}
+.actions{
+  width: 5rem;
+  min-width: 5rem;
+  max-width: 6rem;
+}

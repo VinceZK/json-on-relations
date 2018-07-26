@@ -1,0 +1,48 @@
+<div class="card mt-2">
+  <div class="card-header">
+    <span class="fab fa-connectdevelop"></span> Relationship: <strong>{{relationship.RELATIONSHIP_ID}}</strong>,
+    Involved Role: <strong>{{relationship.SELF_ROLE_ID}}</strong>
+
+    <div class="float-right">
+      <button class="btn btn-sm btn-outline-secondary ml-2" type="button" [disabled]="readonly">
+        <span class="fas fa-plus"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <div class="form-group row">
+      <label class="col-2 col-form-label form-control-sm text-right" for="PARTNER_ROLE_ID1">Partner Role: </label>
+      <div class="col-4">
+        <input [value]="relationship.PARTNER_ROLE_ID" type="text" readonly class="form-control form-control-sm" id="PARTNER_ROLE_ID1"/>
+      </div>
+
+      <label class="col-2 col-form-label form-control-sm text-right" for="PARTNER_ENTITY_ID1">Partner Entity Type: </label>
+      <div class="col-4">
+        <input [value]="relationship.PARTNER_ENTITY_ID" type="text" readonly class="form-control form-control-sm" id="PARTNER_ENTITY_ID1"/>
+      </div>
+    </div>
+
+    <table class="table table-bordered table-sm mt-2 mb-4">
+      <thead class="thead-light">
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Instance GUID</th>
+        <th scope="col">Valid From</th>
+        <th scope="col">Valid To</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr *ngFor="let value of relationship.values; let i = index">
+        <th scope="row">{{i+1}}</th>
+        <td><a href="#">{{value.INSTANCE_GUID}}</a></td>
+        <td>{{value.VALID_FROM}}</td>
+        <td>{{value.VALID_TO}}</td>
+      </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>

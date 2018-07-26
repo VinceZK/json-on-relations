@@ -6,6 +6,18 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
+    msgName: "ENTITY_META_NOT_EXIST",
+    msgText: {
+      EN: {shortText: "The meta data of entity %s doesn't exist, or not loaded", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATION_META_NOT_EXIST",
+    msgText: {
+      EN: {shortText: "The meta data of relation %s doesn't exist, or not loaded", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
     msgName: "ENTITY_ID_MISSING",
     msgText: {
       EN: {shortText: "There is no ENTITY_ID provided", longText: "dummy"}
