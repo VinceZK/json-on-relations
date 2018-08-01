@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
-import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship} from '../entity';
+import {Attribute, Entity, EntityMeta, EntityRelation, Involve, RelationMeta, Relationship, RelationshipMeta} from '../entity';
 import {forkJoin} from 'rxjs';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from '../attribute/attribute-control.service';
 import {MessageService} from 'ui-message/dist/message';
 import {msgStore} from '../msgStore';
@@ -20,6 +20,8 @@ export class EntityComponent implements OnInit {
   entityRelations: EntityRelation[];
   formGroup: FormGroup;
   readonly = true;
+  isModalShown = false;
+  toBeAddRelationship: Relationship;
 
   constructor(private fb: FormBuilder,
               private attributeControlService: AttributeControlService,
@@ -27,6 +29,7 @@ export class EntityComponent implements OnInit {
               private entityService: EntityService) {
     this.formGroup = this.fb.group({});
     this.messageService.setMessageStore(msgStore, 'EN');
+    this.toBeAddRelationship = new Relationship();
   }
 
   ngOnInit() {
@@ -45,22 +48,64 @@ export class EntityComponent implements OnInit {
     });
   }
 
+  get displayModal() {return this.isModalShown ? 'block' : 'none'; }
+
   toggleEditDisplay(): void {
     this.readonly = !this.readonly;
   }
 
+  closeAddRelationshipModal(): void {
+    this.isModalShown = false;
+  }
+
+  openAddRelationshipModal(): void {
+    this.toBeAddRelationship = new Relationship();
+    this.isModalShown = true;
+  }
+
+  addRelationship(): void {
+    this.entity.relationships.push(this.toBeAddRelationship);
+    this.isModalShown = false;
+  }
+
+  getRelationshipsMeta(roleID: string): RelationshipMeta[] {
+    const roleMeta = this.entityMeta.ROLES.find(role => role.ROLE_ID === roleID);
+    return roleMeta.RELATIONSHIPS;
+  }
+
+  getRelationshipInvolvesMeta(roleID: string, relationshipID: string): Involve[] {
+    const roleMeta = this.entityMeta.ROLES.find(role => role.ROLE_ID === roleID);
+    const relationshipMeta = roleMeta.RELATIONSHIPS.find(relationship => relationship.RELATIONSHIP_ID === relationshipID);
+    return relationshipMeta.INVOLVES.filter(involve => involve.ROLE_ID !== roleID);
+  }
+
+  getPartnerEntityType(partnerRoleID: string): string[] {
+    return partnerRoleID ? ['system_role', 'system_menu'] : [];
+  }
+
+  getRelationshipMeta(relationshipID: string): RelationshipMeta {
+    let relationshipIndex = -1;
+    const roleIndex = this.entityMeta.ROLES.findIndex( role => {
+      relationshipIndex =
+        role.RELATIONSHIPS.findIndex(relationship => relationship.RELATIONSHIP_ID === relationshipID);
+      if (relationshipIndex !== -1) {
+        return true;
+      }
+    });
+
+    return this.entityMeta.ROLES[roleIndex].RELATIONSHIPS[relationshipIndex];
+  }
+
   saveEntity(): void {
+    this.messageService.clearMessages();
     this._composeChangedEntity();
     console.log(this.changedEntity);
 
-    this.entityService.changeEntityInstance(this.changedEntity).subscribe(
-      data => {
+    this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         if (data['ENTITY_ID']) {
           this.readonly = true;
           this.entity = data;
-          console.log(this.entity);
           this.formGroup.reset(this.formGroup.value);
-          console.log(this.formGroup);
           this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
         } else {
           if (data instanceof Array) {
@@ -69,6 +114,7 @@ export class EntityComponent implements OnInit {
             this.messageService.report(data);
           }
         }
+        window.scroll(0, 0);
       }
     );
   }
@@ -93,6 +139,27 @@ export class EntityComponent implements OnInit {
         this._composeChangedMultiValueRelation(key, control.controls);
       }
     });
+
+    const changedRelationships = [];
+    this.entity.relationships.forEach(relationship => {
+      const changedRelationship = new Relationship();
+      changedRelationship.RELATIONSHIP_ID = relationship.RELATIONSHIP_ID;
+      changedRelationship.PARTNER_ENTITY_ID = relationship.PARTNER_ENTITY_ID;
+      changedRelationship.PARTNER_ROLE_ID = relationship.PARTNER_ROLE_ID;
+      changedRelationship.SELF_ROLE_ID = relationship.SELF_ROLE_ID;
+      changedRelationship.values = [];
+      relationship.values.forEach(value => {
+        if (value.action) {
+          changedRelationship.values.push(value);
+        }
+      });
+      if ( changedRelationship.values.length > 0 ) {
+        changedRelationships.push(changedRelationship);
+      }
+    });
+    if ( changedRelationships.length > 0 ) {
+      this.changedEntity.relationships = changedRelationships;
+    }
   }
 
   _composeChangedPropertyValue(key, control: FormControl) {

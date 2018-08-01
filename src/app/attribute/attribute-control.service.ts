@@ -21,7 +21,8 @@ export class AttributeControlService {
         name: attribute.ATTR_NAME,
         label: attribute.ATTR_NAME,
         primaryKey: attribute.PRIMARY_KEY,
-        unique: attribute.UNIQUE
+        unique: attribute.UNIQUE,
+        autoIncrement: attribute.AUTO_INCREMENT
       }));
     });
     return attributeControls;

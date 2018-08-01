@@ -4,6 +4,7 @@ export class AttributeBase<T> {
   label: string;
   primaryKey: boolean;
   unique: boolean;
+  autoIncrement: boolean;
   controlType: string;
 
   constructor(options: {
@@ -12,6 +13,7 @@ export class AttributeBase<T> {
     label?: string,
     primaryKey?: boolean,
     unique?: boolean,
+    autoIncrement?: boolean,
     controlType?: string
   } = {}) {
     this.key = options.key || '';
@@ -19,6 +21,7 @@ export class AttributeBase<T> {
     this.label = options.label || '';
     this.primaryKey = options.primaryKey;
     this.unique = options.unique;
+    this.autoIncrement = options.autoIncrement;
     this.controlType = options.controlType || '';
   }
 }

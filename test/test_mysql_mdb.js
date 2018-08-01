@@ -27,7 +27,7 @@ describe('mysql connections tests', function () {
    *                   {RELATION_ID: 'r_email', CARDINALITY: '[1..n]'},
    *                   {RELATION_ID: 'r_user', CARDINALITY: '[1..1]'}],
    *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'user_role',  RELATIONSHIP_DESC: 'A system user has multiple use roles',
-   *                         VALID_PERIOD: 3162240000,
+   *                         VALID_PERIOD: 3162240000, ATTRIBUTES: [], UNIQUE_ATTRIBUTE_INDICES: [], ATTRIBUTE_INDICES: [],
    *                         INVOLVES: [RowDataPacket { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
    *                                    RowDataPacket { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
    *     }
@@ -55,6 +55,7 @@ describe('mysql connections tests', function () {
    */
   describe('#loadEntitye(person)', function () {
     it('should have the person entity', function () {
+      // console.log(entityDB.getEntityMeta('person').ROLES[1].RELATIONSHIPS[0]);
       entityDB.entities.length.should.eql(1);
       entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
       entityDB.getEntityMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'}]);
@@ -66,7 +67,8 @@ describe('mysql connections tests', function () {
             { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
             { RELATION_ID: 'r_user', CARDINALITY: '[1..1]' }]}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep( [{RELATIONSHIPS:
-        [{ RELATIONSHIP_ID: 'user_role',  RELATIONSHIP_DESC: 'A system user has multiple system roles', VALID_PERIOD: 3162240000,
+        [{ RELATIONSHIP_ID: 'rs_user_role',  RELATIONSHIP_DESC: 'A system user has multiple system roles',
+          VALID_PERIOD: 3162240000, ATTRIBUTES:[{ATTR_NAME: 'SYNCED'}],ATTRIBUTE_INDICES:[{ATTR_NAME: 'SYNCED',}],
           INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' },
                       { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]}]);
     });

@@ -18,5 +18,5 @@ export class AttributeComponent implements OnInit {
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
   get isValid() { return this.formGroup.controls[this.attributeControl.name].valid; }
-  get isReadonly() { return this.readonly }
+  get isReadonly() { return this.readonly || this.attributeControl.autoIncrement; }
 }

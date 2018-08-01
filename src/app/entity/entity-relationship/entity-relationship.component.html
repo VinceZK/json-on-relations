@@ -4,7 +4,8 @@
     Involved Role: <strong>{{relationship.SELF_ROLE_ID}}</strong>
 
     <div class="float-right">
-      <button class="btn btn-sm btn-outline-secondary ml-2" type="button" [disabled]="readonly">
+      <button class="btn btn-sm btn-outline-secondary ml-2" type="button"
+              [disabled]="readonly" (click)="showAddModal()">
         <span class="fas fa-plus"></span>
       </button>
     </div>
@@ -27,22 +28,83 @@
     <table class="table table-bordered table-sm mt-2 mb-4">
       <thead class="thead-light">
       <tr>
-        <th scope="col">#</th>
+        <th scope="col">Action</th>
         <th scope="col">Instance GUID</th>
         <th scope="col">Valid From</th>
         <th scope="col">Valid To</th>
+        <th scope="col">Validity</th>
       </tr>
       </thead>
 
       <tbody>
       <tr *ngFor="let value of relationship.values; let i = index">
-        <th scope="row">{{i+1}}</th>
+        <td class="actions">
+          <button class="btn btn-sm" type="button" title="Update Relationship">
+            <span *ngIf="readonly" class="fas fa-search"></span>
+            <span *ngIf="!readonly" class="fas fa-pen"></span>
+          </button>
+          <button *ngIf="value.action === 'add'" class="btn btn-sm" type="button"
+                  [disabled]="readonly" (click)="deleteRelationship(i)">
+            <span class="far fa-trash-alt"></span>
+          </button>
+        </td>
         <td><a href="#">{{value.INSTANCE_GUID}}</a></td>
         <td>{{value.VALID_FROM}}</td>
         <td>{{value.VALID_TO}}</td>
+        <td class="dk-relationship-validity">
+          <div *ngIf="value.action === 'add'">
+            <span class="badge badge-primary">New</span>
+          </div>
+          <div *ngIf="value.VALID_TO > currentTime && value.VALID_FROM <= currentTime && !value.action">
+            <span class="badge badge-success">Valid</span>
+          </div>
+          <div *ngIf="value.VALID_TO <= currentTime || value.VALID_FROM > currentTime">
+            <span class="badge badge-danger">Invalid</span>
+          </div>
+        </td>
       </tr>
       </tbody>
     </table>
 
+  </div>
+</div>
+
+<div class="modal fade" [ngClass]="{'show': isModalShown}" [ngStyle]="{'display': displayModal}"
+     id="addRelationshipInstanceModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addRelationshipInstance">Add Relationship Instance</h5>
+        <button type="button" class="close" (click)="closeAddModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <dk-message></dk-message>
+        <form>
+          <div class="form-group">
+            <label for="entity-instance-guid" class="col-form-label form-control-sm">
+              Instance GUID<strong class="primaryKey">*</strong>:
+            </label>
+            <input type="text" class="form-control form-control-sm" id="entity-instance-guid"
+                   name="entity-instance-guid" [(ngModel)]="toBeAddedValue.INSTANCE_GUID">
+          </div>
+          <div class="form-group">
+            <label for="valid-from" class="col-form-label form-control-sm">Valid From:</label>
+            <input type="text" class="form-control form-control-sm" id="valid-from"
+                   name="valid-from" [(ngModel)]="toBeAddedValue.VALID_FROM">
+          </div>
+          <div class="form-group">
+            <label for="valid-to" class="col-form-label form-control-sm">Valid To:</label>
+            <input type="text" class="form-control form-control-sm" id="valid-to"
+                   name="valid-to" [(ngModel)]="toBeAddedValue.VALID_TO">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" (click)="addRelationshipInstance()">Confirm</button>
+      </div>
+    </div>
   </div>
 </div>

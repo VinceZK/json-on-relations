@@ -84,7 +84,7 @@ function loadEntity(entityID, done) {
 
     async.parallel([
         function(callback){
-          _getEntityAttributes(entity, callback);
+          _getEntityAttributes(entity.ENTITY_ID, entity, callback);
         },
         function(callback){
           _getEntityRoles(entity,callback);
@@ -102,8 +102,16 @@ function loadEntity(entityID, done) {
   })
 }
 
-function _getEntityAttributes(entity, callback) {
-  let selectSQL = "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(entity.ENTITY_ID) +
+/**
+ * Get attribute meta of an Entity,
+ * Can also get attribute meta of a relationship
+ * @param relationID
+ * @param entity
+ * @param callback
+ * @private
+ */
+function _getEntityAttributes(relationID, entity, callback) {
+  let selectSQL = "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(relationID) +
                   " order by `ORDER`";
   pool.query(selectSQL, function (err, attrRows) {
     if (err)return callback(err, 'Get Attributes Error');
@@ -286,15 +294,23 @@ function _getRelationships(role, callback) {
         RELATIONSHIP_DESC: ele.RELATIONSHIP_DESC,
         VALID_PERIOD: ele.VALID_PERIOD
       };
-      let selectSQL =
-        "select ROLE_ID, CARDINALITY from RELATIONSHIP_INVOLVES where RELATIONSHIP_ID = " +
-        pool.escape(relationship.RELATIONSHIP_ID);
-      pool.query(selectSQL, function (err, involves) {
-        if (err) return callback(err, 'Get Relationship Involves Error');
-        relationship.INVOLVES = involves;
-        role.RELATIONSHIPS.push(relationship);
-        callback(null);
-      })
+
+      async.parallel([
+          function(callback){
+            _getEntityAttributes(relationship.RELATIONSHIP_ID, relationship, callback);
+          },
+          function(callback){
+            _getRelationshipInvolves(relationship, callback);
+          }],
+        function (err, parallelResults) {
+          if(err){
+            debug("%s.\n" +
+              "Error detail: %s \n", JSON.stringify(parallelResults), err);
+            return callback(err, relationship.RELATIONSHIP_ID);
+          }
+          role.RELATIONSHIPS.push(relationship);
+          callback(null);
+        });
     }, function (err, results) {
       if(err){
         debug("%s.\n" +
@@ -304,6 +320,16 @@ function _getRelationships(role, callback) {
       callback(null);
     });
   });
+}
+
+function _getRelationshipInvolves(relationship, callback) {
+  let selectSQL = "select ROLE_ID, CARDINALITY from RELATIONSHIP_INVOLVES where RELATIONSHIP_ID = " +
+    pool.escape(relationship.RELATIONSHIP_ID);
+  pool.query(selectSQL, function (err, involves) {
+    if (err) return callback(err, 'Get Relationship Involves Error');
+    relationship.INVOLVES = involves;
+    callback(null);
+  })
 }
 
 function _modifyEntities(entity){

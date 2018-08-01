@@ -1,7 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FormArray, FormGroup} from '@angular/forms';
 import {AttributeBase} from '../attribute-base';
-import {st} from '@angular/core/src/render3';
 import {EntityRelation} from '../../entity';
 
 @Component({

@@ -148,9 +148,9 @@ module.exports = {
      * @param seconds
      * @returns {*}
      */
-    getFutureDateTime:function(seconds){
+    getFutureDateTime:function(seconds, formatStr){
         var currentDate = new Date();
-        return currentDate.DateAdd('s',seconds).Format(null);
+        return currentDate.DateAdd('s',seconds).Format(formatStr);
     },
 
     /**

@@ -14,7 +14,8 @@
     <tr *ngFor="let formGroup of formArray.controls; let i = index">
       <td class="actions">
         <button class="btn btn-sm" type="button">
-          <span class="fas fa-search"></span>
+          <span *ngIf="readonly" class="fas fa-search"></span>
+          <span *ngIf="!readonly" class="fas fa-pen"></span>
         </button>
         <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)">
           <span class="far fa-trash-alt"></span>

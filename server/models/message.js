@@ -84,15 +84,87 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
-    msgName: "RELATIONSHIP_INSTANCE_SINGULAR",
+    msgName: "INVOLVED_ROLE_NUMBER_INCORRECT",
     msgText: {
-      EN: {shortText: "Only one instance of role %s can be involved in relationship %s", longText: "dummy"}
+      EN: {shortText: "The relationship %s involves %s roles, however, %s roles are given.", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_ACTION_INVALID",
+    msgText: {
+      EN: {shortText: "Relationship %s action is missing or invalid", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_UPDATE_REDUNDANCY",
+    msgText: {
+      EN: {shortText: "Only one update statement is allowed in one request", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_INSTANCE_GUID_MISSING",
+    msgText: {
+      EN: {shortText: "You have to provide the relationship instance GUID for updating", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "PARTNER_INSTANCES_MISSING",
+    msgText: {
+      EN: {shortText: "You have to provide partner instance(s) for a new relationship", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",
     msgName: "VALID_TO_BEFORE_VALID_FROM",
     msgText: {
       EN: {shortText: "Valid To %s is before Valid From %s", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_EXTEND_BEFORE_CURRENT",
+    msgText: {
+      EN: {shortText: "You cannot extend a relationship before current time", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_DELETION_NOT_ALLOWED",
+    msgText: {
+      EN: {shortText: "The relationship is not allowed to delete", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "NEW_RELATIONSHIP_ADD_TO_BEFORE",
+    msgText: {
+      EN: {shortText: "You cannot add a new relationship before current time", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_INSTANCE_NOT_EXIST",
+    msgText: {
+      EN: {shortText: "Relationship %s doesn't exist", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_INSTANCE_OVERLAP",
+    msgText: {
+      EN: {shortText: "Relationship %s overlaps with relationship %s", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "FUTURE_RELATIONSHIP",
+    msgText: {
+      EN: {shortText: "The relationship instance %s is in future, thus cannot be expired or extended", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "CHANGE_TO_EXPIRED_RELATIONSHIP",
+    msgText: {
+      EN: {shortText: "The relationship instance %s is already expired, thus not allowed for any changes", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "NO_MIX_OF_CHANGE_ADD_OPERATION",
+    msgText: {
+      EN: {shortText: "Operation 'add' and Operations 'expire','expend',and 'delete' cannot mix use", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",

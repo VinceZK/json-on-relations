@@ -1,5 +1,3 @@
-import {st} from '@angular/core/src/render3';
-
 export class Entity {
   [key: string]: any;
   relationships?: Relationship[];
@@ -15,6 +13,8 @@ export class RelationshipInstance {
   INSTANCE_GUID: string;
   VALID_FROM: string;
   VALID_TO: string;
+  VALID_TO_BAK: string;
+  action?: string;
 }
 
 export class EntityMeta {

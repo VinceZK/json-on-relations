@@ -1,0 +1,16 @@
+.dk-relationship-validity {
+  width: 9rem;
+  max-width: 9rem;
+  min-width: 9rem;
+}
+.dk-btn-relationship {
+  padding: 0rem .5rem;
+}
+.primaryKey {
+  color: red;
+}
+.actions{
+  width: 5rem;
+  min-width: 5rem;
+  max-width: 6rem;
+}
