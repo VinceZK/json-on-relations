@@ -10,7 +10,10 @@
   color: red;
 }
 .actions{
-  width: 5rem;
-  min-width: 5rem;
-  max-width: 6rem;
+  width: 7rem;
+  min-width: 7rem;
+  max-width: 7rem;
+}
+.popoverW {
+  max-width: none;
 }

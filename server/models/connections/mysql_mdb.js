@@ -26,6 +26,7 @@ module.exports = {
 
   loadEntity: loadEntity,
   loadEntities: loadEntities,
+  listEntityID: listEntityID,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
   executeSQL: executeSQL,
@@ -102,6 +103,11 @@ function loadEntity(entityID, done) {
   })
 }
 
+function listEntityID() {
+  return _.map(this.entities, function (entity) {
+    return entity.ENTITY_ID;
+  })
+}
 /**
  * Get attribute meta of an Entity,
  * Can also get attribute meta of a relationship
@@ -141,7 +147,7 @@ function _getEntityRoles(entity, callback) {
     "  FROM ENTITY_ROLES AS A" +
     "  JOIN ROLE AS B" +
     "    ON A.ROLE_ID = B.ROLE_ID" +
-    "  JOIN ROLE_RELATION AS C" +
+    "  LEFT JOIN ROLE_RELATION AS C" +
     "    ON A.ROLE_ID = C.ROLE_ID" +
     " WHERE A.ENTITY_ID = " + pool.escape(entity.ENTITY_ID);
 
@@ -154,14 +160,16 @@ function _getEntityRoles(entity, callback) {
         return row.ROLE_ID === role.ROLE_ID;
       });
       if (idx === -1) {
-        groupedRoles.push({
-          ROLE_ID: role.ROLE_ID,
-          ROLE_DESC: role.ROLE_DESC,
-          RELATIONS: [{RELATION_ID: role.RELATION_ID, CARDINALITY: role.CARDINALITY}],
-          RELATIONSHIPS: []
-        });
+        let roleInstance = {
+            ROLE_ID: role.ROLE_ID,
+            ROLE_DESC: role.ROLE_DESC,
+            RELATIONS: [],
+            RELATIONSHIPS: []
+          };
+        if (role.RELATION_ID) roleInstance.RELATIONS.push({RELATION_ID: role.RELATION_ID, CARDINALITY: role.CARDINALITY});
+        groupedRoles.push(roleInstance);
       } else {
-        groupedRoles[1].RELATIONS.push({RELATION_ID: role.RELATION_ID, CARDINALITY: role.CARDINALITY});
+        groupedRoles[idx].RELATIONS.push({RELATION_ID: role.RELATION_ID, CARDINALITY: role.CARDINALITY});
       }
     });
     entity.ROLES = groupedRoles;
@@ -202,6 +210,7 @@ function _getEntityRoles(entity, callback) {
 }
 
 function _getRelation(relationID, callback) { //Get Relations and their attributes and associations
+  if (!relationID) return callback(null);
   let selectSQL = "select * from RELATION where RELATION_ID = " + pool.escape(relationID);
   pool.query(selectSQL, function (err, relationRows) {
     if (err)return callback(err, 'Get Relations Error');

@@ -4,7 +4,7 @@
     Relation: <strong>{{entityRelation.RELATION_ID}}</strong>{{entityRelation.CARDINALITY}} in Role: <strong>{{entityRelation.ROLE_ID}}</strong>
 
     <div *ngIf="entityRelation.CARDINALITY !== '[1..1]'" class="float-right">
-      <button *ngIf="entityRelation.CARDINALITY === '[0..1]'"
+      <button *ngIf="entityRelation.CARDINALITY === '[0..1]' && !entityRelation.EMPTY"
               class="btn btn-sm btn-outline-secondary" type="button" [disabled]="readonly" (click)="deleteRelationInstance()">
         <span class="far fa-trash-alt"></span>
       </button>

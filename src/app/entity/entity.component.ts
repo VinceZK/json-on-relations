@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
-import {Attribute, Entity, EntityMeta, EntityRelation, Involve, RelationMeta, Relationship, RelationshipMeta} from '../entity';
+import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipMeta} from '../entity';
 import {forkJoin} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from '../attribute/attribute-control.service';
@@ -13,6 +13,8 @@ import {msgStore} from '../msgStore';
   styleUrls: ['./entity.component.css']
 })
 export class EntityComponent implements OnInit {
+  entityIDs;
+  newEntityID;
   entityMeta: EntityMeta;
   entity: Entity;
   changedEntity: Entity;
@@ -20,7 +22,8 @@ export class EntityComponent implements OnInit {
   entityRelations: EntityRelation[];
   formGroup: FormGroup;
   readonly = true;
-  isModalShown = false;
+  isRelationshipModalShown = false;
+  isNewModelShown = false;
   toBeAddRelationship: Relationship;
 
   constructor(private fb: FormBuilder,
@@ -34,7 +37,7 @@ export class EntityComponent implements OnInit {
 
   ngOnInit() {
     const entityMeta$ = this.entityService.getEntityMeta('person');
-    const entityInstance$ = this.entityService.getEntityInstance('7285C9E08D5411E8AA7815A2B5776E65');
+    const entityInstance$ = this.entityService.getEntityInstance('64FA60509D6811E8BFADE5B8C5C70BD8');
     const relationMetas$ = this.entityService.getRelationMetaOfEntity('person');
     const combined$ = forkJoin(entityMeta$, entityInstance$, relationMetas$);
 
@@ -48,39 +51,86 @@ export class EntityComponent implements OnInit {
     });
   }
 
-  get displayModal() {return this.isModalShown ? 'block' : 'none'; }
+  get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
+  get displayNewModal() {return this.isNewModelShown ? 'block' : 'none'; }
 
   toggleEditDisplay(): void {
     this.readonly = !this.readonly;
   }
 
-  closeAddRelationshipModal(): void {
-    this.isModalShown = false;
+  saveEntity(): void {
+    this.messageService.clearMessages();
+    this._composeChangedEntity();
+    console.log(this.changedEntity);
+
+    if (this.entity.INSTANCE_GUID) {
+      this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
+        this._postActivityAfterSaving(data);
+      });
+    } else {
+      this.entityService.createEntityInstance(this.changedEntity).subscribe(data => {
+        this._postActivityAfterSaving(data);
+      });
+    }
+    window.scroll(0, 0);
+  }
+
+  newEntity(): void {
+    this.entity = new Entity();
+    this.entity.ENTITY_ID = this.newEntityID;
+    this.entity.relationships = [];
+    this.formGroup = this.fb.group({});
+    this._createFormFromMeta();
+    this.readonly = false;
+    this.isNewModelShown = false;
+  }
+
+  openNewModal(): void {
+    const entityIDs$ = this.entityService.listEntityID();
+    entityIDs$.subscribe(value => {
+      this.entityIDs = value;
+      this.newEntityID = this.entity.ENTITY_ID;
+      this.isNewModelShown = true;
+    });
+  }
+
+  closeNewModal(): void {
+    this.isNewModelShown = false;
   }
 
   openAddRelationshipModal(): void {
+    this.messageService.clearMessages();
     this.toBeAddRelationship = new Relationship();
-    this.isModalShown = true;
+    this.isRelationshipModalShown = true;
+  }
+
+  closeAddRelationshipModal(): void {
+    this.isRelationshipModalShown = false;
+  }
+
+  clearRelationshipID(): void {
+    delete this.toBeAddRelationship.RELATIONSHIP_ID;
   }
 
   addRelationship(): void {
-    this.entity.relationships.push(this.toBeAddRelationship);
-    this.isModalShown = false;
+    if (!this.toBeAddRelationship.RELATIONSHIP_ID) {
+      this.messageService.reportMessage('RELATIONSHIP', 'RELATIONSHIP_MANDATORY', 'E');
+      return;
+    }
+    const index = this.entity.relationships.findIndex(
+      relationship => relationship.RELATIONSHIP_ID === this.toBeAddRelationship.RELATIONSHIP_ID);
+    if (index !== -1) {
+      this.messageService.reportMessage(
+        'RELATIONSHIP', 'RELATIONSHIP_ALREADY_EXISTS', 'E', this.toBeAddRelationship.RELATIONSHIP_ID);
+    } else {
+      this.entity.relationships.push(this.toBeAddRelationship);
+      this.isRelationshipModalShown = false;
+    }
   }
 
   getRelationshipsMeta(roleID: string): RelationshipMeta[] {
     const roleMeta = this.entityMeta.ROLES.find(role => role.ROLE_ID === roleID);
     return roleMeta.RELATIONSHIPS;
-  }
-
-  getRelationshipInvolvesMeta(roleID: string, relationshipID: string): Involve[] {
-    const roleMeta = this.entityMeta.ROLES.find(role => role.ROLE_ID === roleID);
-    const relationshipMeta = roleMeta.RELATIONSHIPS.find(relationship => relationship.RELATIONSHIP_ID === relationshipID);
-    return relationshipMeta.INVOLVES.filter(involve => involve.ROLE_ID !== roleID);
-  }
-
-  getPartnerEntityType(partnerRoleID: string): string[] {
-    return partnerRoleID ? ['system_role', 'system_menu'] : [];
   }
 
   getRelationshipMeta(relationshipID: string): RelationshipMeta {
@@ -96,37 +146,14 @@ export class EntityComponent implements OnInit {
     return this.entityMeta.ROLES[roleIndex].RELATIONSHIPS[relationshipIndex];
   }
 
-  saveEntity(): void {
-    this.messageService.clearMessages();
-    this._composeChangedEntity();
-    console.log(this.changedEntity);
-
-    this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
-        if (data['ENTITY_ID']) {
-          this.readonly = true;
-          this.entity = data;
-          this.formGroup.reset(this.formGroup.value);
-          this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
-        } else {
-          if (data instanceof Array) {
-            data.forEach(err => this.messageService.add(err));
-          } else {
-            this.messageService.report(data);
-          }
-        }
-        window.scroll(0, 0);
-      }
-    );
-  }
-
   _composeChangedEntity() {
     if (this.formGroup.dirty === false) {
       return; // Nothing is changed
     }
 
-    this.changedEntity = {};
-    this.changedEntity['ENTITY_ID'] = this.entity['ENTITY_ID'];
-    this.changedEntity['INSTANCE_GUID'] = this.entity['INSTANCE_GUID'];
+    this.changedEntity = new Entity();
+    this.changedEntity.ENTITY_ID = this.entity.ENTITY_ID;
+    this.changedEntity.INSTANCE_GUID = this.entity.INSTANCE_GUID;
 
     Object.keys(this.formGroup.controls).forEach(key => {
       const control = this.formGroup.controls[key];
@@ -134,9 +161,11 @@ export class EntityComponent implements OnInit {
       if (control instanceof FormControl && control.dirty === true) {
         this._composeChangedPropertyValue(key, control);
       } else if (control instanceof FormGroup && control.dirty === true) {
-        this._composeChangedSingleValueRelation(key, control.controls);
+        this.entity.INSTANCE_GUID ? this._composeChangedSingleValueRelation(key, control.controls) :
+                                    this._composeNewSingleValueRelation(key, control.controls);
       } else if (control instanceof FormArray && control.dirty === true) {
-        this._composeChangedMultiValueRelation(key, control.controls);
+        this.entity.INSTANCE_GUID ? this._composeChangedMultiValueRelation(key, control.controls) :
+                                    this._composeNewMultiValueRelation(key, control.controls);
       }
     });
 
@@ -144,15 +173,23 @@ export class EntityComponent implements OnInit {
     this.entity.relationships.forEach(relationship => {
       const changedRelationship = new Relationship();
       changedRelationship.RELATIONSHIP_ID = relationship.RELATIONSHIP_ID;
-      changedRelationship.PARTNER_ENTITY_ID = relationship.PARTNER_ENTITY_ID;
-      changedRelationship.PARTNER_ROLE_ID = relationship.PARTNER_ROLE_ID;
       changedRelationship.SELF_ROLE_ID = relationship.SELF_ROLE_ID;
       changedRelationship.values = [];
-      relationship.values.forEach(value => {
-        if (value.action) {
-          changedRelationship.values.push(value);
-        }
-      });
+      if (!this.entity.INSTANCE_GUID) { // Create a new entity
+        relationship.values.forEach( value => {
+           if (value.action === 'add' || value.action === 'update' || value.action === 'extend') {
+             const copyValue = { ...value };
+             copyValue['action'] = 'add';
+             changedRelationship.values.push(copyValue);
+           }
+        });
+      } else {
+        relationship.values.forEach(value => {
+          if (value.action) {
+            changedRelationship.values.push(value);
+          }
+        });
+      }
       if ( changedRelationship.values.length > 0 ) {
         changedRelationships.push(changedRelationship);
       }
@@ -195,6 +232,17 @@ export class EntityComponent implements OnInit {
     }
   }
 
+  _composeNewSingleValueRelation(key, attrControls) {
+    if (Object.keys(attrControls).length === 0) { return; }
+    this.changedEntity[key] = {};
+    Object.keys(attrControls).forEach(attrName => {
+      const attrControl = attrControls[attrName];
+      if (attrControl.dirty === true) {
+        this.changedEntity[key][attrName] = attrControl.value;
+      }
+    });
+  }
+
   _composeChangedMultiValueRelation(key, relationControls) {
     const originalLines = this.entity[key];
     const primaryKeys = this._getPrimaryKeys(key);
@@ -216,7 +264,6 @@ export class EntityComponent implements OnInit {
           changedLine['action'] = 'add';
         } else {
           changedLine['action'] = 'update';
-          // originalLines.splice(index, 1);
         }
 
         Object.keys(relationFormGroup.controls).forEach(attrName => {
@@ -251,6 +298,24 @@ export class EntityComponent implements OnInit {
     });
   }
 
+  _composeNewMultiValueRelation(key, relationControls) {
+    if (relationControls.length === 0) { return; }
+
+    this.changedEntity[key] = [];
+    relationControls.forEach(relationFormGroup => {
+      const changedLine = {};
+      if (relationFormGroup.dirty) {
+        Object.keys(relationFormGroup.controls).forEach(attrName => {
+          const attrControl = relationFormGroup.controls[attrName];
+          if (attrControl.dirty === true) {
+            changedLine[attrName] = attrControl.value;
+          }
+        });
+        this.changedEntity[key].push(changedLine);
+      }
+    });
+  }
+
   _getPrimaryKeys(relation): Attribute[] {
     return this.entityRelations.find(ele => {
       return ele.RELATION_ID === relation;
@@ -265,16 +330,41 @@ export class EntityComponent implements OnInit {
 
     this.entityRelations = this._getEntityRelations();
     this.entityRelations.forEach(relation => {
-      if (!relation.EMPTY) {
-        if (relation.CARDINALITY === '[0..1]' || relation.CARDINALITY === '[1..1]') {
+      switch (relation.CARDINALITY) {
+        case '[0..1]':
+          if (relation.EMPTY) {
+            this.entity[relation.RELATION_ID] = [{}];
+            this.formGroup.addControl(relation.RELATION_ID, new FormGroup({}));
+          } else {
+            this.formGroup.addControl(relation.RELATION_ID,
+              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0]));
+          }
+          break;
+        case '[1..1]':
+          if (relation.EMPTY) {
+            this.entity[relation.RELATION_ID] = [{}];
+            relation.EMPTY = false;
+          }
           this.formGroup.addControl(relation.RELATION_ID,
-            this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0]));
-        } else {
+              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0]));
+          break;
+        case '[0..n]':
+          if (relation.EMPTY) {
+            this.entity[relation.RELATION_ID] = [{}];
+            this.formGroup.addControl(relation.RELATION_ID, new FormArray([]));
+          } else {
+            this.formGroup.addControl(relation.RELATION_ID,
+              this._convertToFormArray(relation.ATTRIBUTES, this.entity[relation.RELATION_ID]));
+          }
+          break;
+        case '[1..n]':
+          if (relation.EMPTY) {
+            this.entity[relation.RELATION_ID] = [{}];
+            relation.EMPTY = false;
+          }
           this.formGroup.addControl(relation.RELATION_ID,
             this._convertToFormArray(relation.ATTRIBUTES, this.entity[relation.RELATION_ID]));
-        }
-      } else {
-        this.formGroup.addControl(relation.RELATION_ID, new FormGroup({}));
+          break;
       }
     });
   }
@@ -306,4 +396,20 @@ export class EntityComponent implements OnInit {
     });
     return new FormArray(formArray);
   }
+
+  _postActivityAfterSaving(data: any) {
+    if (data['ENTITY_ID']) {
+      this.readonly = true;
+      this.entity = data;
+      this.formGroup.reset(this.formGroup.value); // TODO Address ID doesn't get refreshed
+      this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
+    } else {
+      if (data instanceof Array) {
+        data.forEach(err => this.messageService.add(err));
+      } else {
+        this.messageService.report(data);
+      }
+    }
+  }
+
 }

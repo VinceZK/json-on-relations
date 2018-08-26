@@ -21,7 +21,7 @@
     <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
       <span class="fas fa-copy"> Copy</span>
     </button>
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="openNewModal()">
       <span class="fas fa-file"> New</span>
     </button>
     <button class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
@@ -71,12 +71,11 @@
 
   </app-entity-relationship>
 
-  <button class="btn btn-sm btn-outline-secondary my-2" type="button"
-          [disabled]="readonly" (click)="openAddRelationshipModal()">
+  <button type="button" class="btn btn-sm btn-outline-secondary my-2" [disabled]="readonly" (click)="openAddRelationshipModal()">
     <span class="fas fa-plus "> Add Relationship</span>
   </button>
 
-  <div class="modal fade" [ngClass]="{'show': isModalShown}" [ngStyle]="{'display': displayModal}"
+  <div class="modal fade" [ngClass]="{'show': isRelationshipModalShown}" [ngStyle]="{'display': displayRelationshipModal}"
        id="addRelationshipModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -87,11 +86,12 @@
           </button>
         </div>
         <div class="modal-body">
+          <dk-message></dk-message>
           <form>
             <div class="form-group">
               <label for="self_role" class="col-form-label form-control-sm">Role:</label>
               <select id="self_role" name="self_role" class="form-control form-control-sm"
-                      required [(ngModel)]="toBeAddRelationship.SELF_ROLE_ID">
+                      required [(ngModel)]="toBeAddRelationship.SELF_ROLE_ID" (change)="clearRelationshipID()">
                 <option *ngFor="let role of entityMeta.ROLES" [value]="role.ROLE_ID">{{role.ROLE_ID}}</option>
               </select>
             </div>
@@ -103,22 +103,6 @@
                         [value]="relationship.RELATIONSHIP_ID">{{relationship.RELATIONSHIP_ID}}</option>
               </select>
             </div>
-            <div class="form-group" *ngIf="toBeAddRelationship.RELATIONSHIP_ID">
-              <label for="partner_role" class="col-form-label form-control-sm">Partner Role:</label>
-              <select id="partner_role" name="partner_role" class="form-control form-control-sm"
-                      required [(ngModel)]="toBeAddRelationship.PARTNER_ROLE_ID">
-                <option *ngFor="let involve of getRelationshipInvolvesMeta(toBeAddRelationship.SELF_ROLE_ID, toBeAddRelationship.RELATIONSHIP_ID)"
-                        [value]="involve.ROLE_ID">{{involve.ROLE_ID}}</option>
-              </select>
-            </div>
-            <div class="form-group" *ngIf="toBeAddRelationship.PARTNER_ROLE_ID">
-              <label for="partner_entity" class="col-form-label form-control-sm">Partner Entity:</label>
-              <select id="partner_entity" name="partner_entity" class="form-control form-control-sm"
-                      required [(ngModel)]="toBeAddRelationship.PARTNER_ENTITY_ID">
-                <option *ngFor="let entity of getPartnerEntityType(toBeAddRelationship.PARTNER_ROLE_ID)"
-                        [value]="entity">{{entity}}</option>
-              </select>
-            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -128,4 +112,35 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" [ngClass]="{'show': isNewModelShown}" [ngStyle]="{'display': displayNewModal}"
+       id="newEntityModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newEntity">New Entity</h5>
+          <button type="button" class="close" (click)="closeNewModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="entity_id" class="col-form-label form-control-sm">Entity Type:</label>
+              <select id="entity_id" name="self_role" class="form-control form-control-sm"
+                      required [(ngModel)]="newEntityID">
+                <option *ngFor="let entityID of entityIDs" [value]="entityID">{{entityID}}</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" (click)="closeNewModal()">Cancel</button>
+          <button type="button" class="btn btn-sm btn-primary" (click)="newEntity()">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+

@@ -10,7 +10,7 @@ Cache-Control: no-cache
 
 ###
 
-GET http://localhost:3001/api/entity/instance/268EF7E0877411E8899D2B99F104EFB0
+GET http://localhost:3001/api/entity/instance/64FA60509D6811E8BFADE5B8C5C70BD8
 Accept: */*
 Cache-Control: no-cache
 
@@ -23,6 +23,12 @@ Cache-Control: no-cache
 ###
 
 GET http://localhost:3001/api/relation/meta/entity/person
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://localhost:3001/api/entity/entityIDs
 Accept: */*
 Cache-Control: no-cache
 

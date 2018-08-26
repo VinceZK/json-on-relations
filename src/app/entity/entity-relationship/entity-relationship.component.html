@@ -5,7 +5,7 @@
 
     <div class="float-right">
       <button class="btn btn-sm btn-outline-secondary ml-2" type="button"
-              [disabled]="readonly" (click)="showAddModal()">
+              [disabled]="readonly" (click)="showModalAdd()">
         <span class="fas fa-plus"></span>
       </button>
     </div>
@@ -13,23 +13,11 @@
 
   <div class="card-body">
 
-    <div class="form-group row">
-      <label class="col-2 col-form-label form-control-sm text-right" for="PARTNER_ROLE_ID1">Partner Role: </label>
-      <div class="col-4">
-        <input [value]="relationship.PARTNER_ROLE_ID" type="text" readonly class="form-control form-control-sm" id="PARTNER_ROLE_ID1"/>
-      </div>
-
-      <label class="col-2 col-form-label form-control-sm text-right" for="PARTNER_ENTITY_ID1">Partner Entity Type: </label>
-      <div class="col-4">
-        <input [value]="relationship.PARTNER_ENTITY_ID" type="text" readonly class="form-control form-control-sm" id="PARTNER_ENTITY_ID1"/>
-      </div>
-    </div>
-
     <table class="table table-bordered table-sm mt-2 mb-4">
       <thead class="thead-light">
       <tr>
         <th scope="col">Action</th>
-        <th scope="col">Instance GUID</th>
+        <th scope="col">Relationship GUID</th>
         <th scope="col">Valid From</th>
         <th scope="col">Valid To</th>
         <th scope="col">Validity</th>
@@ -39,29 +27,72 @@
       <tbody>
       <tr *ngFor="let value of relationship.values; let i = index">
         <td class="actions">
-          <button class="btn btn-sm" type="button" title="Update Relationship">
-            <span *ngIf="readonly" class="fas fa-search"></span>
-            <span *ngIf="!readonly" class="fas fa-pen"></span>
+          <button *ngIf="readonly || value.action === 'delete' || value.action === 'expire' || currentTime > value.VALID_TO"
+                  title="Display Relationship" class="btn btn-sm" type="button" (click)="showModalForDisplay(i)">
+            <span  class="fas fa-search"></span>
           </button>
-          <button *ngIf="value.action === 'add'" class="btn btn-sm" type="button"
-                  [disabled]="readonly" (click)="deleteRelationship(i)">
+          <button *ngIf="!readonly && value.action !== 'delete' && value.action !== 'expire' && currentTime <= value.VALID_TO" title="Change Relationship"
+                  class="btn btn-sm" type="button" (click)="showModalForChange(i)">
+            <span  class="fas fa-pen"></span>
+          </button>
+          <button *ngIf="currentTime >= value.VALID_FROM && currentTime < value.VALID_TO" title="Expire"
+                  class="btn btn-sm" type="button" [disabled]="readonly" (click)="expireRelationship(i)">
+            <span class="far fa-calendar-times"></span>
+          </button>
+          <button *ngIf="currentTime >= value.VALID_FROM && currentTime < value.VALID_TO" title="Extend"
+                  class="btn btn-sm" type="button" [disabled]="readonly" (click)="showModalForExtend(i)">
+            <span class="fas fa-expand-arrows-alt"></span>
+          </button>
+          <button *ngIf="value.action === 'add' || (currentTime < value.VALID_FROM && value.action !== 'delete')" title="Delete"
+                  class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationship(i)">
             <span class="far fa-trash-alt"></span>
           </button>
         </td>
-        <td><a href="#">{{value.INSTANCE_GUID}}</a></td>
+        <td>
+          <button type="button" class="btn btn-sm btn-link" placement="right" popoverTitle="Partner Instance(s)" triggers="manual"
+                  [ngbPopover]="popContent" popoverClass="popoverW" #p="ngbPopover" (click)="popoverPartnerInstances($event)">
+            {{value.RELATIONSHIP_INSTANCE_GUID}}
+          </button>
+        </td>
         <td>{{value.VALID_FROM}}</td>
         <td>{{value.VALID_TO}}</td>
-        <td class="dk-relationship-validity">
-          <div *ngIf="value.action === 'add'">
+        <td class="dk-relationship-validity" [ngSwitch]="getValidityStatus(value)">
+          <div *ngSwitchCase="'new'">
             <span class="badge badge-primary">New</span>
           </div>
-          <div *ngIf="value.VALID_TO > currentTime && value.VALID_FROM <= currentTime && !value.action">
-            <span class="badge badge-success">Valid</span>
+          <div *ngSwitchCase="'delete'">
+            <span class="badge badge-danger">Deleted</span>
           </div>
-          <div *ngIf="value.VALID_TO <= currentTime || value.VALID_FROM > currentTime">
-            <span class="badge badge-danger">Invalid</span>
+          <div *ngSwitchCase="'current'">
+            <span class="badge badge-success">Current</span>
+          </div>
+          <div *ngSwitchCase="'expired'">
+            <span class="badge badge-danger">Expired</span>
+          </div>
+          <div *ngSwitchCase="'future'">
+            <span class="badge badge-warning">Future</span>
           </div>
         </td>
+
+        <ng-template #popContent>
+          <table class="table table-bordered table-sm mt-2 mb-4">
+            <thead class="thead-light">
+            <tr>
+              <th scope="col">Entity</th>
+              <th scope="col">Role</th>
+              <th scope="col">Instance GUID</th>
+            </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let partnerEntity of value.PARTNER_INSTANCES">
+                <td>{{partnerEntity.ENTITY_ID}}</td>
+                <td>{{partnerEntity.ROLE_ID}}</td>
+                <td><a href="#">{{partnerEntity.INSTANCE_GUID}}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-template>
       </tr>
       </tbody>
     </table>
@@ -71,7 +102,7 @@
 
 <div class="modal fade" [ngClass]="{'show': isModalShown}" [ngStyle]="{'display': displayModal}"
      id="addRelationshipInstanceModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="addRelationshipInstance">Add Relationship Instance</h5>
@@ -82,28 +113,56 @@
       <div class="modal-body">
         <dk-message></dk-message>
         <form>
-          <div class="form-group">
-            <label for="entity-instance-guid" class="col-form-label form-control-sm">
-              Instance GUID<strong class="primaryKey">*</strong>:
-            </label>
-            <input type="text" class="form-control form-control-sm" id="entity-instance-guid"
-                   name="entity-instance-guid" [(ngModel)]="toBeAddedValue.INSTANCE_GUID">
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="valid-from" class="col-form-label form-control-sm">Valid From:</label>
+              <input type="text" class="form-control form-control-sm" id="valid-from" [readonly]="readonlyValidFrom"
+                     name="valid-from" [(ngModel)]="detailValue.VALID_FROM">
+            </div>
+            <div class="form-group col-6">
+              <label for="valid-to" class="col-form-label form-control-sm">Valid To:</label>
+              <input type="text" class="form-control form-control-sm" id="valid-to" [readonly]="readonlyValidTo"
+                     name="valid-to" [(ngModel)]="detailValue.VALID_TO">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="valid-from" class="col-form-label form-control-sm">Valid From:</label>
-            <input type="text" class="form-control form-control-sm" id="valid-from"
-                   name="valid-from" [(ngModel)]="toBeAddedValue.VALID_FROM">
-          </div>
-          <div class="form-group">
-            <label for="valid-to" class="col-form-label form-control-sm">Valid To:</label>
-            <input type="text" class="form-control form-control-sm" id="valid-to"
-                   name="valid-to" [(ngModel)]="toBeAddedValue.VALID_TO">
-          </div>
+
+          <table class="table table-bordered table-sm">
+            <thead class="thead-light">
+            <tr>
+              <th scope="col">Partner Role</th>
+              <th scope="col">Partner Entity</th>
+              <th scope="col">Instance GUID</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr *ngFor="let partnerInstance of detailValue.PARTNER_INSTANCES">
+              <td>
+                <input type="text" class="form-control form-control-sm" name="partner_role_id"
+                       readonly [(ngModel)]="partnerInstance.ROLE_ID">
+              </td>
+              <td>
+                <input type="text" class="form-control form-control-sm" name="partner_entity_id"
+                       required [(ngModel)]="partnerInstance.ENTITY_ID" [readonly]="readonlyPartner">
+              </td>
+              <td>
+                <input type="text" class="form-control form-control-sm" name="partner_instance_guid"
+                       required [(ngModel)]="partnerInstance.INSTANCE_GUID" [readonly]="readonlyPartner">
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+          <app-attribute-form class="col-6" *ngFor="let attributeControl of attributeControls" [readonly]="readonlyAttribute"
+                              [attributeControl]="attributeControl" [formGroup]="relationshipFormGroup">
+          </app-attribute-form>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-sm btn-secondary" (click)="closeAddModal()">Cancel</button>
-        <button type="button" class="btn btn-sm btn-primary" (click)="addRelationshipInstance()">Confirm</button>
+        <button type="button" class="btn btn-sm btn-primary" (click)="confirm()" [disabled]="readonly">
+          Confirm
+        </button>
       </div>
     </div>
   </div>

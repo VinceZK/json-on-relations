@@ -13,7 +13,7 @@ export class AttributeControlService {
 
   toAttributeControl(attributes: Attribute[]): AttributeBase<any>[] {
     const attributeControls: AttributeBase<any>[] = [];
-    if (!attributes) return attributeControls;
+    if (!attributes) { return attributeControls; }
     attributes.forEach(attribute => {
       // TODO convert to different UI controls according to the meta. Like boolean->checkbox, email->email, password->password
       attributeControls.push(new AttributeText({

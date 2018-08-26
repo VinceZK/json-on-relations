@@ -1,6 +1,11 @@
 const entity = require('../models/entity.js');
+const entityDB = require('../models/connections/mysql_mdb.js');
 
 module.exports = {
+  listEntityID: function (req, res) {
+    res.json(entityDB.listEntityID())
+  },
+
   getEntityMeta: function (req, res) {
     res.json(entity.getEntityMeta(req.params['entityID']))
   },
@@ -18,6 +23,16 @@ module.exports = {
 
   getRelationMetaOfEntity: function (req, res) {
     res.json(entity.getRelationMetaOfEntity(req.params['entityID']));
+  },
+  
+  createInstance: function (req, res) {
+    entity.createInstance(req.body, function (err, instance) {
+      if(err) return res.json(err);
+      entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, instance){
+        if(err)res.json(err);
+        else res.json(instance);
+      })
+    })
   },
 
   changeInstance: function (req, res) {

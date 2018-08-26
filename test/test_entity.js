@@ -2,7 +2,6 @@
  * Created by VinceZK on 06/29/18.
  */
 const entity = require('../server/models/entity.js');
-const timeUtil = require('../server/util/date_time.js');
 const _ = require('underscore');
 
 describe.only('entity tests', function () {
@@ -277,23 +276,23 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of NO_MIX_OF_CHANGE_ADD_OPERATION', function (done) {
-      instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
-          values:[
-            { action: 'expire', RELATIONSHIP_INSTANCE_GUID: '59C251A0931A11E8BC10FDF4600DED72'},
-            { action: 'add', VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2018-07-04 00:00:00', SYNCED: 0,
-              PARTNER_INSTANCES: [
-                {ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'C1D5765AFB9E92F87C936C079837842C'}
-              ]}
-          ]
-        }
-      ];
-      entity.changeInstance(instance3, function (err) {
-        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'NO_MIX_OF_CHANGE_ADD_OPERATION', msgType: 'E'} ]);
-        done();
-      })
-    });
+    // it('should report an error of NO_MIX_OF_CHANGE_ADD_OPERATION', function (done) {
+    //   instance3.relationships = [
+    //     { RELATIONSHIP_ID: 'rs_user_role',
+    //       values:[
+    //         { action: 'expire', RELATIONSHIP_INSTANCE_GUID: '59C251A0931A11E8BC10FDF4600DED72'},
+    //         { action: 'add', VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2018-07-04 00:00:00', SYNCED: 0,
+    //           PARTNER_INSTANCES: [
+    //             {ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'C1D5765AFB9E92F87C936C079837842C'}
+    //           ]}
+    //       ]
+    //     }
+    //   ];
+    //   entity.changeInstance(instance3, function (err) {
+    //     err.should.containDeep([{msgCat: 'ENTITY', msgName: 'NO_MIX_OF_CHANGE_ADD_OPERATION', msgType: 'E'} ]);
+    //     done();
+    //   })
+    // });
 
     it('should report an error of INVOLVED_ROLE_NUMBER_INCORRECT', function (done) {
       instance3.relationships = [
@@ -395,7 +394,7 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP 1', function (done) {
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n]', function (done) {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
@@ -416,7 +415,28 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP 2', function (done) {
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..1]', function (done) {
+      instance3.relationships = [
+        { RELATIONSHIP_ID: 'rs_marriage',
+          values:[
+            { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
+              PARTNER_INSTANCES:[
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+              ]},
+            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00', SYNCED: 1,
+              PARTNER_INSTANCES:[
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1483BE56BDA717184CD170467A214695' }
+              ]}
+          ]
+        }
+      ];
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'}]);
+        done();
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n] in DB', function (done) {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
@@ -434,7 +454,7 @@ describe.only('entity tests', function () {
     });
 
     let instance2;
-    it('should successfully add 2 relationships in future', function (done) {
+    it('should successfully add 3 relationships', function (done) {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
@@ -447,6 +467,16 @@ describe.only('entity tests', function () {
                 {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' }
               ]}
           ]
+        },
+        {
+          RELATIONSHIP_ID: 'rs_marriage',
+          values:[
+            { action: 'add',
+              PARTNER_INSTANCES:[
+               {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1A4EB21F9CE0B3236F61EDBB57BC9738' }
+              ]
+            }
+          ]
         }
       ];
       entity.changeInstance(instance3, function (err) {
@@ -456,6 +486,23 @@ describe.only('entity tests', function () {
           instance2 = instancex;
           done();
         });
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..1] in DB', function (done) {
+      instance3.relationships = [
+        { RELATIONSHIP_ID: 'rs_marriage',
+          values:[
+            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00',
+              PARTNER_INSTANCES:[
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1A4EB21F9CE0B3236F61EDBB57BC9738' }
+              ]}
+          ]
+        }
+      ];
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep({msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'});
+        done();
       })
     });
 
@@ -534,10 +581,45 @@ describe.only('entity tests', function () {
         should(err).eql(null);
         done();
       })
+    });
+
+    it('should report an error of CHANGE_TO_EXPIRED_RELATIONSHIP', function (done) {
+      let currentRelationshipGUID = instance2.relationships[0].values.find(function (value) {
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
+      }).RELATIONSHIP_INSTANCE_GUID;
+      instance3.relationships = [
+        { RELATIONSHIP_ID: 'rs_user_role', SYNCED:'1',
+          values:[
+            { action:'update', RELATIONSHIP_INSTANCE_GUID: currentRelationshipGUID},
+          ]
+        }
+      ];
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep({msgCat: 'ENTITY', msgName: 'CHANGE_TO_EXPIRED_RELATIONSHIP', msgType: 'E'});
+        done();
+      })
+    });
+
+    it('should delete a future relationship', function (done) {
+      let futureRelationshipGUID = instance2.relationships[0].values.find(function (value) {
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F914BC7E2BD65D42A0B17FBEAD8E1AF2';
+      }).RELATIONSHIP_INSTANCE_GUID;
+      instance3.relationships = [
+        { RELATIONSHIP_ID: 'rs_user_role',
+          values:[
+            { action:'delete', RELATIONSHIP_INSTANCE_GUID: futureRelationshipGUID},
+          ]
+        }
+      ];
+      entity.changeInstance(instance3, function (err) {
+        should(err).eql(null);
+        done();
+      })
     })
+
   });
 
-  describe('Entity Deletion', function () {
+  describe.skip('Entity Deletion', function () {
     it('should soft delete an instance', function (done) {
       entity.softDeleteInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.FINGER_PRINT}, function (err) {
         should(err).eql(null);

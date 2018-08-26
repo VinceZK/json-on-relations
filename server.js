@@ -36,7 +36,7 @@ process.on('SIGINT',function(){
   process.exit()
 });
 
-entityDB.loadEntity('person', function (err) {
+entityDB.loadEntities(['person','system_role'], function (err) {
   if(err) console.log(err);
   else app.listen(3001, () => console.log('Example app listening on port 3001!'));
 });

@@ -22,6 +22,11 @@ export class EntityService {
     this.messageService.setMessageStore(msgStore, 'EN');
   }
 
+  listEntityID(): Observable<EntityMeta> {
+    return this.http.get<EntityMeta>(this.entityUrl + `/EntityIDs`).pipe(
+      catchError(this.handleError<any>('listEntityID')));
+  }
+
   getEntityMeta(entityID: string): Observable<EntityMeta> {
     return this.http.get<EntityMeta>(this.entityUrl + `/meta/${entityID}`).pipe(
       catchError(this.handleError<any>('getEntityMeta')));
@@ -32,14 +37,19 @@ export class EntityService {
       catchError(this.handleError<any>('getEntityInstance')));
   }
 
-  getRelationMeta(relationID: string): Observable<RelationMeta> {
-    return this.http.get<RelationMeta>(this.relationUrl + `/meta/${relationID}`).pipe(
-      catchError(this.handleError<any>('getRelationMeta')));
-  }
+  // getRelationMeta(relationID: string): Observable<RelationMeta> {
+  //   return this.http.get<RelationMeta>(this.relationUrl + `/meta/${relationID}`).pipe(
+  //     catchError(this.handleError<any>('getRelationMeta')));
+  // }
 
   getRelationMetaOfEntity(entityID: string): Observable<RelationMeta[]> {
     return this.http.get<RelationMeta[]>(this.relationUrl + `/meta/entity/${entityID}`).pipe(
       catchError(this.handleError<any>('getRelationMetaOfEntity')));
+  }
+
+  createEntityInstance(instance: Entity): Observable<any> {
+    return this.http.post<any>(this.entityUrl, instance, httpOptions).pipe(
+      catchError(this.handleError<any>('createEntityInstance')));
   }
 
   changeEntityInstance(instance: Entity): Observable<any> {

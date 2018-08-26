@@ -1,22 +1,27 @@
 export class Entity {
+  ENTITY_ID: string;
+  INSTANCE_GUID: string;
   [key: string]: any;
   relationships?: Relationship[];
 }
 export class Relationship {
   RELATIONSHIP_ID: string;
   SELF_ROLE_ID: string;
-  PARTNER_ENTITY_ID: string;
-  PARTNER_ROLE_ID: string;
   values: RelationshipInstance[];
 }
 export class RelationshipInstance {
-  INSTANCE_GUID: string;
+  action?: string;
+  RELATIONSHIP_INSTANCE_GUID: string;
   VALID_FROM: string;
   VALID_TO: string;
-  VALID_TO_BAK: string;
-  action?: string;
+  PARTNER_INSTANCES: PartnerInstance[];
+  [key: string]: any;
 }
-
+export class PartnerInstance {
+  ENTITY_ID: string;
+  ROLE_ID: string;
+  INSTANCE_GUID: string;
+}
 export class EntityMeta {
   ENTITY_ID: string;
   ENTITY_DESC: string;
@@ -64,6 +69,9 @@ export class RelationshipMeta {
   RELATIONSHIP_ID: string;
   RELATIONSHIP_DESC: string;
   VALID_PERIOD: number;
+  ATTRIBUTES: Attribute[];
+  ATTRIBUTE_INDICES: ArrtibuteIndex[];
+  UNIQUE_ATTRIBUTE_INDICES: UniqueAttributeIndex[];
   INVOLVES: Involve[];
 }
 export class Involve {

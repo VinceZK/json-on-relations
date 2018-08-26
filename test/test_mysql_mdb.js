@@ -55,7 +55,7 @@ describe('mysql connections tests', function () {
    */
   describe('#loadEntitye(person)', function () {
     it('should have the person entity', function () {
-      // console.log(entityDB.getEntityMeta('person').ROLES[1].RELATIONSHIPS[0]);
+      console.log(entityDB.getEntityMeta('person').ROLES);
       entityDB.entities.length.should.eql(1);
       entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
       entityDB.getEntityMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'}]);

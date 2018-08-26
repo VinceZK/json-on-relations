@@ -13,9 +13,15 @@ export const msgStore = [
     }
   },
   { msgCat: 'RELATIONSHIP',
-    msgName: 'TARGET_INSTANCE_EMPTY',
+    msgName: 'PARTNER_ENTITY_ID_MISSING',
     msgText: {
-      EN: {shortText: 'Target Instance GUID is Mandatory', longText: ''}
+      EN: {shortText: 'Partner Entity ID is Missing', longText: ''}
+    }
+  },
+  { msgCat: 'RELATIONSHIP',
+    msgName: 'PARTNER_INSTANCE_GUID_MISSING',
+    msgText: {
+      EN: {shortText: 'Partner Instance GUID is Missing', longText: ''}
     }
   },
   { msgCat: 'RELATIONSHIP',
@@ -37,9 +43,21 @@ export const msgStore = [
     }
   },
   { msgCat: 'RELATIONSHIP',
-    msgName: 'INSTANCE_ALREADY_EXIST',
+    msgName: 'MANDATORY_ATTRIBUTE_MISSING',
     msgText: {
-      EN: {shortText: 'The instance already exists in the relationship', longText: ''}
+      EN: {shortText: 'Mandatory attribute must be given values', longText: ''}
+    }
+  },
+  { msgCat: 'RELATIONSHIP',
+    msgName: 'RELATIONSHIP_MANDATORY',
+    msgText: {
+      EN: {shortText: 'Relationship is mandatory', longText: ''}
+    }
+  },
+  { msgCat: 'RELATIONSHIP',
+    msgName: 'RELATIONSHIP_ALREADY_EXISTS',
+    msgText: {
+      EN: {shortText: 'Relationship %s already exists!', longText: ''}
     }
   }
 ];
