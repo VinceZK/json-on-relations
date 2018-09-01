@@ -23,7 +23,8 @@ export class EntityComponent implements OnInit {
   formGroup: FormGroup;
   readonly = true;
   isRelationshipModalShown = false;
-  isNewModelShown = false;
+  isNewModalShown = false;
+  isEntityJSONModalShown = false;
   toBeAddRelationship: Relationship;
 
   constructor(private fb: FormBuilder,
@@ -52,7 +53,8 @@ export class EntityComponent implements OnInit {
   }
 
   get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
-  get displayNewModal() {return this.isNewModelShown ? 'block' : 'none'; }
+  get displayNewModal() {return this.isNewModalShown ? 'block' : 'none'; }
+  get displayEntityJSONModal() {return this.isEntityJSONModalShown ? 'block' : 'none'; }
 
   toggleEditDisplay(): void {
     this.readonly = !this.readonly;
@@ -60,9 +62,12 @@ export class EntityComponent implements OnInit {
 
   saveEntity(): void {
     this.messageService.clearMessages();
-    this._composeChangedEntity();
+    if (!this._composeChangedEntity()) {
+      this.readonly = true;
+      this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'S');
+      return;
+    }
     console.log(this.changedEntity);
-
     if (this.entity.INSTANCE_GUID) {
       this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         this._postActivityAfterSaving(data);
@@ -82,7 +87,7 @@ export class EntityComponent implements OnInit {
     this.formGroup = this.fb.group({});
     this._createFormFromMeta();
     this.readonly = false;
-    this.isNewModelShown = false;
+    this.isNewModalShown = false;
   }
 
   openNewModal(): void {
@@ -90,12 +95,12 @@ export class EntityComponent implements OnInit {
     entityIDs$.subscribe(value => {
       this.entityIDs = value;
       this.newEntityID = this.entity.ENTITY_ID;
-      this.isNewModelShown = true;
+      this.isNewModalShown = true;
     });
   }
 
   closeNewModal(): void {
-    this.isNewModelShown = false;
+    this.isNewModalShown = false;
   }
 
   openAddRelationshipModal(): void {
@@ -106,6 +111,14 @@ export class EntityComponent implements OnInit {
 
   closeAddRelationshipModal(): void {
     this.isRelationshipModalShown = false;
+  }
+
+  openEntityJSONModal(): void {
+    this.isEntityJSONModalShown = true;
+  }
+
+  closeEntityJSONModal(): void {
+    this.isEntityJSONModalShown = false;
   }
 
   clearRelationshipID(): void {
@@ -146,9 +159,9 @@ export class EntityComponent implements OnInit {
     return this.entityMeta.ROLES[roleIndex].RELATIONSHIPS[relationshipIndex];
   }
 
-  _composeChangedEntity() {
+  _composeChangedEntity(): boolean {
     if (this.formGroup.dirty === false) {
-      return; // Nothing is changed
+      return false; // Nothing is changed
     }
 
     this.changedEntity = new Entity();
@@ -169,8 +182,10 @@ export class EntityComponent implements OnInit {
       }
     });
 
+    if (!this.entity.relationships) { return true; }
     const changedRelationships = [];
     this.entity.relationships.forEach(relationship => {
+      if (!relationship.values) { return; }
       const changedRelationship = new Relationship();
       changedRelationship.RELATIONSHIP_ID = relationship.RELATIONSHIP_ID;
       changedRelationship.SELF_ROLE_ID = relationship.SELF_ROLE_ID;
@@ -197,6 +212,8 @@ export class EntityComponent implements OnInit {
     if ( changedRelationships.length > 0 ) {
       this.changedEntity.relationships = changedRelationships;
     }
+
+    return true;
   }
 
   _composeChangedPropertyValue(key, control: FormControl) {
@@ -255,15 +272,22 @@ export class EntityComponent implements OnInit {
           let found = false;
           primaryKeys.forEach(primaryKey => {
             found = line[primaryKey.ATTR_NAME] === relationFormGroup.value[primaryKey.ATTR_NAME];
-            changedLine[primaryKey.ATTR_NAME] = relationFormGroup.value[primaryKey.ATTR_NAME];
           });
           return found;
         });
 
         if (index === -1) { // New line
           changedLine['action'] = 'add';
+          primaryKeys.forEach( primaryKey => {
+            if (!primaryKey.AUTO_INCREMENT) {
+              changedLine[primaryKey.ATTR_NAME] = relationFormGroup.value[primaryKey.ATTR_NAME];
+            }
+          });
         } else {
           changedLine['action'] = 'update';
+          primaryKeys.forEach( primaryKey => {
+            changedLine[primaryKey.ATTR_NAME] = relationFormGroup.value[primaryKey.ATTR_NAME];
+          });
         }
 
         Object.keys(relationFormGroup.controls).forEach(attrName => {
@@ -278,8 +302,8 @@ export class EntityComponent implements OnInit {
     });
 
     originalLines.forEach(line => {
+      if (Object.keys(line).length === 0) {return; }
       const deleteLine = {action: 'delete'};
-
       const index = relationControls.findIndex( relationFormGroup => {
         let found = false;
         primaryKeys.forEach(primaryKey => {
@@ -401,7 +425,8 @@ export class EntityComponent implements OnInit {
     if (data['ENTITY_ID']) {
       this.readonly = true;
       this.entity = data;
-      this.formGroup.reset(this.formGroup.value); // TODO Address ID doesn't get refreshed
+      this._refreshFormGroupValue(data);
+      this.formGroup.reset(this.formGroup.value);
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
     } else {
       if (data instanceof Array) {
@@ -410,6 +435,24 @@ export class EntityComponent implements OnInit {
         this.messageService.report(data);
       }
     }
+  }
+
+  _refreshFormGroupValue(entity: Entity) {
+    const formGroupValues = {};
+    this.entityMeta.ATTRIBUTES.forEach(attribute => {
+      formGroupValues[attribute.ATTR_NAME] = entity[attribute.ATTR_NAME] ? entity[attribute.ATTR_NAME] : '';
+    });
+    if (!this.entityRelations) { this.entityRelations = this._getEntityRelations(); }
+    this.entityRelations.forEach(entityRelation => {
+      if ( entityRelation.CARDINALITY === '[0..1]' || entityRelation.CARDINALITY === '[1..1]') {
+        formGroupValues[entityRelation.RELATION_ID] =
+          entity[entityRelation.RELATION_ID] ? entity[entityRelation.RELATION_ID][0] : {};
+      } else {
+        formGroupValues[entityRelation.RELATION_ID] =
+          entity[entityRelation.RELATION_ID] ? entity[entityRelation.RELATION_ID] : [];
+      }
+    });
+    this.formGroup.setValue(formGroupValues);
   }
 
 }

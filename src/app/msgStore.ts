@@ -7,6 +7,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'ENTITY',
+    msgName: 'NO_CHANGE',
+    msgText: {
+      EN: {shortText: 'Entity instance is not changed', longText: ''}
+    }
+  },
+  { msgCat: 'ENTITY',
     msgName: 'ENTITY_SAVED',
     msgText: {
       EN: {shortText: 'Entity instance is saved', longText: ''}

@@ -15,8 +15,8 @@
   </div>
 
   <div class="flex-row-reverse">
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
-      <span class="fab fa-js"> Display Schema</span>
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="openEntityJSONModal()">
+      <span class="fab fa-js"> Display in JSON </span>
     </button>
     <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
       <span class="fas fa-copy"> Copy</span>
@@ -75,7 +75,7 @@
     <span class="fas fa-plus "> Add Relationship</span>
   </button>
 
-  <div class="modal fade" [ngClass]="{'show': isRelationshipModalShown}" [ngStyle]="{'display': displayRelationshipModal}"
+  <div class="modal fade dk-modal-open" [ngClass]="{'show': isRelationshipModalShown}" [ngStyle]="{'display': displayRelationshipModal}"
        id="addRelationshipModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -113,7 +113,7 @@
     </div>
   </div>
 
-  <div class="modal fade" [ngClass]="{'show': isNewModelShown}" [ngStyle]="{'display': displayNewModal}"
+  <div class="modal fade dk-modal-open" [ngClass]="{'show': isNewModalShown}" [ngStyle]="{'display': displayNewModal}"
        id="newEntityModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -142,5 +142,24 @@
     </div>
   </div>
 
+  <div class="modal fade dk-modal-open" [ngClass]="{'show': isEntityJSONModalShown}" [ngStyle]="{'display': displayEntityJSONModal}"
+       id="entityMetaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="entityMeta">Entity in JSON</h5>
+          <button type="button" class="close" (click)="closeEntityJSONModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <pre>{{entity | json}}</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" (click)="closeEntityJSONModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 

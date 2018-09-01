@@ -411,8 +411,12 @@ function getInstanceByGUID(instanceGUID, callback) {
         + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
       entityDB.executeSQL(selectSQL, function (err, results) {
         if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
-        if(results.length > 0)
+        if(results.length > 0){
+          results.forEach(function (line) {
+            delete line.INSTANCE_GUID;
+          });
           instance[relation.RELATION_ID] = results;
+        }
         callback(null);
       })
     },function (err) {

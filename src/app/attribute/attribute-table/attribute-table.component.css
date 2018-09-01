@@ -12,3 +12,6 @@
   min-width: 5rem;
   max-width: 6rem;
 }
+.dk-modal-open {
+  overflow: auto;
+}
