@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe.only('entity tests', function () {
+describe('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntity('person', done);
   });

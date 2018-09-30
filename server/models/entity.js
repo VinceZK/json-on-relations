@@ -37,7 +37,7 @@ const entityDB = require('./connections/mysql_mdb.js');
 const timeUtil = require('../util/date_time.js');
 const Message = require('ui-message').Message;
 const MsgArrayStore = require('ui-message').MsgArrayStore;
-const msgArray = require('./message.js');
+const msgArray = require('./message_entity.js');
 
 const msgStore = new MsgArrayStore(msgArray);
 const message = new Message(msgStore, 'EN');
@@ -65,8 +65,8 @@ function getEntityMeta(entityID) {
 }
 
 function getRelationMeta(relationID) {
-  let entityMeta = entityDB.getRelationMeta(relationID);
-  return entityMeta? entityMeta : message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID);
+  let relationMeta = entityDB.getRelationMeta(relationID);
+  return relationMeta? relationMeta : message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID);
 }
 
 function getRelationMetaOfEntity(entityID) {

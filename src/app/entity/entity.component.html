@@ -1,17 +1,7 @@
 <nav class="navbar fixed-top navbar-light bg-light">
-  <!--<nav class="flex-row" aria-label="breadcrumb">-->
-  <!--<ol class="breadcrumb mb-0 p-1 bg-light">-->
-  <!--<li class="breadcrumb-item"><a href="#">Home</a></li>-->
-  <!--<li class="breadcrumb-item active" aria-current="page">Library</li>-->
-  <!--</ol>-->
-  <!--</nav>-->
-  <div>
-    <button class="btn btn-sm btn-light" type="button" aria-label="back" disabled>
-      <span class="fas fa-arrow-left"></span>
-    </button>
-    <button class="btn btn-sm btn-light ml-2" type="button" aria-label="forward">
-      <span class="fas fa-arrow-right"></span>
-    </button>
+  <div *ngIf="entityMeta">
+    <span class="navbar-brand mb-0 h1 mr-0">{{entity.ENTITY_ID}}</span>:
+    <span class="navbar-brand mb-0 h1 ml-2">{{entity.INSTANCE_GUID}}</span>
   </div>
 
   <div class="flex-row-reverse">
@@ -40,19 +30,19 @@
 
 <div class="mt-5" *ngIf="entityMeta">
 
-  <div class="card-body row">
-    <div class="form-group row col-6">
-      <label class="col-4 col-form-label text-right" for="entityType">Entity Type: </label>
-      <div class="col-8">
-        <input [value]="entity['ENTITY_ID']" type="text" readonly class="form-control-plaintext" id="entityType">
-      </div>
-    </div>
-    <div class="form-group row col-6">
-      <label class="col-4 col-form-label text-right" for="instanceGUID">Instance GUID: </label>
-      <div class="col-8">
-        <input [value]="entity['INSTANCE_GUID']" type="text" readonly class="form-control-plaintext " id="instanceGUID">
-      </div>
-    </div>
+  <div class="pt-3">
+    <!--<div class="form-group row col-6">-->
+      <!--<label class="col-4 col-form-label text-right" for="entityType">Entity Type: </label>-->
+      <!--<div class="col-8">-->
+        <!--<input [value]="entity['ENTITY_ID']" type="text" readonly class="form-control-plaintext" id="entityType">-->
+      <!--</div>-->
+    <!--</div>-->
+    <!--<div class="form-group row col-6">-->
+      <!--<label class="col-4 col-form-label text-right" for="instanceGUID">Instance GUID: </label>-->
+      <!--<div class="col-8">-->
+        <!--<input [value]="entity['INSTANCE_GUID']" type="text" readonly class="form-control-plaintext " id="instanceGUID">-->
+      <!--</div>-->
+    <!--</div>-->
   </div>
 
   <app-entity-attribute [formGroup]="formGroup" [entityAttributes]="entityMeta.ATTRIBUTES" [readonly]="readonly">

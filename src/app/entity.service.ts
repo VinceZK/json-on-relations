@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {Entity, EntityMeta, RelationMeta} from './entity';
+import {Entity, EntityMeta, QueryObject, RelationMeta} from './entity';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message/dist/message';
 import {msgStore} from './msgStore';
@@ -16,6 +16,7 @@ const httpOptions = {
 export class EntityService {
   private entityUrl = 'http://localhost:3001/api/entity';
   private relationUrl = 'http://localhost:3001/api/relation';
+  private queryUrl = 'http://localhost:3001/api/query';
 
   constructor(private http: HttpClient,
               private messageService: MessageService) {
@@ -30,6 +31,11 @@ export class EntityService {
   getEntityMeta(entityID: string): Observable<EntityMeta> {
     return this.http.get<EntityMeta>(this.entityUrl + `/meta/${entityID}`).pipe(
       catchError(this.handleError<any>('getEntityMeta')));
+  }
+
+  searchEntities(queryObject: QueryObject): Observable<any> {
+    return this.http.post<any>(this.queryUrl, queryObject, httpOptions).pipe(
+      catchError(this.handleError<any>('searchEntities')));
   }
 
   getEntityInstance(instanceGUID: string): Observable<Entity> {

@@ -6,6 +6,7 @@ import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from '../attribute/attribute-control.service';
 import {MessageService} from 'ui-message/dist/message';
 import {msgStore} from '../msgStore';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-entity',
@@ -28,6 +29,7 @@ export class EntityComponent implements OnInit {
   toBeAddRelationship: Relationship;
 
   constructor(private fb: FormBuilder,
+              private route: ActivatedRoute,
               private attributeControlService: AttributeControlService,
               private messageService: MessageService,
               private entityService: EntityService) {
@@ -37,19 +39,18 @@ export class EntityComponent implements OnInit {
   }
 
   ngOnInit() {
-    const entityMeta$ = this.entityService.getEntityMeta('person');
-    const entityInstance$ = this.entityService.getEntityInstance('64FA60509D6811E8BFADE5B8C5C70BD8');
-    const relationMetas$ = this.entityService.getRelationMetaOfEntity('person');
-    const combined$ = forkJoin(entityMeta$, entityInstance$, relationMetas$);
-
-    combined$.subscribe(value => {
-      this.entityMeta = value[0];
-      this.entity = value[1];
-      this.relationMetas = value[2];
-      // console.log(this.entity);
-      // console.log(this.entityMeta);
-      this._createFormFromMeta();
-    });
+    this.entityService.getEntityInstance(this.route.snapshot.paramMap.get('instanceGUID'))
+      .subscribe(data => {
+        this.entity = data;
+        const entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
+        const relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
+        const combined$ = forkJoin(entityMeta$, relationMetas$);
+        combined$.subscribe(value => {
+          this.entityMeta = value[0];
+          this.relationMetas = value[1];
+          this._createFormFromMeta();
+        });
+      });
   }
 
   get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
@@ -67,7 +68,7 @@ export class EntityComponent implements OnInit {
       this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'S');
       return;
     }
-    console.log(this.changedEntity);
+
     if (this.entity.INSTANCE_GUID) {
       this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         this._postActivityAfterSaving(data);

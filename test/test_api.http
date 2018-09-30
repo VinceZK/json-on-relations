@@ -33,3 +33,32 @@ Accept: */*
 Cache-Control: no-cache
 
 ###
+
+POST http://localhost:3001/api/query
+Content-Type: application/json
+
+{
+  "relation": "r_user",
+  "projection": [
+    "USER_ID",
+    "USER_NAME",
+    "GIVEN_NAME",
+    {"fieldName": "COMPANY_ID", "alias": "Company", "relation": "r_employee"}
+  ],
+  "filter": [
+    {
+      "fieldName": "USER_ID",
+      "operator": "BT",
+      "low": "DH002",
+      "high": "DH006"
+    },
+    {
+      "fieldName": "LANGUAGE",
+      "operator": "EQ",
+      "relation": "r_personalization",
+      "low": "ZH"
+    }
+  ]
+}
+
+###

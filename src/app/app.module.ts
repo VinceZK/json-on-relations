@@ -13,6 +13,11 @@ import { EntityRelationComponent } from './entity/entity-relation/entity-relatio
 import { AttributeTableComponent } from './attribute/attribute-table/attribute-table.component';
 import { AttributeFormComponent } from './attribute/attribute-form/attribute-form.component';
 import { EntityRelationshipComponent } from './entity/entity-relationship/entity-relationship.component';
+import { ListComponent } from './list/list.component';
+import {HotTableModule} from '@handsontable/angular';
+import { AppRoutingModule } from './app-routing.module';
+import {CustomReuseStrategy} from './custom.reuse.strategy';
+import {RouteReuseStrategy} from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -23,17 +28,22 @@ import { EntityRelationshipComponent } from './entity/entity-relationship/entity
     EntityRelationComponent,
     EntityRelationshipComponent,
     AttributeFormComponent,
-    AttributeTableComponent
+    AttributeTableComponent,
+    ListComponent
   ],
   imports: [
     HttpClientModule,
     FormsModule,
+    AppRoutingModule,
     ReactiveFormsModule,
     MessageModule,
+    HotTableModule.forRoot(),
     NgbModule.forRoot(),
     BrowserModule
   ],
-  providers: [],
+  providers: [
+    {provide: RouteReuseStrategy, useClass: CustomReuseStrategy}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

@@ -104,3 +104,22 @@ export class EntityRelation {
   EMPTY: boolean;
   ATTRIBUTES: Attribute[];
 }
+
+export class Selection {
+  fieldName: string;
+  operator: string;
+  low: string;
+  high: string;
+}
+
+export class Projection {
+  fieldName: string;
+  alias: string;
+  relation: string;
+}
+
+export class QueryObject {
+  relation: string;
+  projection: Array<string|Projection>;
+  filter: Selection[];
+}
