@@ -1,7 +1,7 @@
 <nav class="navbar fixed-top navbar-light bg-light">
   <div *ngIf="entityMeta">
-    <span class="navbar-brand mb-0 h1 mr-0">{{entity.ENTITY_ID}}</span>:
-    <span class="navbar-brand mb-0 h1 ml-2">{{entity.INSTANCE_GUID}}</span>
+    <span class="font-weight-bold mb-0 mr-0">{{entity.ENTITY_ID}}</span>:
+    <span class="mb-0 ml-2">{{entity.INSTANCE_GUID}}</span>
   </div>
 
   <div class="flex-row-reverse">
@@ -24,25 +24,9 @@
   </div>
 </nav>
 
-<div class="mt-5">
-  <dk-message></dk-message>
-</div>
-
 <div class="mt-5" *ngIf="entityMeta">
-
   <div class="pt-3">
-    <!--<div class="form-group row col-6">-->
-      <!--<label class="col-4 col-form-label text-right" for="entityType">Entity Type: </label>-->
-      <!--<div class="col-8">-->
-        <!--<input [value]="entity['ENTITY_ID']" type="text" readonly class="form-control-plaintext" id="entityType">-->
-      <!--</div>-->
-    <!--</div>-->
-    <!--<div class="form-group row col-6">-->
-      <!--<label class="col-4 col-form-label text-right" for="instanceGUID">Instance GUID: </label>-->
-      <!--<div class="col-8">-->
-        <!--<input [value]="entity['INSTANCE_GUID']" type="text" readonly class="form-control-plaintext " id="instanceGUID">-->
-      <!--</div>-->
-    <!--</div>-->
+    <dk-message></dk-message>
   </div>
 
   <app-entity-attribute [formGroup]="formGroup" [entityAttributes]="entityMeta.ATTRIBUTES" [readonly]="readonly">

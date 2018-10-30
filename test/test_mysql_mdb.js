@@ -13,12 +13,6 @@ describe('mysql connections tests', function () {
   /**
    * { ENTITY_ID: 'person',
    *   ENTITY_DESC: 'People Entity',
-   *   ATTRIBUTES:[
-   *     RowDataPacket {
-   *       ATTR_GUID: '13976E0B39AEBAFBDC35764518DB72D9', RELATION_ID: 'person', ATTR_NAME: 'HEIGHT', ATTR_DESC: null,
-   *       DATA_ELEMENT: null, DATA_TYPE: 2, DATA_LENGTH: null, SEARCHABLE: 0, NOT_NULL: 0, UNIQUE: 0, FINALIZE: 0,
-   *       AUTO_INCREMENT: 0, IS_MULTI_VALUE: 0 }
-   *   ]
    *   ROLES:
    *   [
    *     { ROLE_ID: 'system_user',
@@ -26,15 +20,21 @@ describe('mysql connections tests', function () {
    *       RELATIONS: [{RELATION_ID: 'r_address', CARDINALITY: '[0..n]'},
    *                   {RELATION_ID: 'r_email', CARDINALITY: '[1..n]'},
    *                   {RELATION_ID: 'r_user', CARDINALITY: '[1..1]'}],
-   *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'user_role',  RELATIONSHIP_DESC: 'A system user has multiple use roles',
-   *                         VALID_PERIOD: 3162240000, ATTRIBUTES: [], UNIQUE_ATTRIBUTE_INDICES: [], ATTRIBUTE_INDICES: [],
+   *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'rs_user_role',
+   *                         RELATIONSHIP_DESC: 'A system user has multiple use roles',
+   *                         VALID_PERIOD: 3162240000,
    *                         INVOLVES: [RowDataPacket { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
    *                                    RowDataPacket { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
    *     }
    *   ]
    * }
    *
-   *[{
+   *[{RELATION_ID: 'person',
+   *  RELATION_DESC: 'People Entity Default Relation',
+   *  VERSION_NO: 1,
+   *  ATTRIBUTES: []
+   * },
+   * {
    *   RELATION_ID: 'r_user',
    *   RELATION_DESC: 'System Logon User',
    *   VERSION_NO: 1,
@@ -46,11 +46,11 @@ describe('mysql connections tests', function () {
    *   ]
    *   ASSOCIATIONS: [
    *     { RIGHT_RELATION_ID: assoc.RIGHT_RELATION_ID,
-           CARDINALITY: assoc.CARDINALITY,
-           FOREIGN_KEY_CHECK: assoc.FOREIGN_KEY_CHECK,
-           FIELDS_MAPPING: [{LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD}]
-         }
-       ]
+   *       CARDINALITY: assoc.CARDINALITY,
+   *       FOREIGN_KEY_CHECK: assoc.FOREIGN_KEY_CHECK,
+   *       FIELDS_MAPPING: [{LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD}]
+   *     }
+   *   ]
    * }]
    */
   describe('#loadEntitye(person)', function () {
@@ -58,7 +58,7 @@ describe('mysql connections tests', function () {
       console.log(entityDB.getEntityMeta('person').ROLES);
       entityDB.entities.length.should.eql(1);
       entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
-      entityDB.getEntityMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'}]);
+      // entityDB.getEntityMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep([{ROLE_ID: 'employee'}, {ROLE_ID: 'system_user'}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep(
         [{ROLE_ID: 'system_user',
@@ -68,13 +68,17 @@ describe('mysql connections tests', function () {
             { RELATION_ID: 'r_user', CARDINALITY: '[1..1]' }]}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep( [{RELATIONSHIPS:
         [{ RELATIONSHIP_ID: 'rs_user_role',  RELATIONSHIP_DESC: 'A system user has multiple system roles',
-          VALID_PERIOD: 3162240000, ATTRIBUTES:[{ATTR_NAME: 'SYNCED'}],ATTRIBUTE_INDICES:[{ATTR_NAME: 'SYNCED',}],
+          VALID_PERIOD: 3162240000,
+          // ATTRIBUTES:[{ATTR_NAME: 'SYNCED'}],ATTRIBUTE_INDICES:[{ATTR_NAME: 'SYNCED',}],
           INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' },
                       { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]}]);
     });
 
     it('should have the relations', function(){
-      entityDB.relations.should.containDeep([{RELATION_ID: 'r_employee'},{RELATION_ID: 'r_user'}]);
+      entityDB.relations.should.containDeep([{RELATION_ID: 'person'},{RELATION_ID: 'rs_user_role'},
+                                             {RELATION_ID: 'r_employee'},{RELATION_ID: 'r_user'}]);
+      entityDB.getRelationMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'},{ATTR_NAME: 'HOBBY'}]);
+      entityDB.getRelationMeta('rs_user_role').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'SYNCED'}]);
       entityDB.getRelationMeta('r_user')
         .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0,
         FIELDS_MAPPING: [ { LEFT_FIELD: 'USER_ID', RIGHT_FIELD: 'USER_ID' } ] }]);

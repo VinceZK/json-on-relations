@@ -20,6 +20,7 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
    * @param route
    */
   shouldDetach(route: ActivatedRouteSnapshot): boolean {
+    // console.log('detaching', route);
     return this.routesToCache.indexOf(route.routeConfig.path) > -1;
   }
 
@@ -30,6 +31,7 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
    * @param handle
    */
   store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
+    // console.log('store', route);
     this.storedRouteHandles.set(route.routeConfig.path, handle);
   }
 
@@ -39,6 +41,7 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
    * @param route
    */
   shouldAttach(route: ActivatedRouteSnapshot): boolean {
+    // console.log('shouldAttach', route);
     return this.storedRouteHandles.has(route.routeConfig.path);
   }
 
@@ -60,6 +63,7 @@ export class CustomReuseStrategy implements RouteReuseStrategy {
    * @param curr
    */
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
+    // console.log('shouldReuseRoute, future:', future, 'current:', curr);
     return future.routeConfig === curr.routeConfig;
   }
 }

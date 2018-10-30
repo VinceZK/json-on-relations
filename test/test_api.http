@@ -62,3 +62,23 @@ Content-Type: application/json
 }
 
 ###
+
+GET http://localhost:3001/api/model/entity-type/list?term=people
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://www.sapmoc.com/spq/mobile/parking/getList/PVG06 HTTP/1.1
+Accept: */*
+User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16A404 MicroMessenger/6.7.3(0x16070321) NetType/WIFI Language/zh_CN
+Cookie: JSESSIONID=5C1AA7FEA5F3152C77CEEA5305AD4837
+
+###
+
+GET http://www.sapmoc.com/spq/mobile/parking/getEntry HTTP/1.1
+Accept: */*
+User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16A404 MicroMessenger/6.7.3(0x16070321) NetType/WIFI Language/zh_CN
+Cookie: JSESSIONID=5C1AA7FEA5F3152C77CEEA5305AD4837
+
+###

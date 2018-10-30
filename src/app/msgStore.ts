@@ -65,5 +65,23 @@ export const msgStore = [
     msgText: {
       EN: {shortText: 'Relationship %s already exists!', longText: ''}
     }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'NO_CHANGE',
+    msgText: {
+      EN: {shortText: 'No Change is made!', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'INVALID_DATA',
+    msgText: {
+      EN: {shortText: 'Data is invalid, please check!', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'ENTITY_TYPE_SAVED',
+    msgText: {
+      EN: {shortText: 'Entity Type %s is saved', longText: ''}
+    }
   }
 ];

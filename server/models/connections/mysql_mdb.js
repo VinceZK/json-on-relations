@@ -1,5 +1,6 @@
 /**
  * Created by VinceZK on 6/16/18.
+ *
  */
 const debug = require('debug')('darkhouse:mysql_mdb');
 const async = require('async');
@@ -58,6 +59,49 @@ function loadEntities(entities, done) {
 
 /**
  * Load a specific entity's meta into cache
+ *
+ * { ENTITY_ID: 'person',
+ *   ENTITY_DESC: 'People Entity',
+ *   ROLES:
+ *   [
+ *     { ROLE_ID: 'system_user',
+ *       ROLE_DESC: 'System user for login',
+ *       RELATIONS: [{RELATION_ID: 'r_address', CARDINALITY: '[0..n]'},
+ *                   {RELATION_ID: 'r_email', CARDINALITY: '[1..n]'},
+ *                   {RELATION_ID: 'r_user', CARDINALITY: '[1..1]'}],
+ *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'rs_user_role',
+ *                         RELATIONSHIP_DESC: 'A system user has multiple use roles',
+ *                         VALID_PERIOD: 3162240000,
+ *                         INVOLVES: [RowDataPacket { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
+ *                                    RowDataPacket { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
+ *     }
+ *   ]
+ * }
+ *
+ *[{RELATION_ID: 'person',
+ *  RELATION_DESC: 'People Entity Default Relation',
+ *  VERSION_NO: 1,
+ *  ATTRIBUTES: []
+ * },
+ * {
+ *   RELATION_ID: 'r_user',
+ *   RELATION_DESC: 'System Logon User',
+ *   VERSION_NO: 1,
+ *   ATTRIBUTES: [
+ *     RowDataPacket {
+ *       ATTR_GUID: '13976E0B39AEBAFBDC35764518DB72D9', RELATION_ID: 'person', ATTR_NAME: 'HEIGHT', ATTR_DESC: null,
+ *       DATA_ELEMENT: null, DATA_TYPE: 2, DATA_LENGTH: null, SEARCHABLE: 0, NOT_NULL: 0, UNIQUE: 0, FINALIZE: 0,
+ *       AUTO_INCREMENT: 0, IS_MULTI_VALUE: 0 }
+ *   ]
+ *   ASSOCIATIONS: [
+ *     { RIGHT_RELATION_ID: assoc.RIGHT_RELATION_ID,
+ *       CARDINALITY: assoc.CARDINALITY,
+ *       FOREIGN_KEY_CHECK: assoc.FOREIGN_KEY_CHECK,
+ *       FIELDS_MAPPING: [{LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD}]
+ *     }
+ *   ]
+ * }]
+ *
  * @param entityID
  * @param done
  */
@@ -79,13 +123,12 @@ function loadEntity(entityID, done) {
       CREATE_TIME: entityRows[0].CREATE_TIME,
       LAST_CHANGE_BY: entityRows[0].LAST_CHANGE_BY,
       LAST_CHANGE_TIME: entityRows[0].LAST_CHANGE_TIME,
-      ATTRIBUTES: [],
       ROLES: []
     };
 
     async.parallel([
         function(callback){
-          _getEntityAttributes(entity.ENTITY_ID, entity, callback);
+          _getRelation(entity.ENTITY_ID, callback)
         },
         function(callback){
           _getEntityRoles(entity,callback);
@@ -305,8 +348,11 @@ function _getRelationships(role, callback) {
       };
 
       async.parallel([
-          function(callback){
-            _getEntityAttributes(relationship.RELATIONSHIP_ID, relationship, callback);
+          // function(callback){
+          //   _getEntityAttributes(relationship.RELATIONSHIP_ID, relationship, callback);
+          // },
+          function (callback) {
+            _getRelation(relationship.RELATIONSHIP_ID, callback);
           },
           function(callback){
             _getRelationshipInvolves(relationship, callback);

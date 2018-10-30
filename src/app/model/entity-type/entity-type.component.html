@@ -1,0 +1,27 @@
+<div class="row">
+  <div class="col-4">
+    <div class="btn-toolbar justify-content-between mb-2" role="toolbar">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search" #searchBox (keyup)="searchEntityType(searchBox.value)" >
+      </div>
+      <button class="btn" type="button" title="Add" (click)="newEntityType()">
+        <span class="fas fa-plus"></span>
+      </button>
+    </div>
+    <div class="list-group">
+      <a *ngFor="let entityType of entityTypeList" routerLink="/model/entity-type/{{entityType.ENTITY_ID}}" routerLinkActive="active"
+        class="list-group-item list-group-item-action flex-column align-items-start">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{entityType.ENTITY_ID}}</h5>
+          <small>version: {{entityType.VERSION_NO}}</small>
+        </div>
+        <p class="mb-1">{{entityType.ENTITY_DESC}}</p>
+        <!--<small>created by: {{entityType.CREATE_BY}} @{{entityType.CREATE_TIME}}</small> <br/>-->
+        <small>last changed by: {{entityType.LAST_CHANGE_BY}} @{{entityType.LAST_CHANGE_TIME}}</small>
+      </a>
+    </div>
+  </div>
+  <div class="col-8">
+    <router-outlet></router-outlet>
+  </div>
+</div>

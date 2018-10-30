@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/mysql_mdb.js');
 const query = require('../server/models/query.js');
 
-describe.only('query tests', function () {
+describe('query tests', function () {
   before(function (done) {
     entityDB.loadEntity('person', done);
   });

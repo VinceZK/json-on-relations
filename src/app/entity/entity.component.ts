@@ -4,7 +4,7 @@ import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationshi
 import {forkJoin} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from '../attribute/attribute-control.service';
-import {MessageService} from 'ui-message/dist/message';
+import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../msgStore';
 import {ActivatedRoute} from '@angular/router';
 

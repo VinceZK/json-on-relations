@@ -38,7 +38,8 @@
     "passport": "^0.4.0",
     "path": "^0.12.7",
     "rxjs": "^6.0.0",
-    "ui-message": "^1.1.1",
+    "ui-message": "^1.1.2",
+    "ui-message-angular": "^1.0.0",
     "underscore": "^1.9.1",
     "zone.js": "^0.8.26"
   },

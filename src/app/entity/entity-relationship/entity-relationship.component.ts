@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {PartnerInstance, Relationship, RelationshipInstance, RelationshipMeta} from '../../entity';
-import {MessageService} from 'ui-message/dist/message';
+import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';

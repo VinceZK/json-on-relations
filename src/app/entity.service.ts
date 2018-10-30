@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {Entity, EntityMeta, QueryObject, RelationMeta} from './entity';
+import {Entity, EntityMeta, EntityType, QueryObject, RelationMeta} from './entity';
 import {catchError} from 'rxjs/operators';
-import {MessageService, messageType} from 'ui-message/dist/message';
+import {MessageService, messageType} from 'ui-message-angular';
 import {msgStore} from './msgStore';
 
 const httpOptions = {
@@ -17,6 +17,7 @@ export class EntityService {
   private entityUrl = 'http://localhost:3001/api/entity';
   private relationUrl = 'http://localhost:3001/api/relation';
   private queryUrl = 'http://localhost:3001/api/query';
+  private entityTypeUrl = 'http://localhost:3001/api/model/entity-type';
 
   constructor(private http: HttpClient,
               private messageService: MessageService) {
@@ -61,6 +62,16 @@ export class EntityService {
   changeEntityInstance(instance: Entity): Observable<any> {
     return this.http.put<any>(this.entityUrl, instance, httpOptions).pipe(
       catchError(this.handleError<any>('changeEntityInstance')));
+  }
+
+  listEntityType(term: string): Observable<EntityType[]> {
+    return this.http.get<EntityType[]>(this.entityTypeUrl + `/list?term=${term}`).pipe(
+      catchError(this.handleError<any>('listEntityType')));
+  }
+
+  saveEntityType(entityType: any): Observable<any> {
+    return this.http.post<any>(this.entityTypeUrl, entityType, httpOptions).pipe(
+      catchError(this.handleError<any>('saveEntityType')));
   }
 
   private handleError<T> (operation = 'operation', result?: T) {

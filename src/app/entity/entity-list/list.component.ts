@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import * as Handsontable from 'handsontable';
-import {EntityService} from '../entity.service';
+import {EntityService} from '../../entity.service';
 import {Observable} from 'rxjs';
-import {Attribute, QueryObject, RelationMeta, Selection} from '../entity';
+import {Attribute, QueryObject, RelationMeta, Selection} from '../../entity';
 import {HotTableRegisterer} from '@handsontable/angular';
 import {Router} from '@angular/router';
 
@@ -104,13 +104,16 @@ export class ListComponent implements OnInit {
     });
     this.queryObject.filter = this.selections;
     this.entityService.searchEntities(this.queryObject).subscribe(data => {
-      // console.log(data);
       this.data = data;
       this.data.forEach(line =>
         line.INSTANCE_GUID = `<a href="javascript:void(0)" role="button">${line.INSTANCE_GUID}</a>`);
     });
-    // const hotInstance = this.hotRegisterer.getInstance(this.instance);
-    // hotInstance.render();
+  }
+
+  navBack() {
+    console.log('navBack is called');
+    const hotInstance = this.hotRegisterer.getInstance(this.instance);
+    hotInstance.selectCell(2, 2);
   }
 
   _attributeColumnDisplay(attribute: Attribute): any {

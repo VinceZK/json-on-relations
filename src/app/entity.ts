@@ -123,3 +123,13 @@ export class QueryObject {
   projection: Array<string|Projection>;
   filter: Selection[];
 }
+
+export class EntityType {
+  ENTITY_ID: string;
+  ENTITY_DESC: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: number;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: number;
+}

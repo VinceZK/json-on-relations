@@ -22,8 +22,7 @@
     </app-attribute-form>
   </div>
 
-  <div
-    *ngIf="!entityRelation.EMPTY && (entityRelation.CARDINALITY === '[0..n]' || entityRelation.CARDINALITY === '[1..n]')"
+  <div *ngIf="!entityRelation.EMPTY && (entityRelation.CARDINALITY === '[0..n]' || entityRelation.CARDINALITY === '[1..n]')"
     class="card-body">
 
     <app-attribute-table class="mt-2 mb-4" [formArray]="formGroup" [parentFormGroup]="parentFormGroup" [readonly]="readonly"
