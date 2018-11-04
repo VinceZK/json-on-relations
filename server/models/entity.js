@@ -73,9 +73,18 @@ function getRelationMeta(relationID) {
 function getRelationMetaOfEntity(entityID) {
   let entityMeta = entityDB.getEntityMeta(entityID);
   let relationMetas = [];
+  relationMetas.push(entityDB.getRelationMeta(entityID));
+
   entityMeta.ROLES.forEach(function (role) {
     role.RELATIONS.forEach(function (relation) {
       relationMetas.push(entityDB.getRelationMeta(relation.RELATION_ID));
+    });
+    role.RELATIONSHIPS.forEach(function (relationship) {
+      let relationMeta = entityDB.getRelationMeta(relationship.RELATIONSHIP_ID);
+      let isExist = relationMetas.findIndex(function (existRelationMeta) {
+        return existRelationMeta.RELATION_ID === relationMeta.RELATION_ID;
+      });
+      if (isExist === -1)relationMetas.push(relationMeta);
     })
   });
   return relationMetas;
@@ -141,20 +150,8 @@ function createInstance(instance, callback) {
           results = _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID);
           _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
         } else { //Illegal node
-          errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', relation.RELATION_ID, entityMeta.ENTITY_ID));
+          errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
         }
-        // if (typeof value === 'object') { //Relations or multiple value attributes
-        //   if (_isRelation(key)) { //Relations
-        //     results = _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID);
-        //     _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
-        //   } else { //multiple value attributes
-        //     results = _generateInsertMultiValueAttributeSQL(key, value, entityMeta, instanceGUID);
-        //     _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
-        //   }
-        // } else { //Single value attributes
-        //   results = _generateInsertSingleValueAttributeSQL(key, value, entityMeta, instanceGUID);
-        //   _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
-        // }
     }
   });
 
@@ -279,15 +276,6 @@ function hardDeleteByGUID(instanceGUID, callback) {
     let entityMeta = entityDB.getEntityMeta(instanceHead.ENTITY_ID);
 
     deleteSQLs.push("delete from ENTITY_INSTANCES where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
-    // deleteSQLs.push("delete from VALUE where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
-    // entityMeta.UNIQUE_ATTRIBUTE_INDICES.forEach(function (element) {
-    //   deleteSQLs.push("delete from " + entityDB.pool.escapeId(element.IDX_TABLE)
-    //     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
-    // });
-    // entityMeta.ATTRIBUTE_INDICES.forEach(function (element) {
-    //   deleteSQLs.push("delete from " + entityDB.pool.escapeId(element.IDX_TABLE)
-    //     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
-    // });
     deleteSQLs.push("delete from " + entityDB.pool.escapeId(entityMeta.ENTITY_ID)
       + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
     entityMeta.ROLES.forEach(function (role) {
@@ -421,7 +409,7 @@ function getInstanceByGUID(instanceGUID, callback) {
   }
 
   function __getRelationValue(instance, entityMeta, callback) {
-    let relations = [{RELATION_ID: entityMeta.ENTITY_ID, CARDINALITY: '[0..1]'}];
+    let relations = [{RELATION_ID: entityMeta.ENTITY_ID, CARDINALITY: '[1..1]'}];
     entityMeta.ROLES.forEach(function (role) {
       role.RELATIONS.forEach(function (relation) {
         relations.push(relation);
@@ -602,21 +590,8 @@ function changeInstance(instance, callback) {
               instance['INSTANCE_GUID'], add01Relations, delete1nRelations);
             _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
           } else { //Illegal node
-            errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', relation.RELATION_ID, entityMeta.ENTITY_ID));
+            errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
           }
-        // if (typeof value === 'object') { //Relations or multiple value attributes
-          //   if (_isRelation(key)) { //Relations
-          //     results = _generateChangeRelationSQL(value, key, entityMeta, foreignRelations,
-          //       instance['INSTANCE_GUID'], add01Relations, delete1nRelations);
-          //     _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
-          //   } else { //Multiple value attributes
-          //     results = _generateUpdateMultiValueAttributeSQL(key, value, entityMeta, instance['INSTANCE_GUID']);
-          //     _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
-          //   }
-          // } else { //Single value attributes
-          //   let results = _generateUpdateSingleValueAttributeSQL(key, value, entityMeta, instance['INSTANCE_GUID']);
-          //   _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
-          // }
       }
     });
 
@@ -869,8 +844,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
           updateSQL = updateSQL + " where INSTANCE_GUID = " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID);
           SQLs.push(updateSQL);
         }
-      }
-      if(value.action === 'add'){
+      } else if (value.action === 'add'){
         let insertFields = " ( `INSTANCE_GUID`" ;
         let insertValues = " ( " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID);
         _.each(value, function (attrValue, attrKey) {
@@ -1128,6 +1102,11 @@ function _generateInsertSingleRelationSQL(relationMeta, relationRow, instanceGUI
   if(insertValues)insertValues = insertValues + " , " + entityDB.pool.escape(instanceGUID) + " ) ";
   if(insertColumns && insertValues){
     insertSQLs.push("insert into " + entityDB.pool.escapeId(relationMeta.RELATION_ID) + insertColumns + " values " + insertValues);
+  } else { // Entity or Relationship's attribute relation may not have any attributes. However, the instance GUID must be inserted.
+    if (relationMeta.RELATION_ID.substr(0,2) !== 'r_' || relationMeta.RELATION_ID.substr(0,3) !== 'rs_') {
+      insertSQLs.push("insert into " + entityDB.pool.escapeId(relationMeta.RELATION_ID) +
+        " (`INSTANCE_GUID`) values (" + entityDB.pool.escape(instanceGUID) + " ) ");
+    }
   }
   return insertSQLs;
 }
@@ -1460,7 +1439,7 @@ function _checkEntityInvolvesRelationship(relationshipID, entityMeta) {
 
 function _checkEntityHasRelation(relationID, entityMeta) {
   if (relationID === entityMeta.ENTITY_ID) {
-    return {RELATION_ID: relationID, CARDINALITY: '[0..1]'};
+    return {RELATION_ID: relationID, CARDINALITY: '[1..1]'};
   }
 
   let role = entityMeta.ROLES.find(function (element) {

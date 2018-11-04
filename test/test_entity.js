@@ -619,7 +619,7 @@ describe.only('entity tests', function () {
 
   });
 
-  describe('Entity Deletion', function () {
+  describe.skip('Entity Deletion', function () {
     it('should soft delete an instance', function (done) {
       entity.softDeleteInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.person.FINGER_PRINT}, function (err) {
         should(err).eql(null);

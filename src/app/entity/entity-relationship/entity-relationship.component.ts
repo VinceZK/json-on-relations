@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
-import {PartnerInstance, Relationship, RelationshipInstance, RelationshipMeta} from '../../entity';
+import {PartnerInstance, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from '../../entity';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
 import {FormBuilder, FormGroup} from '@angular/forms';
@@ -34,6 +34,7 @@ export class EntityRelationshipComponent implements OnInit {
 
   @Input() relationship: Relationship;
   @Input() relationshipMeta: RelationshipMeta;
+  @Input() relationshipAttributeMeta: RelationMeta;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
   @ViewChildren('p') popovers !: QueryList<NgbPopover>;
@@ -46,9 +47,9 @@ export class EntityRelationshipComponent implements OnInit {
 
   ngOnInit() {
     this.currentTime = EntityRelationshipComponent._getFormattedDate();
-    this.attributeControls = this.attributeControlService.toAttributeControl(this.relationshipMeta.ATTRIBUTES);
+    this.attributeControls = this.attributeControlService.toAttributeControl(this.relationshipAttributeMeta.ATTRIBUTES);
     this.detailValue = new RelationshipInstance();
-    this.relationshipMeta.ATTRIBUTES.forEach(attribute => {
+    this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
       this.relationshipFormGroup.addControl(attribute.ATTR_NAME,
         this.attributeControlService.convertToFormControl(attribute, this.detailValue));
     }); // Must be initialized, or the form group is null as the modal will be initialized.
@@ -75,7 +76,7 @@ export class EntityRelationshipComponent implements OnInit {
       partnerInstance.ROLE_ID = involve.ROLE_ID;
       this.detailValue.PARTNER_INSTANCES.push(partnerInstance);
     });
-    this.relationshipMeta.ATTRIBUTES.forEach(attribute => {
+    this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
       this.relationshipFormGroup.setControl(attribute.ATTR_NAME,
         this.attributeControlService.convertToFormControl(attribute, this.detailValue));
     });
@@ -177,7 +178,7 @@ export class EntityRelationshipComponent implements OnInit {
   _getRelationshipDetailValue(index: number) {
     this.isModalShown = true;
     this.detailValue = this.relationship.values[index];
-    this.relationshipMeta.ATTRIBUTES.forEach(attribute => {
+    this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
       this.relationshipFormGroup.setControl(attribute.ATTR_NAME,
         this.attributeControlService.convertToFormControl(attribute, this.detailValue));
     });
@@ -194,7 +195,7 @@ export class EntityRelationshipComponent implements OnInit {
     Object.keys(this.relationshipFormGroup.controls).forEach(key => {
       const control = this.relationshipFormGroup.controls[key];
       if (control.dirty) {
-        const attributeMeta = this.relationshipMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
+        const attributeMeta = this.relationshipAttributeMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
         this.detailValue[key] = attributeMeta.IS_MULTI_VALUE ? control.value.split(',') : control.value;
         hasChangedAttribute = true;
       }

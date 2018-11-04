@@ -56,6 +56,8 @@ export class EntityComponent implements OnInit {
   get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
   get displayNewModal() {return this.isNewModalShown ? 'block' : 'none'; }
   get displayEntityJSONModal() {return this.isEntityJSONModalShown ? 'block' : 'none'; }
+  get entityAttributes() { return this.relationMetas.find(
+    relationMeta => relationMeta.RELATION_ID === this.entity.ENTITY_ID).ATTRIBUTES; }
 
   toggleEditDisplay(): void {
     this.readonly = !this.readonly;
@@ -69,6 +71,7 @@ export class EntityComponent implements OnInit {
       return;
     }
 
+    console.log(this.changedEntity);
     if (this.entity.INSTANCE_GUID) {
       this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         this._postActivityAfterSaving(data);
@@ -160,6 +163,12 @@ export class EntityComponent implements OnInit {
     return this.entityMeta.ROLES[roleIndex].RELATIONSHIPS[relationshipIndex];
   }
 
+  getRelationshipAttributes(relationshipID: string): RelationMeta {
+    return this.relationMetas.find(
+      relationMeta => relationshipID === relationMeta.RELATION_ID
+    );
+  }
+
   _composeChangedEntity(): boolean {
     if (this.formGroup.dirty === false) {
       return false; // Nothing is changed
@@ -218,7 +227,7 @@ export class EntityComponent implements OnInit {
   }
 
   _composeChangedPropertyValue(key, control: FormControl) {
-    const attributeMeta = this.entityMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
+    const attributeMeta = this.entityAttributes.find(attribute => attribute.ATTR_NAME === key);
     this.changedEntity[key] = attributeMeta.IS_MULTI_VALUE ? control.value.split(',') : control.value;
   }
 
@@ -348,11 +357,6 @@ export class EntityComponent implements OnInit {
   }
 
   _createFormFromMeta() {
-    this.entityMeta.ATTRIBUTES.forEach(attribute => {
-      this.formGroup.addControl(attribute.ATTR_NAME,
-        this.attributeControlService.convertToFormControl(attribute, this.entity));
-    });
-
     this.entityRelations = this._getEntityRelations();
     this.entityRelations.forEach(relation => {
       switch (relation.CARDINALITY) {
@@ -396,11 +400,20 @@ export class EntityComponent implements OnInit {
 
   _getEntityRelations(): EntityRelation[] {
     const entityRelations: EntityRelation[] = [];
-    const relationMetas = this.relationMetas;
     const entity = this.entity;
+
+    let entityRelation = new EntityRelation;
+    entityRelation.ROLE_ID = this.entity.ENTITY_ID;
+    entityRelation.RELATION_ID = this.entity.ENTITY_ID;
+    entityRelation.CARDINALITY = '[1..1]';
+    entityRelation.EMPTY = !entity[this.entity.ENTITY_ID];
+    entityRelation.ATTRIBUTES = this.entityAttributes;
+    entityRelations.push(entityRelation);
+
+    const relationMetas = this.relationMetas;
     this.entityMeta.ROLES.forEach(function (role) {
       role.RELATIONS.forEach(function (relation) {
-        const entityRelation = new EntityRelation;
+        entityRelation = new EntityRelation;
         entityRelation.ROLE_ID = role.ROLE_ID;
         entityRelation.RELATION_ID = relation.RELATION_ID;
         entityRelation.CARDINALITY = relation.CARDINALITY;
@@ -440,9 +453,6 @@ export class EntityComponent implements OnInit {
 
   _refreshFormGroupValue(entity: Entity) {
     const formGroupValues = {};
-    this.entityMeta.ATTRIBUTES.forEach(attribute => {
-      formGroupValues[attribute.ATTR_NAME] = entity[attribute.ATTR_NAME] ? entity[attribute.ATTR_NAME] : '';
-    });
     if (!this.entityRelations) { this.entityRelations = this._getEntityRelations(); }
     this.entityRelations.forEach(entityRelation => {
       if ( entityRelation.CARDINALITY === '[0..1]' || entityRelation.CARDINALITY === '[1..1]') {
