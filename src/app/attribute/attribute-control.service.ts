@@ -21,7 +21,6 @@ export class AttributeControlService {
         name: attribute.ATTR_NAME,
         label: attribute.ATTR_NAME,
         primaryKey: attribute.PRIMARY_KEY,
-        unique: attribute.UNIQUE,
         autoIncrement: attribute.AUTO_INCREMENT
       }));
     });
@@ -29,7 +28,7 @@ export class AttributeControlService {
   }
 
   convertToFormControl(attribute: Attribute, instance: any ) {
-    return attribute.NOT_NULL ? new FormControl(instance[attribute.ATTR_NAME] || '', Validators.required ) :
+    return attribute.PRIMARY_KEY ? new FormControl(instance[attribute.ATTR_NAME] || '', Validators.required ) :
       new FormControl(instance[attribute.ATTR_NAME] || '');
   }
 

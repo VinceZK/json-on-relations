@@ -16,7 +16,7 @@ router.delete('/api/logout',Auth.logout);
 router.get('/api/entity/EntityIDs', entity.listEntityID);
 router.get('/api/entity/meta/:entityID', entity.getEntityMeta);
 router.get('/api/entity/instance/:instanceGUID', entity.getEntityInstance);
-// router.get('/api/relation/meta/:relationID', entity.getRelationMeta);
+router.get('/api/relation/meta/:relationID', entity.getRelationMeta);
 router.get('/api/relation/meta/entity/:entityID', entity.getRelationMetaOfEntity);
 router.put('/api/entity', entity.changeInstance);
 router.post('/api/entity', entity.createInstance);
@@ -26,7 +26,19 @@ router.post('/api/query', query.run);
 
 // Model Service
 router.get('/api/model/entity-type/list', model.listEntityType);
+router.get('/api/model/entity-type/desc/:entityID', model.getEntityTypeDesc);
 router.post('/api/model/entity-type', model.saveEntityType);
+router.get('/api/model/relation/list', model.listRelation);
+router.get('/api/model/relation/desc/:relationID', model.getRelationDesc);
+router.post('/api/model/relation', model.saveRelation);
+router.get('/api/model/relationship/list', model.listRelationship);
+router.get('/api/model/relationship/desc/:relationshipID', model.getRelationshipDesc);
+router.get('/api/model/relationship/:relationshipID', model.getRelationship);
+router.post('/api/model/relationship', model.saveRelationship);
+router.get('/api/model/role/list', model.listRole);
+router.get('/api/model/role/:roleID', model.getRole);
+router.get('/api/model/role/desc/:roleID', model.getRoleDesc);
+router.post('/api/model/role', model.saveRole);
 
 // Add this route to support page refresh
 router.get('*', (req, res) => {

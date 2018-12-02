@@ -10,7 +10,7 @@
     </div>
     <div class="list-group">
       <a *ngFor="let entityType of entityTypeList" routerLink="/model/entity-type/{{entityType.ENTITY_ID}}" routerLinkActive="active"
-        class="list-group-item list-group-item-action flex-column align-items-start">
+        (click)="onSelect(entityType)" class="list-group-item list-group-item-action flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
           <h5 class="mb-1">{{entityType.ENTITY_ID}}</h5>
           <small>version: {{entityType.VERSION_NO}}</small>

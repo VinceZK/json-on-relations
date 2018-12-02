@@ -277,7 +277,7 @@ function hardDeleteByGUID(instanceGUID, callback) {
 
     deleteSQLs.push("delete from ENTITY_INSTANCES where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
     deleteSQLs.push("delete from " + entityDB.pool.escapeId(entityMeta.ENTITY_ID)
-      + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
+                  + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
     entityMeta.ROLES.forEach(function (role) {
       role.RELATIONS.forEach(function (relation){
         deleteSQLs.push("delete from " + entityDB.pool.escapeId(relation.RELATION_ID)
@@ -285,7 +285,7 @@ function hardDeleteByGUID(instanceGUID, callback) {
       });
     });
 
-    let selectSQL = "select RELATIONSHIP_INSTANCE_GUID from RELATIONSHIP_INVOLVES_INSTANCES "
+    let selectSQL = "select RELATIONSHIP_INSTANCE_GUID, RELATIONSHIP_ID from RELATIONSHIP_INVOLVES_INSTANCES "
       + " where ENTITY_INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
     entityDB.executeSQL(selectSQL, function (err, results) {
       if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
@@ -293,6 +293,8 @@ function hardDeleteByGUID(instanceGUID, callback) {
       results.forEach(function(row){
         GUIDArray?GUIDArray = GUIDArray + " , " + entityDB.pool.escape(row['RELATIONSHIP_INSTANCE_GUID'])
           : GUIDArray = "( " + entityDB.pool.escape(row['RELATIONSHIP_INSTANCE_GUID']);
+        deleteSQLs.push("delete from " + entityDB.pool.escapeId(row['RELATIONSHIP_ID'])
+          + " where INSTANCE_GUID = " + entityDB.pool.escape(row['RELATIONSHIP_INSTANCE_GUID']));
       });
       if(GUIDArray) {
         GUIDArray = GUIDArray + " )";
@@ -743,29 +745,22 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             return errorMessages.push(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_GUID_MISSING', 'E'));
           break;
         case 'delete':
-          // if(addOperation)
-          //   return errorMessages.push(message.report('ENTITY', 'NO_MIX_OF_CHANGE_ADD_OPERATION', 'E'));
-          // changeOperation = true;
           if(!value.RELATIONSHIP_INSTANCE_GUID)
             return errorMessages.push(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_GUID_MISSING', 'E'));
           SQLs.push("delete from RELATIONSHIP_INSTANCES where RELATIONSHIP_INSTANCE_GUID = "
                      + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID));
           SQLs.push("delete from RELATIONSHIP_INVOLVES_INSTANCES where RELATIONSHIP_INSTANCE_GUID = "
             + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID));
+          SQLs.push("delete from " + entityDB.pool.escapeId(relationship['RELATIONSHIP_ID']) +
+                   " where INSTANCE_GUID = " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID));
           break;
         case 'expire':
-          // if(addOperation)
-          //   return errorMessages.push(message.report('ENTITY', 'NO_MIX_OF_CHANGE_ADD_OPERATION', 'E'));
-          // changeOperation = true;
           if(!value.RELATIONSHIP_INSTANCE_GUID)
             return errorMessages.push(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_GUID_MISSING', 'E'));
           SQLs.push("update RELATIONSHIP_INSTANCES set VALID_TO = " + entityDB.pool.escape(currentTime)
               + " where RELATIONSHIP_INSTANCE_GUID = " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID));
           break;
         case 'extend':
-          // if(addOperation)
-          //   return errorMessages.push(message.report('ENTITY', 'NO_MIX_OF_CHANGE_ADD_OPERATION', 'E'));
-          // changeOperation = true;
           if(!value.RELATIONSHIP_INSTANCE_GUID)
             return errorMessages.push(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_GUID_MISSING', 'E'));
           if(!value['VALID_TO'])
@@ -776,9 +771,6 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             + " where RELATIONSHIP_INSTANCE_GUID = " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID));
           break;
         case 'add':
-          // if(changeOperation)
-          //   return errorMessages.push(message.report('ENTITY', 'NO_MIX_OF_CHANGE_ADD_OPERATION', 'E'));
-          // addOperation = true;
           if(!value['PARTNER_INSTANCES'])
             return errorMessages.push(message.report('ENTITY', 'PARTNER_INSTANCES_MISSING','E'));
           if (value['PARTNER_INSTANCES'].length !== relationshipMeta.INVOLVES.length - 1 )

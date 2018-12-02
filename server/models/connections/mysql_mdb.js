@@ -19,6 +19,16 @@ const pool = mysql.createPool({
 const _ = require('underscore');
 const entities = [];
 const relations = [];
+const dataTypes = [
+  {key: 1, dataType: 'Char', sqlType: 'varchar'},
+  {key: 2, dataType: 'Integer', sqlType: 'int'},
+  {key: 3, dataType: 'Boolean', sqlType: 'tinyint'},
+  {key: 4, dataType: 'Decimal', sqlType: 'decimal'},
+  {key: 5, dataType: 'String', sqlType: 'text'},
+  {key: 6, dataType: 'Binary', sqlType: 'blob'},
+  {key: 7, dataType: 'Date', sqlType: 'date'},
+  {key: 8, dataType: 'Timestamp', sqlType: 'datetime'}
+];
 
 module.exports = {
   pool: pool,
@@ -27,9 +37,13 @@ module.exports = {
 
   loadEntity: loadEntity,
   loadEntities: loadEntities,
+  loadRelation: getRelation,
   listEntityID: listEntityID,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
+  checkDBConsistency: checkDBConsistency,
+  syncDBTable: syncDBTable,
+  createDBTable: createDBTable,
   executeSQL: executeSQL,
   doUpdatesParallel: doUpdatesParallel,
   doUpdatesSeries: doUpdatesSeries,
@@ -128,7 +142,7 @@ function loadEntity(entityID, done) {
 
     async.parallel([
         function(callback){
-          _getRelation(entity.ENTITY_ID, callback)
+          getRelation(entity.ENTITY_ID, callback)
         },
         function(callback){
           _getEntityRoles(entity,callback);
@@ -149,38 +163,6 @@ function loadEntity(entityID, done) {
 function listEntityID() {
   return _.map(this.entities, function (entity) {
     return entity.ENTITY_ID;
-  })
-}
-/**
- * Get attribute meta of an Entity,
- * Can also get attribute meta of a relationship
- * @param relationID
- * @param entity
- * @param callback
- * @private
- */
-function _getEntityAttributes(relationID, entity, callback) {
-  let selectSQL = "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(relationID) +
-                  " order by `ORDER`";
-  pool.query(selectSQL, function (err, attrRows) {
-    if (err)return callback(err, 'Get Attributes Error');
-    entity.ATTRIBUTES = attrRows;
-
-    //Get searchable attributes and their index tables
-    let indexTableName;
-    entity.UNIQUE_ATTRIBUTE_INDICES = [];
-    entity.ATTRIBUTE_INDICES = [];
-    _.each(_.where(entity.ATTRIBUTES, {SEARCHABLE: 1, UNIQUE: 1}), function (sAttr) {
-      indexTableName = "UIX_" + sAttr['ATTR_GUID'];
-      entity.UNIQUE_ATTRIBUTE_INDICES.push(
-        {ATTR_NAME: sAttr.ATTR_NAME, IDX_TABLE: indexTableName, AUTO_INCREMENT: sAttr.AUTO_INCREMENT})
-    });
-    _.each(_.where(entity.ATTRIBUTES, {SEARCHABLE: 1, UNIQUE: 0}), function (sAttr) {
-      indexTableName = "NIX_" + sAttr['ATTR_GUID'];
-      entity.ATTRIBUTE_INDICES.push({ATTR_NAME: sAttr.ATTR_NAME, IDX_TABLE: indexTableName})
-    });
-
-    callback(null);
   })
 }
 
@@ -220,7 +202,7 @@ function _getEntityRoles(entity, callback) {
     async.parallel([
       function(callback){
         async.map(roleRows, function (role, callbackMap) {
-          _getRelation(role.RELATION_ID, callbackMap);
+          getRelation(role.RELATION_ID, callbackMap);
         }, function (err, mapResults) {
           if(err){
             debug("%s.\n" +
@@ -252,7 +234,7 @@ function _getEntityRoles(entity, callback) {
   })
 }
 
-function _getRelation(relationID, callback) { //Get Relations and their attributes and associations
+function getRelation(relationID, callback) { //Get Relations and their attributes and associations
   if (!relationID) return callback(null);
   let selectSQL = "select * from RELATION where RELATION_ID = " + pool.escape(relationID);
   pool.query(selectSQL, function (err, relationRows) {
@@ -352,7 +334,7 @@ function _getRelationships(role, callback) {
           //   _getEntityAttributes(relationship.RELATIONSHIP_ID, relationship, callback);
           // },
           function (callback) {
-            _getRelation(relationship.RELATIONSHIP_ID, callback);
+            getRelation(relationship.RELATIONSHIP_ID, callback);
           },
           function(callback){
             _getRelationshipInvolves(relationship, callback);
@@ -430,6 +412,322 @@ function getRelationMeta(relation_id) {
     return ele.RELATION_ID === relation_id;
   })
 }
+
+/**
+ * Check whether the relation definition is consistent with DB table
+ * @param relation
+ * @param callback
+ */
+function checkDBConsistency(relation, callback) {
+  if (!relation || !relation.RELATION_ID) return callback('Relation ID is not provided!');
+  let selectSQL = "select column_comment as 'ATTR_GUID', column_name as 'ATTR_NAME', ordinal_position as 'ORDER', " +
+    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_key, extra " +
+    "from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='MDB' and TABLE_NAME = " + pool.escape(relation.RELATION_ID) +
+    " order by ordinal_position";
+
+  pool.query(selectSQL, function (err, columns) {
+    if (err) {
+      debug("Get DB table '%s' columns error: %s", relation.RELATION_ID, err);
+      return callback(err);
+    }
+
+    let result = {
+      tableExists: false,
+      attributesOnlyInRelation: [],
+      attributesOnlyInTable: [],
+      changedAttributes: []
+    };
+
+    if (columns.length === 0) { 
+      return callback(null, result) // Table doesn't exist
+    }
+
+    result.tableExists = true;
+
+    columns.forEach(function (column) {
+      if (column.ATTR_NAME === 'INSTANCE_GUID') return;
+      const attribute = relation.ATTRIBUTES.find(function (ele) {
+        return column.ATTR_GUID === ele.ATTR_GUID;
+      });
+
+      if(attribute){
+        let sqlType = _map2sqlType(attribute.DATA_TYPE);
+        if (sqlType !== column.DATA_TYPE) {
+          result.changedAttributes.push(
+            {ATTR_NAME: attribute.ATTR_NAME,
+              DIFFERENCE: "Data type '" + sqlType + "' is different with the DB data type '" + column.DATA_TYPE + "'"});
+        } else {
+          switch (sqlType){
+            case 'varchar':
+              if (attribute.DATA_LENGTH !== column.DATA_LENGTH){
+                result.changedAttributes.push(
+                {ATTR_NAME: attribute.ATTR_NAME,
+                  DIFFERENCE: "Character length " + attribute.DATA_LENGTH + " is different with the DB data length " + column.DATA_LENGTH});
+              }
+              break;
+            case 'decimal':
+              if (attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale']) {
+                result.changedAttributes.push(
+                  {ATTR_NAME: attribute.ATTR_NAME,
+                    DIFFERENCE: "Decimal (" + attribute.DATA_LENGTH + "," + attribute.DECIMAL + ") is different with the DB decimal ("
+                      + column.DATA_LENGTH + "," + attribute.DECIMAL + ")"});
+              }
+              break;
+            default:
+          }
+
+          if (attribute.PRIMARY_KEY){
+            if ((column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
+                (column['extra'] === 'auto_increment' && !attribute.AUTO_INCREMENT))
+            {
+              result.changedAttributes.push(
+                {ATTR_NAME: attribute.ATTR_NAME,
+                  DIFFERENCE: "Auto Increment is different"});
+            }
+            if (column['column_key'] !== 'PRI') {
+              result.changedAttributes.push(
+                {ATTR_NAME: attribute.ATTR_NAME,
+                  DIFFERENCE: "Primary key is not checked in DB"});
+            }
+          } else {
+            if (column['column_key'] === 'PRI') {
+              result.changedAttributes.push(
+                {ATTR_NAME: attribute.ATTR_NAME,
+                  DIFFERENCE: "Primary key is still checked in DB"});
+            }
+          }
+        }
+      }else{
+        result.attributesOnlyInTable.push(column.ATTR_NAME);
+      }
+    });
+
+    relation.ATTRIBUTES.forEach(function (attribute) {
+      const found = columns.findIndex(function (ele) {
+        return attribute.ATTR_GUID === ele.ATTR_GUID;
+      });
+      if (found === -1) { // Not exist in DB table
+        result.attributesOnlyInRelation.push(attribute.ATTR_NAME)
+      }
+    });
+
+    if (result.attributesOnlyInRelation.length > 0 ||
+        result.attributesOnlyInTable.length > 0 ||
+        result.changedAttributes.length > 0){
+      callback(null, result);
+    } else {
+      callback(null, null);
+    }
+  })
+}
+
+/**
+ * sync the relation definition to DB table
+ ALTER TABLE `MDB`.`rs_marriage`
+ ADD COLUMN `ORDER` INT UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT COMMENT 'Marriage Order' AFTER `INSTANCE_GUID`,
+ DROP PRIMARY KEY,
+ ADD PRIMARY KEY (`ORDER`, `INSTANCE_GUID`),
+ ADD UNIQUE INDEX `ORDER_UNIQUE` (`ORDER` ASC);
+ * @param relation
+ * @param callback
+ */
+function syncDBTable(relation, callback) {
+
+  let selectSQL = "select column_comment as 'ATTR_GUID', column_name as 'ATTR_NAME', ordinal_position as 'ORDER', " +
+    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_key, extra " +
+    "from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='MDB' and TABLE_NAME = " + pool.escape(relation.RELATION_ID) +
+    " order by ordinal_position";
+
+  pool.query(selectSQL, function (err, columns) {
+    if (err) {
+      debug("Get DB table '%s' columns error: %s", relation.RELATION_ID, err);
+      return callback(err);
+    }
+
+    if (columns.length === 0) { // No such table in DB
+      createDBTable(relation, callback);
+      return;
+    }
+
+    let alterTable = "alter table " + pool.escapeId(relation.RELATION_ID);
+    const primaryKeys = [];
+    let isPrimaryKeyChanged = false;
+    columns.forEach(function (column) {
+      if (column.ATTR_NAME === 'INSTANCE_GUID') return;
+      const attribute = relation.ATTRIBUTES.find(function (ele) {
+        return column.ATTR_GUID === ele.ATTR_GUID;
+      });
+      if (attribute) {
+        // CHANGE COLUMN `FIELD_SRC` `FIELD_TAR` VARCHAR(110) NULL DEFAULT NULL COMMENT 'adsfadf' ;
+        let changeColumn = " change column " + pool.escapeId(column.ATTR_NAME) + " " + pool.escapeId(attribute.ATTR_NAME);
+        let isChanged = false;
+        let sqlType = _map2sqlType(attribute.DATA_TYPE);
+        switch (sqlType){
+          case 'varchar':
+            changeColumn += " varchar(" + attribute.DATA_LENGTH + ")";
+            isChanged = attribute.DATA_LENGTH !== column.DATA_LENGTH;
+            break;
+          case 'decimal':
+            changeColumn += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
+            isChanged = attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale'] ;
+            break;
+          default:
+            changeColumn += " " + sqlType;
+        }
+        if (sqlType !== column.DATA_TYPE) isChanged = true;
+
+        if (attribute.PRIMARY_KEY){
+          changeColumn += " NOT NULL";
+          if (attribute.AUTO_INCREMENT) changeColumn += " AUTO_INCREMENT";
+          isChanged = (column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
+            (column['extra'] === 'auto_increment' && !attribute.AUTO_INCREMENT);
+          primaryKeys.push(attribute.ATTR_NAME);
+          if (column['column_key'] !== 'PRI') isPrimaryKeyChanged = true;
+        } else {
+          changeColumn += " NULL DEFAULT NULL";
+          if (column['column_key'] === 'PRI') {
+            isPrimaryKeyChanged = true;
+            isChanged = true;
+          }
+        }
+        if(isChanged)
+          alterTable += changeColumn + " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
+      } else {
+        alterTable += " drop column " + pool.escapeId(column.ATTR_NAME) + ",";
+      }
+    });
+
+    relation.ATTRIBUTES.forEach(function (attribute) {
+      const found = columns.findIndex(function (ele) {
+        return attribute.ATTR_GUID === ele.ATTR_GUID;
+      });
+      if (found === -1){ // Not exist in DB table
+        alterTable += " add column " + pool.escapeId(attribute.ATTR_NAME);
+        let sqlType = _map2sqlType(attribute.DATA_TYPE);
+        switch (sqlType){
+          case 'varchar':
+            alterTable += " varchar(" + attribute.DATA_LENGTH + ")";
+            break;
+          case 'decimal':
+            alterTable += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
+            break;
+          default:
+            alterTable += " " + sqlType;
+        }
+        if (attribute.PRIMARY_KEY){
+          alterTable += " NOT NULL";
+          if (attribute.AUTO_INCREMENT) alterTable += " AUTO_INCREMENT";
+          primaryKeys.push(attribute.ATTR_NAME);
+          isPrimaryKeyChanged = true;
+        } else {
+          alterTable += " NULL DEFAULT NULL";
+        }
+        alterTable += " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
+      }
+    });
+
+    if(isPrimaryKeyChanged) {
+      alterTable += "drop primary key, ";
+      let addPrimaryKey = "add primary key (";
+      primaryKeys.forEach(function (primaryKey, i) {
+        if (i === 0){
+          addPrimaryKey += pool.escapeId(primaryKey);
+        } else {
+          addPrimaryKey += ", " + pool.escapeId(primaryKey);
+        }
+      });
+      alterTable += addPrimaryKey + ")";
+    }else{
+      alterTable = alterTable.slice(0, -1); // Remove the last ","
+    }
+
+    if (alterTable.includes('add') || alterTable.includes('change') || alterTable.includes('drop')){
+      executeSQL(alterTable, callback);
+    } else {
+      callback(null);
+    }
+  })
+}
+
+/**
+ * Generate DDL of create a table:
+ * CREATE TABLE `MDB`.`test_tab` (
+ `FIELD1` INT NOT NULL AUTO_INCREMENT COMMENT '<ATTR_GUID>',
+ `FIELD2` VARCHAR(45) NOT NULL COMMENT '<ATTR_GUID>',
+ `FIELD3` TINYINT(1) NULL COMMENT '<ATTR_GUID>',
+ `FIELD4` DECIMAL(23,2) NULL COMMENT '<ATTR_GUID>',
+ `FIELD5` TEXT NULL COMMENT '<ATTR_GUID>',
+ `FIELD6` BLOB NULL COMMENT '<ATTR_GUID>',
+ `FIELD7` DATE NULL COMMENT '<ATTR_GUID>',
+ `FIELD8` DATETIME NULL COMMENT '<ATTR_GUID>',
+ PRIMARY KEY (`FIELD1`, `FIELD2`));
+ */
+function createDBTable(relation, callback) {
+  let createTable = "create table " + pool.escapeId(relation.RELATION_ID) + " (";
+  const primaryKeys = [];
+  if (relation.RELATION_ID.substring(0,2) !== 'r_'){
+    createTable += "`INSTANCE_GUID` varchar(32) NOT NULL, ";
+  }
+  relation.ATTRIBUTES.forEach(function(attribute){
+    createTable += pool.escapeId(attribute.ATTR_NAME) + " " +
+      _generateColumnType(attribute.DATA_TYPE, attribute.DATA_LENGTH, attribute.DECIMAL);
+    if(attribute.PRIMARY_KEY){
+      primaryKeys.push(attribute.ATTR_NAME);
+      createTable += " NOT NULL ";
+      if(attribute.AUTO_INCREMENT) createTable += "AUTO_INCREMENT ";
+    } else {
+      createTable += " NULL ";
+    }
+    createTable += "COMMENT " + pool.escape(attribute.ATTR_GUID) + ", ";
+  });
+  if (relation.RELATION_ID.substring(0,2) === 'r_'){
+    createTable += " `INSTANCE_GUID` varchar(32) NULL";
+    if (primaryKeys.length === 0){
+      createTable += ")";
+    }else{
+      createTable += ", PRIMARY KEY ";
+      primaryKeys.forEach(function (primaryKey, i) {
+        if (i === 0){
+          createTable += "(" + pool.escapeId(primaryKey);
+        } else {
+          createTable += "," + pool.escapeId(primaryKey);
+        }
+      });
+      createTable += "))";
+    }
+  } else {
+    if (primaryKeys.length > 0)
+      return callback("Entity or Relationship table doesn't have primary key other than INSTANCE_GUID");
+    createTable += " PRIMARY KEY (`INSTANCE_GUID`))";
+  }
+  executeSQL(createTable, callback);
+}
+
+function _map2sqlType(dataType) {
+  return dataTypes.find(function (ele) {
+    return ele.key === dataType;
+  }).sqlType;
+}
+
+function _generateColumnType(dataType, length, decimal) {
+  let columnType = '';
+  switch (dataType) {
+    case 1: // varchar
+      columnType = 'varchar(' + length + ')';
+      break;
+    case 3: // boolean
+      columnType = 'tinyint(1)';
+      break;
+    case 4:
+      if(!decimal) decimal = 0;
+      columnType = 'decimal(' + length + ',' + decimal + ')';
+      break;
+    default:
+      columnType = _map2sqlType(dataType);
+  }
+  return columnType;
+}
+
 /**
  * Execute select SQL, no update/delete/insert
  * @param selectSQL

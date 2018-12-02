@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe.only('entity tests', function () {
+describe('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntity('person', done);
   });
@@ -533,7 +533,8 @@ describe.only('entity tests', function () {
     });
 
     it('should report an error of RELATIONSHIP_DELETION_NOT_ALLOWED', function (done) {
-      let currentRelationshipGUID = instance2.relationships[1].values.find(function (value) {
+      // console.log(instance2.relationships[]);
+      let currentRelationshipGUID = instance2.relationships[0].values.find(function (value) {
         return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
@@ -550,7 +551,7 @@ describe.only('entity tests', function () {
     });
 
     it('should report an error of FUTURE_RELATIONSHIP', function (done) {
-      let futureRelationshipGUID = instance2.relationships[1].values.find(function (value) {
+      let futureRelationshipGUID = instance2.relationships[0].values.find(function (value) {
         return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F914BC7E2BD65D42A0B17FBEAD8E1AF2';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
@@ -567,7 +568,7 @@ describe.only('entity tests', function () {
     });
 
     it('should expire an active relationship', function (done) {
-      let currentRelationshipGUID = instance2.relationships[1].values.find(function (value) {
+      let currentRelationshipGUID = instance2.relationships[0].values.find(function (value) {
         return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
@@ -584,7 +585,7 @@ describe.only('entity tests', function () {
     });
 
     it('should report an error of CHANGE_TO_EXPIRED_RELATIONSHIP', function (done) {
-      let currentRelationshipGUID = instance2.relationships[1].values.find(function (value) {
+      let currentRelationshipGUID = instance2.relationships[0].values.find(function (value) {
         return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
@@ -601,7 +602,7 @@ describe.only('entity tests', function () {
     });
 
     it('should delete a future relationship', function (done) {
-      let futureRelationshipGUID = instance2.relationships[1].values.find(function (value) {
+      let futureRelationshipGUID = instance2.relationships[0].values.find(function (value) {
         return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F914BC7E2BD65D42A0B17FBEAD8E1AF2';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
@@ -616,7 +617,6 @@ describe.only('entity tests', function () {
         done();
       })
     })
-
   });
 
   describe.skip('Entity Deletion', function () {

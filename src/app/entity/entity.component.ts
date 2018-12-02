@@ -227,8 +227,8 @@ export class EntityComponent implements OnInit {
   }
 
   _composeChangedPropertyValue(key, control: FormControl) {
-    const attributeMeta = this.entityAttributes.find(attribute => attribute.ATTR_NAME === key);
-    this.changedEntity[key] = attributeMeta.IS_MULTI_VALUE ? control.value.split(',') : control.value;
+    // const attributeMeta = this.entityAttributes.find(attribute => attribute.ATTR_NAME === key);
+    this.changedEntity[key] = control.value;
   }
 
   _composeChangedSingleValueRelation(key, attrControls) {

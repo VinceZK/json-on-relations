@@ -26,9 +26,6 @@ export class EntityMeta {
   ENTITY_ID: string;
   ENTITY_DESC: string;
   VERSION_NO: number;
-  ATTRIBUTES: Attribute[];
-  ATTRIBUTE_INDICES: ArrtibuteIndex[];
-  UNIQUE_ATTRIBUTE_INDICES: UniqueAttributeIndex[];
   ROLES: Role[];
 }
 export class Attribute {
@@ -39,49 +36,41 @@ export class Attribute {
   DATA_ELEMENT: string;
   DATA_TYPE: number;
   DATA_LENGTH: number;
+  DECIMAL: number;
+  ORDER: number;
   PRIMARY_KEY: boolean;
-  SEARCHABLE: boolean;
-  NOT_NULL: boolean;
-  UNIQUE: boolean;
-  AUTO_INCREMENT: boolean;
-  IS_MULTI_VALUE: boolean;
-}
-export class ArrtibuteIndex {
-  ATTR_NAME: string;
-  IDX_TABLE: string;
-}
-export class UniqueAttributeIndex {
-  ATTR_NAME: string;
-  IDX_TABLE: string;
   AUTO_INCREMENT: boolean;
 }
 export class Role {
   ROLE_ID: string;
-  ROLE_DESC: string;
-  RELATIONS: Relation[];
+  ROLE_DESC?: string;
+  RELATIONS: RoleRelation[];
   RELATIONSHIPS: RelationshipMeta[];
 }
-export class Relation {
+export class RoleRelation {
   RELATION_ID: string;
+  RELATION_DESC?: string;
   CARDINALITY: string;
 }
 export class RelationshipMeta {
   RELATIONSHIP_ID: string;
-  RELATIONSHIP_DESC: string;
-  VALID_PERIOD: number;
-  ATTRIBUTES: Attribute[];
-  ATTRIBUTE_INDICES: ArrtibuteIndex[];
-  UNIQUE_ATTRIBUTE_INDICES: UniqueAttributeIndex[];
+  RELATIONSHIP_DESC?: string;
+  VALID_PERIOD?: number;
+  CREATE_BY?: string;
+  CREATE_TIME?: string;
+  LAST_CHANGE_BY?: string;
+  LAST_CHANGE_TIME?: string;
   INVOLVES: Involve[];
 }
 export class Involve {
   ROLE_ID: string;
+  ROLE_DESC?: string;
   CARDINALITY: string;
+  DIRECTION: string;
 }
-
 export class RelationMeta {
   RELATION_ID: string;
-  RELATION_DESC: string;
+  RELATION_DESC?: string;
   VERSION_NO: number;
   ATTRIBUTES: Attribute[];
   ASSOCIATIONS: Association[];
@@ -99,6 +88,7 @@ export class FieldsMappingPair {
 
 export class EntityRelation {
   RELATION_ID: string;
+  RELATION_DESC?: string;
   CARDINALITY: string;
   ROLE_ID: string;
   EMPTY: boolean;
@@ -129,7 +119,46 @@ export class EntityType {
   ENTITY_DESC: string;
   VERSION_NO: number;
   CREATE_BY: string;
-  CREATE_TIME: number;
+  CREATE_TIME: string;
   LAST_CHANGE_BY: string;
-  LAST_CHANGE_TIME: number;
+  LAST_CHANGE_TIME: string;
+}
+
+export class Relation {
+  RELATION_ID: string;
+  RELATION_DESC: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class RelationshipH {
+  RELATIONSHIP_ID: string;
+  RELATIONSHIP_DESC: string;
+  VALID_PERIOD: number;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+export class RoleH {
+  ROLE_ID: string;
+  ROLE_DESC: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+export class RoleMeta {
+  ROLE_ID: string;
+  ROLE_DESC: string;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+  RELATIONS: RoleRelation[];
 }

@@ -1,12 +1,16 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {ActivatedRoute, ParamMap} from '@angular/router';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {EntityService} from '../../../entity.service';
-import {EntityMeta} from '../../../entity';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {MessageService} from 'ui-message-angular';
+import {Attribute, EntityMeta} from '../../../entity';
+import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../../../msgStore';
-import {of} from 'rxjs';
+import {forkJoin, Observable, of} from 'rxjs';
+import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.component';
+import {ModelService} from '../../model.service';
+import {DialogService} from '../../../dialog.service';
+import {UniqueEntityTypeValidator} from '../../model-validators';
 
 @Component({
   selector: 'app-entity-type-detail',
@@ -15,20 +19,24 @@ import {of} from 'rxjs';
 })
 export class EntityTypeDetailComponent implements OnInit {
   entityMeta: EntityMeta;
+  attributes: Attribute[];
   readonly = true;
   isNewMode = false;
   entityTypeForm: FormGroup;
   changedEntityType = {};
 
+  @ViewChild(AttributeMetaComponent)
+  private attrComponent: AttributeMetaComponent;
+
   constructor(private route: ActivatedRoute,
+              private router: Router,
               private fb: FormBuilder,
+              private uniqueEntityTypeValidator: UniqueEntityTypeValidator,
               private messageService: MessageService,
+              private modelService: ModelService,
+              private dialogService: DialogService,
               private entityService: EntityService) {
     this.messageService.setMessageStore(msgStore, 'EN');
-  }
-
-  get attrFormArray() {
-    return this.entityTypeForm.get('ATTRIBUTES') as FormArray;
   }
 
   get roleFormArray() {
@@ -43,69 +51,44 @@ export class EntityTypeDetailComponent implements OnInit {
           const entityType = new EntityMeta();
           entityType.ENTITY_ID = '';
           entityType.ENTITY_DESC = '';
-          entityType.ATTRIBUTES = [];
           entityType.ROLES = [];
           this.isNewMode = true;
           this.readonly = false;
-          return of(entityType);
+          return forkJoin(of(entityType), of([]));
         } else {
           this.readonly = true;
           this.isNewMode = false;
-          return this.entityService.getEntityMeta(params.get('entityID'));
+          return forkJoin(
+            this.entityService.getEntityMeta(params.get('entityID')),
+            this.entityService.getRelationMeta(params.get('entityID')));
         }
       })
     ).subscribe(data => {
-      this.entityMeta = data;
-      this._generateEntityTypeForm();
-      console.log('Entity Meta:', this.entityMeta);
+      if ( 'msgName' in data[0]) {
+        this.messageService.clearMessages();
+        this.entityMeta = null;
+        this.entityTypeForm = null;
+        this.messageService.report(<Message>data[0]);
+      } else {
+        this.messageService.clearMessages();
+        this.entityMeta = data[0];
+        this.attributes = 'msgName' in data[1] ? [] : data[1].ATTRIBUTES;
+        this._generateEntityTypeForm();
+      }
     });
   }
 
   _generateEntityTypeForm(): void {
     this.entityTypeForm = this.fb.group({});
-    this.entityTypeForm.addControl('ENTITY_ID', new FormControl(this.entityMeta.ENTITY_ID, this._validateEntityId));
+    this.entityTypeForm.addControl('ENTITY_ID', new FormControl(this.entityMeta.ENTITY_ID, {updateOn: 'blur'}));
+    if (this.isNewMode) {
+      this.entityTypeForm.get('ENTITY_ID').setValidators(this._validateEntityId);
+      this.entityTypeForm.get('ENTITY_ID').setAsyncValidators(this.uniqueEntityTypeValidator.validate.bind(this.uniqueEntityTypeValidator));
+    }
     this.entityTypeForm.addControl('ENTITY_DESC', new FormControl(this.entityMeta.ENTITY_DESC));
 
-    // Compose attributes
-    let formArray = [];
-    this.entityMeta.ATTRIBUTES.forEach( attribute => {
-      formArray.push(this.fb.group({
-        ATTR_GUID: [attribute.ATTR_GUID],
-        RELATION_ID: [attribute.RELATION_ID],
-        ATTR_NAME: [attribute.ATTR_NAME],
-        ATTR_DESC: [attribute.ATTR_DESC],
-        DATA_ELEMENT: [attribute.DATA_ELEMENT],
-        DATA_TYPE: [{value: attribute.DATA_TYPE, disabled: this.readonly}],
-        DATA_LENGTH: [attribute.DATA_LENGTH],
-        PRIMARY_KEY: [attribute.PRIMARY_KEY],
-        SEARCHABLE: [{value: attribute.SEARCHABLE, disabled: this.readonly}],
-        NOT_NULL: [{value: attribute.NOT_NULL, disabled: this.readonly}],
-        UNIQUE: [{value: attribute.UNIQUE, disabled: this.readonly}],
-        AUTO_INCREMENT: [{value: attribute.AUTO_INCREMENT, disabled: this.readonly}],
-        IS_MULTI_VALUE: [{value: attribute.IS_MULTI_VALUE, disabled: this.readonly}]
-      }));
-    });
-    if (this.isNewMode) {
-      formArray.push(this.fb.group({
-        ATTR_GUID: [''],
-        RELATION_ID: [this.entityMeta.ENTITY_ID],
-        ATTR_NAME: [''],
-        ATTR_DESC: [''],
-        DATA_ELEMENT: [''],
-        DATA_TYPE: [1],
-        DATA_LENGTH: [null],
-        PRIMARY_KEY: [false],
-        SEARCHABLE: [false],
-        NOT_NULL: [false],
-        UNIQUE: [false],
-        AUTO_INCREMENT: [false],
-        IS_MULTI_VALUE: [false]
-      }));
-    }
-    this.entityTypeForm.addControl('ATTRIBUTES', new FormArray(formArray));
-
     // Compose roles
-    formArray = [];
+    const formArray = [];
     this.entityMeta.ROLES.forEach( role => {
       formArray.push(this.fb.group({
         ROLE_ID: [role.ROLE_ID],
@@ -125,76 +108,73 @@ export class EntityTypeDetailComponent implements OnInit {
   _validateEntityId(c: FormControl) {
     if (c.value.trim() === '') {
       return {message: 'Entity ID is mandatory'};
-      // return {message:
-      //   this.messageService.generateMessage('MODEL', 'ENTITY_ID_MANDATORY', 'E').msgShortText};
     }
 
     if (c.value.toString().toLowerCase() === 'new') {
       return {message: '"NEW/new" is reserved, thus is not allowed to use!'};
-      // return {message:
-      //   this.messageService.generateMessage('MODEL', 'ENTITY_ID_NOT_NEW', 'E').msgShortText};
     }
 
+    if (c.value.toString().toLowerCase().substr(0, 2) === 'r_' ||
+        c.value.toString().toLowerCase().substr(0, 3) === 'rs_') {
+      return {message: 'Entity ID cannot be started with "r_" or "rs_"!'};
+    }
     return null;
   }
 
   switchEditDisplay() {
-    this.readonly = !this.readonly;
-
-    if (!this.readonly) { // Edit Mode
-      this.attrFormArray.controls.forEach(attrFormGroup => {
-        attrFormGroup.get('DATA_TYPE').enable();
-        attrFormGroup.get('PRIMARY_KEY').enable();
-        attrFormGroup.get('SEARCHABLE').enable();
-        attrFormGroup.get('NOT_NULL').enable();
-        attrFormGroup.get('UNIQUE').enable();
-        attrFormGroup.get('AUTO_INCREMENT').enable();
-        attrFormGroup.get('IS_MULTI_VALUE').enable();
+    if (this.isNewMode) {
+      this.dialogService.confirm('Discard the new Entity Type?').subscribe(confirm => {
+        if (confirm) {
+          this._switch2DisplayMode();
+          this.entityMeta = null;
+          this.modelService.sendDialogAnswer('OK');
+        } else {
+          this.modelService.sendDialogAnswer('CANCEL');
+        }
       });
-      this.attrFormArray.push(this.fb.group({
-        ATTR_GUID: [''],
-        RELATION_ID: [this.entityMeta.ENTITY_ID],
-        ATTR_NAME: [''],
-        ATTR_DESC: [''],
-        DATA_ELEMENT: [''],
-        DATA_TYPE: [1],
-        DATA_LENGTH: [null],
-        PRIMARY_KEY: [false],
-        SEARCHABLE: [false],
-        NOT_NULL: [false],
-        UNIQUE: [false],
-        AUTO_INCREMENT: [false],
-        IS_MULTI_VALUE: [false]
-      }));
+      return;
+    }
 
+    if (!this.readonly) { // In Change Mode -> Display Mode
+      if (this.entityTypeForm.dirty) {
+        this.dialogService.confirm('Discard changes?').subscribe(confirm => {
+          if (confirm) { // Discard changes and switch to Display Mode
+            this._generateEntityTypeForm();
+            this.entityTypeForm.reset(this.entityTypeForm.value);
+            this._switch2DisplayMode();
+          }
+        });
+      } else { // Switch to display mode
+        this._switch2DisplayMode();
+      }
+    } else { // In Display Mode -> Change Mode
+      this.readonly = false;
+      this.attrComponent.switchEditDisplay(this.readonly);
       this.roleFormArray.push(
         this.fb.group({
           ROLE_ID: [''],
           ROLE_DESC: ['']
         })
       );
-    } else { // Display Mode
-      let lastIndex = this.attrFormArray.length - 1;
-      while (lastIndex >= 0 && this.attrFormArray.controls[lastIndex].get('ATTR_NAME').value.trim() === '') {
-          this.attrFormArray.removeAt(lastIndex);
-          lastIndex--;
-      }
-      this.attrFormArray.controls.forEach(attrFormGroup => {
-        attrFormGroup.get('DATA_TYPE').disable();
-        attrFormGroup.get('PRIMARY_KEY').disable();
-        attrFormGroup.get('SEARCHABLE').disable();
-        attrFormGroup.get('NOT_NULL').disable();
-        attrFormGroup.get('UNIQUE').disable();
-        attrFormGroup.get('AUTO_INCREMENT').disable();
-        attrFormGroup.get('IS_MULTI_VALUE').disable();
-      });
-
-     lastIndex = this.roleFormArray.length - 1;
-      while (lastIndex >= 0 && this.roleFormArray.controls[lastIndex].get('ROLE_ID').value.trim() === '') {
-        this.roleFormArray.removeAt(lastIndex);
-        lastIndex--;
-      }
     }
+  }
+
+  _switch2DisplayMode(): void {
+    this.readonly = true;
+    this.attrComponent.switchEditDisplay(this.readonly);
+    let lastIndex = this.roleFormArray.length - 1;
+    while (lastIndex >= 0 && this.roleFormArray.controls[lastIndex].get('ROLE_ID').value.trim() === '') {
+      this.roleFormArray.removeAt(lastIndex);
+      lastIndex--;
+    }
+  }
+
+  onChangeEntityID(): void {
+    this.modelService.updateEntityID(this.entityTypeForm.get('ENTITY_ID').value);
+  }
+
+  onChangeEntityDesc(): void {
+    this.modelService.updateEntityDesc(this.entityTypeForm.get('ENTITY_DESC').value);
   }
 
   deleteRole(index: number): void {
@@ -205,7 +185,6 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   onChangeRoleID(index: number): void {
-    // TODO: get role description
     if (index === this.roleFormArray.length - 1 && this.roleFormArray.controls[index].value.ROLE_ID.trim() !== '') {
       // Only work for the last New line
       this.roleFormArray.push(
@@ -215,14 +194,37 @@ export class EntityTypeDetailComponent implements OnInit {
         })
       );
     }
+
+    this.entityService.getRoleDesc(this.roleFormArray.controls[index].value.ROLE_ID).subscribe(data => {
+      if (data['msgCat']) {
+        this.roleFormArray.controls[index].get('ROLE_ID').setErrors({message: data['msgShortText']});
+      } else {
+        this.roleFormArray.controls[index].get('ROLE_DESC').setValue(data);
+      }
+    });
   }
 
   oldRole(formGroup: FormGroup): boolean {
     return this.entityMeta.ROLES.findIndex( role => role.ROLE_ID === formGroup.get('ROLE_ID').value ) !== -1;
   }
 
+  canDeactivate(): Observable<boolean> | boolean {
+    if (this.isNewMode || (this.entityTypeForm && this.entityTypeForm.dirty)) {
+      const dialogAnswer = this.dialogService.confirm('Discard changes?');
+      dialogAnswer.subscribe(confirm => {
+        if (confirm) {
+          this.modelService.sendDialogAnswer('OK');
+        } else {
+          this.modelService.sendDialogAnswer('CANCEL');
+        }
+      });
+      return dialogAnswer;
+    } else {
+      return true;
+    }
+  }
+
   save(): void {
-    console.log(this.entityTypeForm);
     if (!this.entityTypeForm.dirty) {
       return this.messageService.reportMessage('MODEL', 'NO_CHANGE', 'S');
     }
@@ -242,59 +244,11 @@ export class EntityTypeDetailComponent implements OnInit {
       this.changedEntityType['ENTITY_DESC'] = this.entityTypeForm.controls['ENTITY_DESC'].value;
     }
 
-    this._processChangedAttributes();
-
+    this.changedEntityType['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
     this._processChangedRoles();
 
-    console.log(this.changedEntityType);
-    // this.entityService.saveEntityType(this.changedEntityType)
-    //   .subscribe(data => this._postActivityAfterSavingEntityType(data));
-  }
-
-  _processChangedAttributes() {
-    const changedAttributes = [];
-    let changedAttribute;
-    if (this.attrFormArray.dirty) {
-      this.changedEntityType['ATTRIBUTES'] = changedAttributes;
-      this.attrFormArray.controls.forEach(attribute => {
-        if (attribute.dirty) {
-          changedAttribute = {};
-          if (attribute.get('ATTR_GUID').value) { // Update Case
-            changedAttribute['action'] = 'update';
-            changedAttribute['ATTR_GUID'] = attribute.get('ATTR_GUID').value;
-            const attrFormGroup = attribute as FormGroup;
-            Object.keys(attrFormGroup.controls).forEach(key => {
-              const formControl = attrFormGroup.controls[key];
-              if (formControl.dirty) {
-                changedAttribute[key] = formControl.value;
-              }
-            });
-          } else {  // New Add Case
-            changedAttribute['action'] = 'add';
-            const attrFormGroup = attribute as FormGroup;
-            Object.keys(attrFormGroup.controls).forEach(key => {
-              const formControl = attrFormGroup.controls[key];
-              changedAttribute[key] = formControl.value;
-            });
-          }
-        } else {
-          changedAttribute = null;
-        }
-        if (changedAttribute) {
-          changedAttributes.push(changedAttribute);
-        }
-      });
-
-      // Deletion Case
-      this.entityMeta.ATTRIBUTES.forEach(attribute => {
-        const index = this.attrFormArray.controls.findIndex(
-          attributeControl => attributeControl.get('ATTR_GUID').value === attribute.ATTR_GUID);
-        if (index === -1) { // The attribute must be deleted
-          changedAttribute = {action: 'delete', ATTR_GUID: attribute.ATTR_GUID};
-          changedAttributes.push(changedAttribute);
-        }
-      });
-    }
+    this.entityService.saveEntityType(this.changedEntityType)
+      .subscribe(data => this._postActivityAfterSavingEntityType(data));
   }
 
   _processChangedRoles(): void {
@@ -304,6 +258,7 @@ export class EntityTypeDetailComponent implements OnInit {
 
       // New Add Case
       this.roleFormArray.controls.forEach(role => {
+        if (role.get('ROLE_ID').value.trim() === '') { return; }
         if (role.dirty) {
           const newAddedRole = { action: 'add', ROLE_ID: role.value.ROLE_ID };
           changedRoles.push(newAddedRole);
@@ -323,14 +278,19 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingEntityType(data: any) {
-    if (data['ENTITY_ID']) {
-      console.log('returned data', data);
-      this.readonly = true;
-      this.entityMeta = data;
-      this.changedEntityType = {};
-      this._generateEntityTypeForm();
-      this.entityTypeForm.reset(this.entityTypeForm.value);
-      this.messageService.reportMessage('MODEL', 'ENTITY_TYPE_SAVED', 'S', this.entityMeta.ENTITY_ID);
+    if (data[0] && data[0]['ENTITY_ID']) {
+      if (this.isNewMode) {
+        this.entityTypeForm.reset(this.entityTypeForm.value);
+        this.router.navigate(['/model/entity-type/' + data[0]['ENTITY_ID']]);
+      } else {
+        this.readonly = true;
+        this.entityMeta = data[0];
+        this.attributes = data[1].ATTRIBUTES;
+        this.changedEntityType = {};
+        this._generateEntityTypeForm();
+        this.entityTypeForm.reset(this.entityTypeForm.value);
+        this.messageService.reportMessage('MODEL', 'ENTITY_TYPE_SAVED', 'S', this.entityMeta.ENTITY_ID);
+      }
     } else {
       if (data instanceof Array) {
         data.forEach(err => this.messageService.add(err));

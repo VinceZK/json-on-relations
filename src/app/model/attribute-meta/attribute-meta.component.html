@@ -10,11 +10,9 @@
           <th scope="col">Data Element</th>
           <th scope="col">Data Type</th>
           <th scope="col">Length</th>
-          <th scope="col" title="Null">N</th>
-          <th scope="col" title="Unique">U</th>
-          <th scope="col" title="Searchable">S</th>
-          <th scope="col" title="Auto Incremental">I</th>
-          <th scope="col" title="Multiple Value">M</th>
+          <th scope="col">Decimal</th>
+          <th scope="col" title="Primary Key" [hidden]="relationID.substring(0,2) !== 'r_'">PK</th>
+          <th scope="col" title="Auto Incremental" [hidden]="relationID.substring(0,2) !== 'r_'">AI</th>
         </tr>
       </thead>
 
@@ -43,22 +41,18 @@
           </td>
           <td [formGroup]="attrFormGroup">
             <input type="number" formControlName="DATA_LENGTH" class="dk-number"
-                   class="form-control form-control-sm" [readonly]="+attrFormGroup.value.DATA_TYPE !== 1 || readonly">
+                   class="form-control form-control-sm"
+                   [readonly]="(+attrFormGroup.value.DATA_TYPE !== 1 && +attrFormGroup.value.DATA_TYPE !== 4) || readonly">
           </td>
           <td [formGroup]="attrFormGroup">
-            <input type="checkbox" formControlName="NOT_NULL">
+            <input type="number" formControlName="DECIMAL" class="dk-number"
+                   class="form-control form-control-sm" [readonly]="+attrFormGroup.value.DATA_TYPE !== 4 || readonly">
           </td>
-          <td [formGroup]="attrFormGroup">
-            <input type="checkbox" formControlName="UNIQUE">
+          <td [formGroup]="attrFormGroup" [hidden]="relationID.substring(0,2) !== 'r_'">
+            <input type="checkbox" formControlName="PRIMARY_KEY">
           </td>
-          <td [formGroup]="attrFormGroup">
-            <input type="checkbox" formControlName="SEARCHABLE">
-          </td>
-          <td [formGroup]="attrFormGroup">
+          <td [formGroup]="attrFormGroup" [hidden]="relationID.substring(0,2) !== 'r_'">
             <input type="checkbox" formControlName="AUTO_INCREMENT">
-          </td>
-          <td [formGroup]="attrFormGroup">
-            <input type="checkbox" formControlName="IS_MULTI_VALUE">
           </td>
         </tr>
       </tbody>

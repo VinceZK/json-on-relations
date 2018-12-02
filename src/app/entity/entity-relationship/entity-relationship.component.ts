@@ -195,8 +195,8 @@ export class EntityRelationshipComponent implements OnInit {
     Object.keys(this.relationshipFormGroup.controls).forEach(key => {
       const control = this.relationshipFormGroup.controls[key];
       if (control.dirty) {
-        const attributeMeta = this.relationshipAttributeMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
-        this.detailValue[key] = attributeMeta.IS_MULTI_VALUE ? control.value.split(',') : control.value;
+        // const attributeMeta = this.relationshipAttributeMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
+        this.detailValue[key] = control.value;
         hasChangedAttribute = true;
       }
     });

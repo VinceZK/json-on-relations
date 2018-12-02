@@ -9,6 +9,12 @@ import { EntityTypeDetailComponent } from './entity-type/entity-type-detail/enti
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { AttributeMetaComponent } from './attribute-meta/attribute-meta.component';
 import {MessageModule} from 'ui-message-angular';
+import { RelationComponent } from './relation/relation.component';
+import {RelationDetailComponent} from './relation/relation-detail/relation-detail.component';
+import { RelationshipComponent } from './relationship/relationship.component';
+import { RelationshipDetailComponent } from './relationship/relationship-detail/relationship-detail.component';
+import { RoleComponent } from './role/role.component';
+import { RoleDetailComponent } from './role/role-detail/role-detail.component';
 
 @NgModule({
   imports: [
@@ -24,7 +30,13 @@ import {MessageModule} from 'ui-message-angular';
     ModelComponent,
     EntityTypeComponent,
     EntityTypeDetailComponent,
-    AttributeMetaComponent
+    AttributeMetaComponent,
+    RelationComponent,
+    RelationDetailComponent,
+    RelationshipComponent,
+    RelationshipDetailComponent,
+    RoleComponent,
+    RoleDetailComponent
   ]
 })
 export class ModelModule { }

@@ -53,12 +53,11 @@ describe('mysql connections tests', function () {
    *   ]
    * }]
    */
-  describe('#loadEntitye(person)', function () {
+  describe('#loadEntity(person)', function () {
     it('should have the person entity', function () {
-      console.log(entityDB.getEntityMeta('person').ROLES);
+      // console.log(entityDB.getEntityMeta('person').ROLES);
       entityDB.entities.length.should.eql(1);
       entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
-      // entityDB.getEntityMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep([{ROLE_ID: 'employee'}, {ROLE_ID: 'system_user'}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep(
         [{ROLE_ID: 'system_user',
@@ -69,7 +68,6 @@ describe('mysql connections tests', function () {
       entityDB.getEntityMeta('person').ROLES.should.containDeep( [{RELATIONSHIPS:
         [{ RELATIONSHIP_ID: 'rs_user_role',  RELATIONSHIP_DESC: 'A system user has multiple system roles',
           VALID_PERIOD: 3162240000,
-          // ATTRIBUTES:[{ATTR_NAME: 'SYNCED'}],ATTRIBUTE_INDICES:[{ATTR_NAME: 'SYNCED',}],
           INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' },
                       { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]}]);
     });
@@ -85,6 +83,194 @@ describe('mysql connections tests', function () {
       entityDB.getRelationMeta('r_employee')
         .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_company', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
         FIELDS_MAPPING: [ { LEFT_FIELD: 'COMPANY_ID', RIGHT_FIELD: 'COMPANY_ID' } ] }]);
+    })
+  });
+
+  describe('#checkDBConsistency', function () {
+    it('should get passed for relation person', function (done) {
+      let relation = entityDB.getRelationMeta('r_address');
+      entityDB.checkDBConsistency(relation, function (err, results) {
+        should(err).eql(null);
+        done();
+      })
+    });
+  });
+
+  describe('#createDBTable', function () {
+    let relation = {RELATION_ID: 'r_test001'};
+    relation.ATTRIBUTES = [
+      { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD1', DATA_TYPE: 1, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD2', DATA_TYPE: 2, PRIMARY_KEY: 1,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 1,  },
+      { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD3', DATA_TYPE: 3, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD4', DATA_TYPE: 4, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 23, DECIMAL: 2, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD5', DATA_TYPE: 5, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: 'C741889F45D74E16821EF50A5DC94BE5', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD6', DATA_TYPE: 6, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: '87B2AFE983C34C628A4D271280C2642C', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD7', DATA_TYPE: 7, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+      { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test001',
+        ATTR_NAME: 'FIELD8', DATA_TYPE: 8, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0,  }
+    ];
+
+    it('should create a DB table "r_test001"', function (done) {
+      entityDB.createDBTable(relation, function (err) {
+        should(err).eql(null);
+        entityDB.executeSQL("drop table `r_test001`", done);
+      });
+    });
+
+    it('should not create a DB table "test001"', function (done) {
+      relation.RELATION_ID = 'test001';
+      entityDB.createDBTable(relation, function (err) {
+        should(err).eql("Entity or Relationship table doesn't have primary key other than INSTANCE_GUID");
+        done();
+      });
+    });
+
+    it('should create a DB table "test001"', function (done) {
+      relation.RELATION_ID = 'test001';
+      relation.ATTRIBUTES[1].PRIMARY_KEY = 0;
+      relation.ATTRIBUTES[1].AUTO_INCREMENT = 0;
+      entityDB.createDBTable(relation, function (err) {
+        should(err).eql(null);
+        entityDB.executeSQL("drop table `test001`", done);
+      });
+    });
+
+    it('should create a DB table "rs_test001"', function (done) {
+      relation.RELATION_ID = 'rs_test001';
+      relation.ATTRIBUTES[1].PRIMARY_KEY = 0;
+      relation.ATTRIBUTES[1].AUTO_INCREMENT = 0;
+      entityDB.createDBTable(relation, function (err) {
+        should(err).eql(null);
+        entityDB.executeSQL("drop table `rs_test001`", done);
+      });
+    });
+  });
+
+  describe('#syncDBTable()', function () {
+    let relation = {RELATION_ID: 'r_test002'};
+    relation.ATTRIBUTES = [
+      { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD1', DATA_TYPE: 2, PRIMARY_KEY: 1,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD2', DATA_TYPE: 1, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD3', DATA_TYPE: 3, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD4', DATA_TYPE: 4, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 23, DECIMAL: 2, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD5', DATA_TYPE: 5, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: 'C741889F45D74E16821EF50A5DC94BE5', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD6', DATA_TYPE: 6, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: '87B2AFE983C34C628A4D271280C2642C', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD7', DATA_TYPE: 7, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+      { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test002',
+        ATTR_NAME: 'FIELD8', DATA_TYPE: 8, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+        DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 }
+    ];
+
+    it('should create a DB table "r_test002"', function (done) {
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      });
+    });
+
+    it('should change the length of FIELD2', function (done) {
+      relation.ATTRIBUTES[1].DATA_LENGTH = 40;
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should change the length and decimal place of FIELD4', function (done) {
+      relation.ATTRIBUTES[3].DATA_LENGTH = 17;
+      relation.ATTRIBUTES[3].DECIMAL = 3;
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should change the data type of FIELD5 from string to char100', function (done) {
+      relation.ATTRIBUTES[4].DATA_TYPE = 1;
+      relation.ATTRIBUTES[4].DATA_LENGTH = 100;
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should add FIELD2 as the primary key', function (done) {
+      relation.ATTRIBUTES[1].PRIMARY_KEY = true;
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should remove FIELD2 as the primary key and set FIELD1 auto increment', function (done) {
+      relation.ATTRIBUTES[1].PRIMARY_KEY = false;
+      relation.ATTRIBUTES[0].AUTO_INCREMENT = true;
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should remove FIELD8, FIELD4, FIELD2 from the table', function (done) {
+      relation.ATTRIBUTES.splice(7, 1); // datetime
+      relation.ATTRIBUTES.splice(3, 1); // decimal
+      relation.ATTRIBUTES.splice(1, 1); // char
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should add FIELD8, FIELD4, FIELD2 to the table', function (done) {
+      relation.ATTRIBUTES.push(
+        { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test002',
+          ATTR_NAME: 'FIELD8', DATA_TYPE: 8, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+          DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 });
+      relation.ATTRIBUTES.push(
+        { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test002',
+          ATTR_NAME: 'FIELD4', DATA_TYPE: 4, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+          DATA_LENGTH: 23, DECIMAL: 2, AUTO_INCREMENT: 0 });
+      relation.ATTRIBUTES.push(
+        { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test002',
+          ATTR_NAME: 'FIELD2', DATA_TYPE: 1, PRIMARY_KEY: 1,ATTR_DESC: null, DATA_ELEMENT: null,
+          DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0 });
+      entityDB.syncDBTable(relation, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should drop the DB table "test002"', function (done) {
+      entityDB.executeSQL("drop table `r_test002`", done);
     })
   });
 

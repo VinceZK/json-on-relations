@@ -79,9 +79,39 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'ENTITY_ID_MISSING',
+    msgText: {
+      EN: {shortText: 'Entity Type ID is missing', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'ENTITY_TYPE_SAVED',
     msgText: {
-      EN: {shortText: 'Entity Type %s is saved', longText: ''}
+      EN: {shortText: 'Entity Type "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'RELATION_ID_MISSING',
+    msgText: {
+      EN: {shortText: 'Relation ID is missing', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'RELATION_SAVED',
+    msgText: {
+      EN: {shortText: 'Relation "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'RELATIONSHIP_SAVED',
+    msgText: {
+      EN: {shortText: 'Relationship "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'UNSAVED_NEW',
+    msgText: {
+      EN: {shortText: 'There is a unsaved new object existing, please save it first, then create another.', longText: ''}
     }
   }
 ];
