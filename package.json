@@ -1,7 +1,8 @@
 {
   "name": "json-on-relations",
-  "version": "0.0.0",
+  "version": "0.0.4",
   "description": "A data model that leverages the merits of both JSON and Relations",
+  "main": "index.js",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,12 +12,12 @@
     "e2e": "ng e2e",
     "prod": "node server.js"
   },
-  "private": true,
+  "private": false,
   "dependencies": {
-    "@angular/animations": "^6.0.3",
     "@angular/common": "^6.0.3",
-    "@angular/compiler": "^6.0.3",
     "@angular/core": "^6.0.3",
+    "@angular/compiler": "^6.0.3",
+    "@angular/animations": "^6.0.3",
     "@angular/forms": "^6.0.3",
     "@angular/http": "^6.0.3",
     "@angular/platform-browser": "^6.0.3",
@@ -51,7 +52,7 @@
     "tsickle": ">=0.25.5",
     "tslib": "^1.7.1",
     "typescript": "~2.7.2",
-    "@angular/cli": "~6.0.8",
+    "@angular/cli": "~7.1.2",
     "@angular/language-service": "^6.0.3",
     "@types/jasmine": "~2.8.6",
     "@types/jasminewd2": "~2.0.3",
@@ -72,21 +73,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VinceZK/Portal.git"
+    "url": "git+https://github.com/VinceZK/json-on-relations.git"
   },
   "keywords": [
-    "portal",
-    "navigation",
-    "console",
-    "admin template",
-    "software system",
+    "JSON",
+    "Relational DB",
+    "Message Driven",
+    "CRUD",
+    "API",
     "nodejs",
     "angular"
   ],
   "author": "vincezk",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/VinceZK/Portal/issues"
+    "url": "https://github.com/VinceZK/json-on-relations/issues"
   },
-  "homepage": "https://github.com/VinceZK/Portal#readme"
+  "homepage": "https://github.com/VinceZK/json-on-relations#readme"
 }

@@ -92,6 +92,10 @@ export class ListComponent implements OnInit {
     }
   }
 
+  newEntity(): void {
+    this.router.navigate(['/entity/new', {entityID: this.entityID}]);
+  }
+
   search() {
     this.queryObject.relation = this.relationID;
     this.queryObject.projection = [];

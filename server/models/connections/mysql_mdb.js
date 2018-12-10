@@ -330,9 +330,6 @@ function _getRelationships(role, callback) {
       };
 
       async.parallel([
-          // function(callback){
-          //   _getEntityAttributes(relationship.RELATIONSHIP_ID, relationship, callback);
-          // },
           function (callback) {
             getRelation(relationship.RELATIONSHIP_ID, callback);
           },
@@ -558,7 +555,6 @@ function syncDBTable(relation, callback) {
         return column.ATTR_GUID === ele.ATTR_GUID;
       });
       if (attribute) {
-        // CHANGE COLUMN `FIELD_SRC` `FIELD_TAR` VARCHAR(110) NULL DEFAULT NULL COMMENT 'adsfadf' ;
         let changeColumn = " change column " + pool.escapeId(column.ATTR_NAME) + " " + pool.escapeId(attribute.ATTR_NAME);
         let isChanged = false;
         let sqlType = _map2sqlType(attribute.DATA_TYPE);
@@ -629,6 +625,8 @@ function syncDBTable(relation, callback) {
     if(isPrimaryKeyChanged) {
       alterTable += "drop primary key, ";
       let addPrimaryKey = "add primary key (";
+      if (relation.RELATION_ID.substring(0,2) === 'r_' && primaryKeys.length === 0)
+        return callback('Relation must have primary key(s)');
       primaryKeys.forEach(function (primaryKey, i) {
         if (i === 0){
           addPrimaryKey += pool.escapeId(primaryKey);
@@ -665,7 +663,7 @@ function syncDBTable(relation, callback) {
 function createDBTable(relation, callback) {
   let createTable = "create table " + pool.escapeId(relation.RELATION_ID) + " (";
   const primaryKeys = [];
-  if (relation.RELATION_ID.substring(0,2) !== 'r_'){
+  if (relation.RELATION_ID.substring(0,2) !== 'r_'){ // Entity or Relationship
     createTable += "`INSTANCE_GUID` varchar(32) NOT NULL, ";
   }
   relation.ATTRIBUTES.forEach(function(attribute){
@@ -683,7 +681,7 @@ function createDBTable(relation, callback) {
   if (relation.RELATION_ID.substring(0,2) === 'r_'){
     createTable += " `INSTANCE_GUID` varchar(32) NULL";
     if (primaryKeys.length === 0){
-      createTable += ")";
+      return callback("Relation must have primary key(s)");
     }else{
       createTable += ", PRIMARY KEY ";
       primaryKeys.forEach(function (primaryKey, i) {

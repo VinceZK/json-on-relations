@@ -397,6 +397,7 @@ function saveRelationship(relationship, userID, callback) {
     if (err) {
       callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     } else {
+      //TODO Not only sync DB table, but also the involved entities need to be reloaded
       _syncDBTable(relation.RELATION_ID, callback);
     }
   })
@@ -505,8 +506,17 @@ function saveRole(role, userID, callback) {
   }
 
   entityDB.doUpdatesParallel(updateSQLs, function (err) {
-    if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    else callback(null);
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+
+    let selectSQL = "select ENTITY_ID from ENTITY_ROLES where ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
+    entityDB.executeSQL(selectSQL, function (err, rows) {
+      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      const entities = [];
+      rows.forEach(function (row) {
+        entities.push(row.ENTITY_ID);
+      });
+      entityDB.loadEntities(entities, callback);
+    });
   })
 }
 

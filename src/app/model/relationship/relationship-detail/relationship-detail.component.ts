@@ -10,7 +10,7 @@ import {EntityService} from '../../../entity.service';
 import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {forkJoin, Observable, of} from 'rxjs';
-import {UniqueRelationshipValidator, UniqueRoleValidator} from '../../model-validators';
+import {UniqueRelationshipValidator} from '../../model-validators';
 
 @Component({
   selector: 'app-relationship-detail',
@@ -310,7 +310,7 @@ export class RelationshipDetailComponent implements OnInit {
   _postActivityAfterSavingRelationship(data: any) {
     if (data[0] && data[0]['RELATIONSHIP_ID']) {
       if (this.isNewMode) {
-        this.relationshipForm.reset(this.relationshipForm.value);
+        this.isNewMode = false;
         this.router.navigate(['/model/relationship/' + data[0]['RELATIONSHIP_ID']]);
       } else {
         this.readonly = true;
@@ -318,7 +318,6 @@ export class RelationshipDetailComponent implements OnInit {
         this.attributes = data[1].ATTRIBUTES;
         this.changedRelationship = {};
         this._generateRelationshipForm();
-        this.relationshipForm.reset(this.relationshipForm.value);
         this.messageService.reportMessage('MODEL', 'RELATIONSHIP_SAVED', 'S', this.relationshipMeta.RELATIONSHIP_ID);
       }
     } else {

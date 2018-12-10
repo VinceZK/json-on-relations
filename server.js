@@ -1,8 +1,5 @@
 const express = require('express');
-const session = require('express-session');
-const cors = require('cors')
-// const redisStore = require('connect-redis')(session);
-const passport = require('passport');
+const cors = require('cors'); // Allow cross site requests
 const compress = require('compression');
 const path = require('path');
 const entityDB = require('./server/models/connections/mysql_mdb.js');
@@ -10,21 +7,10 @@ const entityDB = require('./server/models/connections/mysql_mdb.js');
 const app = express();
 
 // We don't want to serve sessions for static resources
-// app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// app.use(session({
-//   name: 'sessionID',
-//   secret:'darkhouse',
-//   saveUninitialized: false,
-//   store: new redisStore(),
-//   unset: 'destroy', //Only for Redis session store
-//   resave: false,
-//   cookie: {httpOnly: false, maxAge: 15 * 60 * 1000 }
-// }));
 app.use(cors());
 app.use(require('body-parser').json());
-// app.use(passport.initialize());
-// app.use(passport.session());
 app.use(compress());
 
 // Routing
@@ -36,8 +22,14 @@ process.on('SIGINT',function(){
   process.exit()
 });
 
-entityDB.loadEntities(['person','system_role', 'mtestEntity', 'mtestEntity2'], function (err) {
-  if(err) console.log(err);
-  else app.listen(3001, () => console.log('Example app listening on port 3001!'));
+entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
+  if(err) debug("bootstrap: get entities==> %s", err);
+  else {
+    const entities = [];
+    rows.forEach( row => entities.push(row.ENTITY_ID));
+    entityDB.loadEntities(entities, function (err) {
+      if(err) debug("bootstrap: load entities==> %s", err);
+      else app.listen(3001, () => console.log('Example app listening on port 3001!'));
+    })
+  }
 });
-

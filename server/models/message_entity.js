@@ -222,15 +222,15 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
-    msgName: "PRIMARY_KEY_INCOMPLETE",
+    msgName: "IDENTIFY_ATTRIBUTE_MISSING",
     msgText: {
-      EN: {shortText: "Primary keys are incomplete, missing %s", longText: "dummy"}
+      EN: {shortText: "There is no attribute provided for instance identification", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",
-    msgName: "INSTANCE_NOT_DERIVE",
+    msgName: "INSTANCE_NOT_IDENTIFIED",
     msgText: {
-      EN: {shortText: "Instance can not be derived from the given keys of relation %s", longText: "dummy"}
+      EN: {shortText: "Instance can not be identified from the given attributes", longText: "dummy"}
     }
   }
 ];

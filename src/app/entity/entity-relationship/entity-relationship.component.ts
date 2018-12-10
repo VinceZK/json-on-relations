@@ -4,8 +4,8 @@ import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
-import {AttributeBase} from '../../attribute/attribute-base';
-import {AttributeControlService} from '../../attribute/attribute-control.service';
+import {AttributeBase} from '../attribute/attribute-base';
+import {AttributeControlService} from '../attribute/attribute-control.service';
 
 @Component({
   selector: 'app-entity-relationship',
@@ -195,7 +195,6 @@ export class EntityRelationshipComponent implements OnInit {
     Object.keys(this.relationshipFormGroup.controls).forEach(key => {
       const control = this.relationshipFormGroup.controls[key];
       if (control.dirty) {
-        // const attributeMeta = this.relationshipAttributeMeta.ATTRIBUTES.find(attribute => attribute.ATTR_NAME === key);
         this.detailValue[key] = control.value;
         hasChangedAttribute = true;
       }

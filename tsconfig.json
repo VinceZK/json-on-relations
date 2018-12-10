@@ -17,17 +17,11 @@
       "dom"
     ],
     "paths": {
-      "dk-relation": [
-        "dist/dk-relation"
+      "jor-angular": [
+        "dist/jor-angular"
       ],
-      "dk-relation/*": [
-        "dist/dk-relation/*"
-      ],
-      "dk-entity": [
-        "dist/dk-entity"
-      ],
-      "dk-entity/*": [
-        "dist/dk-entity/*"
+      "jor-angular/*": [
+        "dist/jor-angular/*"
       ]
     }
   }

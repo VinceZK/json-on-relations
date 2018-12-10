@@ -1,0 +1,76 @@
+<div class="btn-toolbar justify-content-end  mb-2" role="toolbar">
+  <div class="btn-group" role="group">
+    <button class="btn" type="button" title="Edit/Display" (click)="switchEditDisplay()">
+      <span *ngIf="readonly" class="fas fa-edit"></span>
+      <span *ngIf="!readonly" class="fas fa-glasses"></span>
+    </button>
+    <button class="btn" type="button" title="Save" (click)="save()">
+      <span class="fas fa-save"></span>
+    </button>
+  </div>
+</div>
+
+<dk-message></dk-message>
+<form *ngIf="entityMeta" [formGroup]="entityTypeForm">
+  <div class="form-group" [class.dk-invalid]="entityTypeForm.get('ENTITY_ID').invalid && (entityTypeForm.touched || entityTypeForm.dirty)">
+    <label for="entity-type" class="col-form-label form-control-sm">Entity Type:
+      <span class="dk-invalid-feedback">
+        {{entityTypeForm.get('ENTITY_ID').errors?.message}}
+      </span>
+    </label>
+    <input type="text" class="form-control form-control-sm" id="entity-type" [readonly]="readonly || !isNewMode"
+           name="entity-type" formControlName="ENTITY_ID">
+  </div>
+  <div class="form-group">
+    <label for="entity-desc" class="col-form-label form-control-sm">Entity Description:</label>
+    <textarea class="form-control" id="entity-desc" name="entity-desc" rows="2"
+              formControlName="ENTITY_DESC" [readonly]="readonly" (change)="onChangeEntityDesc()"></textarea>
+  </div>
+
+  <dk-attribute-meta [readonly]="readonly" [parentForm]="entityTypeForm" [attributes]="attributes"
+                      [relationID]="entityMeta.ENTITY_ID" [isNewMode]="isNewMode">
+  </dk-attribute-meta>
+
+  <div class="card mt-2">
+    <div class="card-header"><span class="fas fa-user-check"></span> Role</div>
+    <div class="card-body">
+      <table class="table table-bordered table-sm dk-table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">Action</th>
+            <th scope="col">Role</th>
+            <th scope="col">Description</th>
+          </tr>
+        </thead>
+
+        <tbody formArrayName="ROLES">
+        <tr *ngFor="let roleFormGroup of roleFormArray.controls; let i = index">
+          <td class="dk-actions">
+            <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRole(i)" title="Delete">
+              <span class="far fa-trash-alt"></span>
+            </button>
+          </td>
+          <td [formGroup]="roleFormGroup"
+              [class.dk-invalid]="roleFormGroup.get('ROLE_ID').invalid && (roleFormGroup.touched || roleFormGroup.dirty)">
+            <div class="input-group">
+              <input class="form-control form-control-sm" type="text" formControlName="ROLE_ID"
+                     [readonly]="readonly || oldRole(roleFormGroup)" (change)="onChangeRoleID(i)">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary btn-light btn-sm" type="button" id="button-addon2">
+                  <span class="fas fa-search"></span>
+                </button>
+              </div>
+              <div class="invalid-tooltip">
+                {{roleFormGroup.get('ROLE_ID').errors?.message}}
+              </div>
+            </div>
+          </td>
+          <td [formGroup]="roleFormGroup">
+            <input type="text" formControlName="ROLE_DESC" readonly class="form-control form-control-sm dk-description">
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>

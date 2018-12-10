@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/json-on-relations",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -124,78 +124,33 @@
         }
       }
     },
-    "dk-relation": {
-      "root": "projects/dk-relation",
-      "sourceRoot": "projects/dk-relation/src",
+    "jor-angular": {
+      "root": "projects/jor-angular",
+      "sourceRoot": "projects/jor-angular/src",
       "projectType": "library",
-      "prefix": "lib",
+      "prefix": "dk",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "tsConfig": "projects/dk-relation/tsconfig.lib.json",
-            "project": "projects/dk-relation/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "project": "projects/dk-relation/ng-package.prod.json"
-            }
+            "tsConfig": "projects/jor-angular/tsconfig.lib.json",
+            "project": "projects/jor-angular/ng-package.json"
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/dk-relation/src/test.ts",
-            "tsConfig": "projects/dk-relation/tsconfig.spec.json",
-            "karmaConfig": "projects/dk-relation/karma.conf.js"
+            "main": "projects/jor-angular/src/test.ts",
+            "tsConfig": "projects/jor-angular/tsconfig.spec.json",
+            "karmaConfig": "projects/jor-angular/karma.conf.js"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "projects/dk-relation/tsconfig.lib.json",
-              "projects/dk-relation/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
-    "dk-entity": {
-      "root": "projects/dk-entity",
-      "sourceRoot": "projects/dk-entity/src",
-      "projectType": "library",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
-          "options": {
-            "tsConfig": "projects/dk-entity/tsconfig.lib.json",
-            "project": "projects/dk-entity/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "project": "projects/dk-entity/ng-package.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/dk-entity/src/test.ts",
-            "tsConfig": "projects/dk-entity/tsconfig.spec.json",
-            "karmaConfig": "projects/dk-entity/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/dk-entity/tsconfig.lib.json",
-              "projects/dk-entity/tsconfig.spec.json"
+              "projects/jor-angular/tsconfig.lib.json",
+              "projects/jor-angular/tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"

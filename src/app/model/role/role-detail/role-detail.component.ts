@@ -10,7 +10,6 @@ import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
 import {UniqueRoleValidator} from '../../model-validators';
-import {validate} from 'codelyzer/walkerFactory/walkerFn';
 
 @Component({
   selector: 'app-role-detail',
@@ -286,14 +285,13 @@ export class RoleDetailComponent implements OnInit {
   _postActivityAfterSavingRole(data: any) {
     if (data && data['ROLE_ID']) {
       if (this.isNewMode) {
-        this.roleForm.reset(this.roleForm.value);
+        this.isNewMode = false;
         this.router.navigate(['/model/role/' + data['ROLE_ID']]);
       } else {
         this.readonly = true;
         this.roleMeta = data;
-        this.changedRole = {};
         this._generateRoleForm();
-        this.roleForm.reset(this.roleForm.value);
+        this.changedRole = {};
         this.messageService.reportMessage('MODEL', 'ROLE_SAVED', 'S', this.roleMeta.ROLE_ID);
       }
     } else {

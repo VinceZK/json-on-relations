@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
 import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipMeta} from '../entity';
-import {forkJoin} from 'rxjs';
+import {forkJoin, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {AttributeControlService} from '../attribute/attribute-control.service';
+import {AttributeControlService} from './attribute/attribute-control.service';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../msgStore';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, ParamMap, Router} from '@angular/router';
+import {switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-entity',
@@ -14,8 +15,6 @@ import {ActivatedRoute} from '@angular/router';
   styleUrls: ['./entity.component.css']
 })
 export class EntityComponent implements OnInit {
-  entityIDs;
-  newEntityID;
   entityMeta: EntityMeta;
   entity: Entity;
   changedEntity: Entity;
@@ -24,12 +23,12 @@ export class EntityComponent implements OnInit {
   formGroup: FormGroup;
   readonly = true;
   isRelationshipModalShown = false;
-  isNewModalShown = false;
   isEntityJSONModalShown = false;
   toBeAddRelationship: Relationship;
 
   constructor(private fb: FormBuilder,
               private route: ActivatedRoute,
+              private router: Router,
               private attributeControlService: AttributeControlService,
               private messageService: MessageService,
               private entityService: EntityService) {
@@ -39,22 +38,37 @@ export class EntityComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.entityService.getEntityInstance(this.route.snapshot.paramMap.get('instanceGUID'))
-      .subscribe(data => {
-        this.entity = data;
-        const entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
-        const relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
-        const combined$ = forkJoin(entityMeta$, relationMetas$);
-        combined$.subscribe(value => {
-          this.entityMeta = value[0];
-          this.relationMetas = value[1];
-          this._createFormFromMeta();
-        });
-      });
+    this.route.paramMap.pipe(
+      switchMap((params: ParamMap) => {
+        const instanceGUID = params.get('instanceGUID');
+        this.entityMeta = null;
+        if (instanceGUID === 'new') {
+          this.readonly = false;
+          this.entity = new Entity();
+          this.entity.ENTITY_ID = params.get('entityID');
+          this.entity.relationships = [];
+          return of(this.entity);
+        } else {
+          this.readonly = true;
+          return this.entityService.getEntityInstance(instanceGUID);
+        }
+      }),
+      switchMap(data => {
+          this.entity = data;
+          const entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
+          const relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
+          return forkJoin(entityMeta$, relationMetas$);
+      })
+    ).subscribe(data => {
+        this.entityMeta = data[0];
+        this.relationMetas = data[1];
+        this.formGroup = this.fb.group({});
+        this._createFormFromMeta();
+    });
+
   }
 
   get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
-  get displayNewModal() {return this.isNewModalShown ? 'block' : 'none'; }
   get displayEntityJSONModal() {return this.isEntityJSONModalShown ? 'block' : 'none'; }
   get entityAttributes() { return this.relationMetas.find(
     relationMeta => relationMeta.RELATION_ID === this.entity.ENTITY_ID).ATTRIBUTES; }
@@ -71,7 +85,7 @@ export class EntityComponent implements OnInit {
       return;
     }
 
-    console.log(this.changedEntity);
+    // console.log(this.changedEntity);
     if (this.entity.INSTANCE_GUID) {
       this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         this._postActivityAfterSaving(data);
@@ -85,26 +99,7 @@ export class EntityComponent implements OnInit {
   }
 
   newEntity(): void {
-    this.entity = new Entity();
-    this.entity.ENTITY_ID = this.newEntityID;
-    this.entity.relationships = [];
-    this.formGroup = this.fb.group({});
-    this._createFormFromMeta();
-    this.readonly = false;
-    this.isNewModalShown = false;
-  }
-
-  openNewModal(): void {
-    const entityIDs$ = this.entityService.listEntityID();
-    entityIDs$.subscribe(value => {
-      this.entityIDs = value;
-      this.newEntityID = this.entity.ENTITY_ID;
-      this.isNewModalShown = true;
-    });
-  }
-
-  closeNewModal(): void {
-    this.isNewModalShown = false;
+    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID}]);
   }
 
   openAddRelationshipModal(): void {

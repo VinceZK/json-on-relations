@@ -280,7 +280,7 @@ export class EntityTypeDetailComponent implements OnInit {
   _postActivityAfterSavingEntityType(data: any) {
     if (data[0] && data[0]['ENTITY_ID']) {
       if (this.isNewMode) {
-        this.entityTypeForm.reset(this.entityTypeForm.value);
+        this.isNewMode = false;
         this.router.navigate(['/model/entity-type/' + data[0]['ENTITY_ID']]);
       } else {
         this.readonly = true;
@@ -288,7 +288,6 @@ export class EntityTypeDetailComponent implements OnInit {
         this.attributes = data[1].ATTRIBUTES;
         this.changedEntityType = {};
         this._generateEntityTypeForm();
-        this.entityTypeForm.reset(this.entityTypeForm.value);
         this.messageService.reportMessage('MODEL', 'ENTITY_TYPE_SAVED', 'S', this.entityMeta.ENTITY_ID);
       }
     } else {

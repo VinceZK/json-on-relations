@@ -11,7 +11,7 @@
     <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
       <span class="fas fa-copy"> Copy</span>
     </button>
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="openNewModal()">
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="newEntity()">
       <span class="fas fa-file"> New</span>
     </button>
     <button class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
@@ -94,34 +94,34 @@
     </div>
   </div>
 
-  <div class="modal fade dk-modal-open" [ngClass]="{'show': isNewModalShown}" [ngStyle]="{'display': displayNewModal}"
-       id="newEntityModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="newEntity">New Entity</h5>
-          <button type="button" class="close" (click)="closeNewModal()">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="form-group">
-              <label for="entity_id" class="col-form-label form-control-sm">Entity Type:</label>
-              <select id="entity_id" name="self_role" class="form-control form-control-sm"
-                      required [(ngModel)]="newEntityID">
-                <option *ngFor="let entityID of entityIDs" [value]="entityID">{{entityID}}</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-sm btn-secondary" (click)="closeNewModal()">Cancel</button>
-          <button type="button" class="btn btn-sm btn-primary" (click)="newEntity()">Confirm</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!--<div class="modal fade dk-modal-open" [ngClass]="{'show': isNewModalShown}" [ngStyle]="{'display': displayNewModal}"-->
+       <!--id="newEntityModal" tabindex="-1" role="dialog">-->
+    <!--<div class="modal-dialog" role="document">-->
+      <!--<div class="modal-content">-->
+        <!--<div class="modal-header">-->
+          <!--<h5 class="modal-title" id="newEntity">New Entity</h5>-->
+          <!--<button type="button" class="close" (click)="closeNewModal()">-->
+            <!--<span aria-hidden="true">&times;</span>-->
+          <!--</button>-->
+        <!--</div>-->
+        <!--<div class="modal-body">-->
+          <!--<form>-->
+            <!--<div class="form-group">-->
+              <!--<label for="entity_id" class="col-form-label form-control-sm">Entity Type:</label>-->
+              <!--<select id="entity_id" name="self_role" class="form-control form-control-sm"-->
+                      <!--required [(ngModel)]="newEntityID">-->
+                <!--<option *ngFor="let entityID of entityIDs" [value]="entityID">{{entityID}}</option>-->
+              <!--</select>-->
+            <!--</div>-->
+          <!--</form>-->
+        <!--</div>-->
+        <!--<div class="modal-footer">-->
+          <!--<button type="button" class="btn btn-sm btn-secondary" (click)="closeNewModal()">Cancel</button>-->
+          <!--<button type="button" class="btn btn-sm btn-primary" (click)="newEntity()">Confirm</button>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
 
   <div class="modal fade dk-modal-open" [ngClass]="{'show': isEntityJSONModalShown}" [ngStyle]="{'display': displayEntityJSONModal}"
        id="entityMetaModal" tabindex="-1" role="dialog">

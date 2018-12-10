@@ -1,0 +1,146 @@
+<nav class="navbar fixed-top navbar-light bg-light">
+  <div *ngIf="entityMeta">
+    <span class="font-weight-bold mb-0 mr-0">{{entity.ENTITY_ID}}</span>:
+    <span class="mb-0 ml-2">{{entity.INSTANCE_GUID}}</span>
+  </div>
+
+  <div class="flex-row-reverse">
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="openEntityJSONModal()">
+      <span class="fab fa-js"> Display in JSON </span>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
+      <span class="fas fa-copy"> Copy</span>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="newEntity()">
+      <span class="fas fa-file"> New</span>
+    </button>
+    <button class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
+      <span *ngIf="!readonly" class="fas fa-glasses"> Display</span>
+      <span *ngIf="readonly" class="fas fa-edit"> Edit</span>
+    </button>
+    <button class="btn btn-sm btn-outline-primary" type="button" (click)="saveEntity()">
+      <span class="fas fa-save"> Save</span>
+    </button>
+  </div>
+</nav>
+
+<div class="mt-5" *ngIf="entityMeta">
+  <div class="pt-3">
+    <dk-message></dk-message>
+  </div>
+
+  <!--<app-entity-attribute [formGroup]="formGroup" [entityAttributes]="entityAttributes" [readonly]="readonly">-->
+
+  <!--</app-entity-attribute>-->
+
+  <!--<app-entity-relation [parentFormGroup]="formGroup" [formGroup]="formGroup.controls[entity.ENTITY_ID]" [readonly]="readonly"-->
+                       <!--[entityRelation]="entityRelation" [relationAttributes]="entityAttributes">-->
+
+  <!--</app-entity-relation>-->
+
+  <dk-entity-relation *ngFor="let entityRelation of entityRelations" [parentFormGroup]="formGroup"
+                       [formGroup]="formGroup.controls[entityRelation.RELATION_ID]" [readonly]="readonly"
+                       [entityRelation]="entityRelation" [relationAttributes]="entityRelation.ATTRIBUTES" >
+
+  </dk-entity-relation>
+
+
+  <dk-entity-relationship *ngFor="let relationship of entity.relationships" [relationship]="relationship" [formGroup]="formGroup"
+                           [relationshipMeta]="getRelationshipMeta(relationship.RELATIONSHIP_ID)"
+                           [relationshipAttributeMeta]="getRelationshipAttributes(relationship.RELATIONSHIP_ID)"
+                           [readonly]="readonly">
+
+  </dk-entity-relationship>
+
+  <button type="button" class="btn btn-sm btn-outline-secondary my-2" [disabled]="readonly" (click)="openAddRelationshipModal()">
+    <span class="fas fa-plus "> Add Relationship</span>
+  </button>
+
+  <div class="modal fade dk-modal-open" [ngClass]="{'show': isRelationshipModalShown}" [ngStyle]="{'display': displayRelationshipModal}"
+       id="addRelationshipModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addRelationship">Add Relationship</h5>
+          <button type="button" class="close" (click)="closeAddRelationshipModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <dk-message></dk-message>
+          <form>
+            <div class="form-group">
+              <label for="self_role" class="col-form-label form-control-sm">Role:</label>
+              <select id="self_role" name="self_role" class="form-control form-control-sm"
+                      required [(ngModel)]="toBeAddRelationship.SELF_ROLE_ID" (change)="clearRelationshipID()">
+                <option *ngFor="let role of entityMeta.ROLES" [value]="role.ROLE_ID">{{role.ROLE_ID}}</option>
+              </select>
+            </div>
+            <div class="form-group" *ngIf="toBeAddRelationship.SELF_ROLE_ID">
+              <label for="relationship_id" class="col-form-label form-control-sm">Relationship:</label>
+              <select id="relationship_id" name="relationship_id" class="form-control form-control-sm"
+                      required [(ngModel)]="toBeAddRelationship.RELATIONSHIP_ID">
+                <option *ngFor="let relationship of getRelationshipsMeta(toBeAddRelationship.SELF_ROLE_ID)"
+                        [value]="relationship.RELATIONSHIP_ID">{{relationship.RELATIONSHIP_ID}}</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" (click)="closeAddRelationshipModal()">Cancel</button>
+          <button type="button" class="btn btn-sm btn-primary" (click)="addRelationship()">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--<div class="modal fade dk-modal-open" [ngClass]="{'show': isNewModalShown}" [ngStyle]="{'display': displayNewModal}"-->
+       <!--id="newEntityModal" tabindex="-1" role="dialog">-->
+    <!--<div class="modal-dialog" role="document">-->
+      <!--<div class="modal-content">-->
+        <!--<div class="modal-header">-->
+          <!--<h5 class="modal-title" id="newEntity">New Entity</h5>-->
+          <!--<button type="button" class="close" (click)="closeNewModal()">-->
+            <!--<span aria-hidden="true">&times;</span>-->
+          <!--</button>-->
+        <!--</div>-->
+        <!--<div class="modal-body">-->
+          <!--<form>-->
+            <!--<div class="form-group">-->
+              <!--<label for="entity_id" class="col-form-label form-control-sm">Entity Type:</label>-->
+              <!--<select id="entity_id" name="self_role" class="form-control form-control-sm"-->
+                      <!--required [(ngModel)]="newEntityID">-->
+                <!--<option *ngFor="let entityID of entityIDs" [value]="entityID">{{entityID}}</option>-->
+              <!--</select>-->
+            <!--</div>-->
+          <!--</form>-->
+        <!--</div>-->
+        <!--<div class="modal-footer">-->
+          <!--<button type="button" class="btn btn-sm btn-secondary" (click)="closeNewModal()">Cancel</button>-->
+          <!--<button type="button" class="btn btn-sm btn-primary" (click)="newEntity()">Confirm</button>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <div class="modal fade dk-modal-open" [ngClass]="{'show': isEntityJSONModalShown}" [ngStyle]="{'display': displayEntityJSONModal}"
+       id="entityMetaModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="entityMeta">Entity in JSON</h5>
+          <button type="button" class="close" (click)="closeEntityJSONModal()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <pre>{{entity | json}}</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" (click)="closeEntityJSONModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

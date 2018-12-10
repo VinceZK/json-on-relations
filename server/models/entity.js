@@ -1561,8 +1561,9 @@ function _checkDelete1nRelation(deleteRelation, instanceGUID, callback) {
   })
 }
 /**
- * Get the instance GUID from a give business ID.
- * The given business ID must have 1:1 relationship with the Entity
+ * Get the instance GUID from the given attributes
+ * The given attributes may correspond to many instances, but it only picks one.
+ * So be sure to give the attributes that can uniquely identify an instance.
  * @param idAttr
  * example: {RELATION_ID: 'r_user', USER_ID: 'DH001'}
  * @param callback(err, instanceGUID)
@@ -1574,67 +1575,26 @@ function _getGUIDFromBusinessID(idAttr, callback) {
   let relationMeta = entityDB.getRelationMeta(idAttr.RELATION_ID);
   if(!relationMeta)return callback(message.report('ENTITY', 'RELATION_NOT_EXIST', 'E', idAttr.RELATION_ID));
 
-  let uniqueAttributes = _.where(relationMeta.ATTRIBUTES, {UNIQUE: 1});
-  let primaryAttributes = _.where(relationMeta.ATTRIBUTES, {PRIMARY_KEY: 1});
-  if (!uniqueAttributes) uniqueAttributes = [];
-  if (!primaryAttributes) primaryAttributes = [];
-
-  let uniqueIDKey = {};
-  let primaryIDKeys = {};
-  _.every(idAttr, function (value, key) { //Get unique attribute or primary key attributes
-    if(key === 'RELATION_ID') return true; //Continue
-
-    if(uniqueAttributes.find(function (element) {
-      return element.ATTR_NAME === key;
-    })){
-      uniqueIDKey[key] = value;
-      return false; //Break
-    }
-
-    if(primaryAttributes.find(function (element) {
-      return element.ATTR_NAME === key;
-    })) primaryIDKeys[key] = value;
-  });
-
-  //Compose select SQL
+  // Compose select SQL
   let selectSQL;
-  if(_.keys(uniqueIDKey).length === 1){ //If unique ID is provided
-    let uniqueAttribute = _.keys(uniqueIDKey)[0];
-      selectSQL = "select INSTANCE_GUID from " + entityDB.pool.escapeId(idAttr.RELATION_ID)
-        + " where " + entityDB.pool.escapeId(uniqueAttribute) + " = " + entityDB.pool.escape(_.values(uniqueIDKey)[0]);
-  }else{ //If primary keys are provided
-    let missingPrimaryKey;
-    _.every(primaryAttributes, function (element) {
-      if(!primaryIDKeys[element.ATTR_NAME]){
-        missingPrimaryKey = element.ATTR_NAME;
-        return false;
-      }
-    });
+  selectSQL = "select INSTANCE_GUID from " + entityDB.pool.escapeId(idAttr.RELATION_ID);
+  let whereClause;
+  _.each(idAttr, function(value, key){
+    if(key === 'RELATION_ID')return;
+    whereClause?whereClause = whereClause + " and " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(value):
+      whereClause = " where " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(value);
+  });
+  if(whereClause)selectSQL += whereClause;
+  else return callback(message.report('ENTITY', 'IDENTIFY_ATTRIBUTE_MISSING', 'E'));
 
-    if(missingPrimaryKey)
-      return callback(message.report('ENTITY', 'PRIMARY_KEY_INCOMPLETE', 'E', missingPrimaryKey));
-
-    selectSQL = "select INSTANCE_GUID from " + entityDB.pool.escapeId(idAttr.RELATION_ID);
-    let whereClause;
-    _.each(primaryIDKeys, function(value, key){
-      whereClause?whereClause = whereClause + " and " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(value):
-        whereClause = " where " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(value);
-    });
-    if(whereClause)selectSQL = selectSQL + whereClause;
-  }
-
+  selectSQL += " limit 1";
   entityDB.executeSQL(selectSQL, function(err, results){
     if(err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
-    if(results.length === 0) return callback(message.report('ENTITY', 'INSTANCE_NOT_EXIST', 'E', uniqueIDKey));
+    if(results.length === 0) return callback(message.report('ENTITY', 'INSTANCE_NOT_IDENTIFIED', 'E'));
 
     _getEntityInstanceHead(results[0].INSTANCE_GUID, function (err, instanceHead) {
       if(err) return callback(err);
-      let entityMeta = entityDB.getEntityMeta(instanceHead.ENTITY_ID);
-      let roleRelationMeta = _checkEntityHasRelation(idAttr.RELATION_ID, entityMeta);
-      if (roleRelationMeta && ( roleRelationMeta.CARDINALITY === '[1..1]' || roleRelationMeta.CARDINALITY === '[0..1]'))
-        callback(null, instanceHead.INSTANCE_GUID);
-      else
-        callback(message.report('ENTITY', 'INSTANCE_NOT_DERIVE', 'E', idAttr.RELATION_ID));
+      else callback(null, instanceHead.INSTANCE_GUID);
     })
   })
 }

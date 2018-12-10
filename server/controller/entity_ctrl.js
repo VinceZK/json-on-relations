@@ -17,6 +17,13 @@ module.exports = {
     });
   },
 
+  getEntityInstanceByID: function (req, res) {
+    entity.getInstanceByID(req.body, function (err, instance) {
+      if(err)res.json(err);
+      else res.json(instance);
+    });
+  },
+
   getRelationMeta: function (req, res) {
     res.json(entity.getRelationMeta(req.params['relationID']));
   },

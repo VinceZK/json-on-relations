@@ -190,14 +190,13 @@ export class RelationDetailComponent implements OnInit {
   _postActivityAfterSavingRelation(data: any) {
     if (data['RELATION_ID']) {
       if (this.isNewMode) {
-        this.relationForm.reset(this.relationForm.value);
+        this.isNewMode = false;
         this.router.navigate(['/model/relation/' + data['RELATION_ID']]);
       } else {
         this.readonly = true;
         this.relationMeta = data;
         this.changedRelation = {};
         this._generateRelationForm();
-        this.relationForm.reset(this.relationForm.value);
         this.messageService.reportMessage('MODEL', 'RELATION_SAVED', 'S', this.relationMeta.RELATION_ID);
       }
     } else {
