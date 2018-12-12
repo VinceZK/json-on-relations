@@ -58,7 +58,7 @@ Content-Type: application/json
      {"COUNTRY": "China", "CITY":"Seasaw", "POSTCODE": "888888",
       "ADDRESS_VALUE" : "West Valley Lake",
       "TYPE": "Born Place", "PRIMARY":0}],
-  relationships:[ ]
+  "relationships":[ ]
 }
 ```  
 
@@ -151,13 +151,14 @@ Content-Type: application/json
    ```
 5. Open the links:
    + [Modelling](http://localhost:3001/model)
-   + [Instance Browser](http://localhost:3001/entity)
+   + [Entity Browser](http://localhost:3001/entity)
    
 ## Concept Behind
 An entity is a "thing" which can be distinctly identified. A specific person, company, or event is an example of an entity. 
 A relationship is an association among entities. For instance, "marriage" is a relationship between two "person" entities.
 
 Details are illustrated in the following diagram:
+
 ![Meta Data Model](DataModeling.png)
 
 An Entity can have multiple direct attributes, 
