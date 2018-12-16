@@ -80,13 +80,19 @@ function run(queryObject, callback) {
   });
 
   function __parseProjection() {
-    if(!queryObject.projection) {
-      errorMessages.push(message.report('QUERY', 'MISS_PROJECTION', 'E'));
+    if(!queryObject.projection ) {
+      projectionString = ' * ';
       return;
     }
+
     if(!Array.isArray(queryObject.projection)) {
       errorMessages.push(message.report('QUERY', 'INVALID_PROJECTION', 'E'));
       return;
+    } else {
+      if(queryObject.projection.length === 0) {
+        projectionString = ' * ';
+        return;
+      }
     }
 
     queryObject.projection.forEach(function (projectedField, i) {

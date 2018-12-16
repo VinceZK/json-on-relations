@@ -153,6 +153,178 @@ Content-Type: application/json
    + [Modelling](http://localhost:3001/model)
    + [Entity Browser](http://localhost:3001/entity)
    
+## Restful API
+Following APIs are opened in the default route table.
+### Create a person instance
+```http request
+POST http://localhost:3001/api/entity
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding"},
+  "r_user": {"USER_ID": "DH999", "USER_NAME":"John", "DISPLAY_NAME": "John Wu"},
+  "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
+  "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"},
+  "relationships":[
+    { "RELATIONSHIP_ID": "rs_user_role",
+      "values":[
+        { "SYNCED":0,
+          "PARTNER_INSTANCES":[
+            {"ENTITY_ID":"system_role", "ROLE_ID":"system_role", "INSTANCE_GUID":"5F50DE92743683E1ED7F964E5B9F6167"}]}
+      ]
+    }]
+}
+```    
+### Change a person instance
+The example do the following changes:
+1) Update the HEIGHT and HOBBY of "person" relation;
+2) Update the USER_NAME of "r_user" relation;
+3) Add a new email address;
+4) Add a new relationship to "system_role".
+
+```http request
+PUT http://localhost:3001/api/entity
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "INSTANCE_GUID": "2FBE7490E10F11E8A90957FA46F2CECA",
+  "person": {"action": "update", "HEIGHT": 180, "HOBBY":"Reading, Movie"},
+  "r_user": {"action": "update", "USER_ID": "DH999", "USER_NAME":"JohnWu"},
+  "r_email": [{"action": "add", "EMAIL": "dh999@darkhouse.com", "TYPE": "work", "PRIMARY":0}],
+  "relationships":[
+    {
+      "RELATIONSHIP_ID": "rs_user_role",
+      "values": [
+        {
+          "action": "add",
+          "VALID_FROM": "2020-12-31 00:00:00",
+          "VALID_TO": "2030-12-31 00:00:00",
+          "SYNCED": 1,
+          "PARTNER_INSTANCES": [
+            {
+              "ENTITY_ID": "system_role",
+              "ROLE_ID": "system_role",
+              "INSTANCE_GUID": "F914BC7E2BD65D42A0B17FBEAD8E1AF2"
+            }
+          ]
+        }
+      ]
+    }]
+}
+```
+### Overwrite a person instance
+The API overwrites an instance as a whole with a given JSON object. 
+Those appeared relations are updated with new values. 
+Those not appeared will be deleted.
+This API is useful in some UI technologies which regards an entity as a whole.
+Then you don't have to trace every changes from the UI to the backend store.
+
+Besides it may introduce some performance overhead, 
+another limitation is that relationships are not supported with "overwrite" mode. 
+This is because a relationship always deals with more than 2 entities,
+ thus cannot be overwritten from single side.
+```http request
+PUT http://localhost:3001/api/entity/overwrite
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "INSTANCE_GUID": "2FBE7490E10F11E8A90957FA46F2CECA", 
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding, Singing"},
+  "r_user": {"USER_ID": "DH999", "USER_NAME":"JohnWu", "DISPLAY_NAME": "John Wu"},
+  "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
+  "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"}
+}
+```
+### Get an entity instance through its UUID
+The return is an entity instance in JSON format. The relationships are also included
+```http request
+GET http://localhost:3001/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
+Accept: */*
+Cache-Control: no-cache
+```
+### Get pieces of an entity instance through its UUID
+Use this API to decide which relations or relationships you need from an entity instance.
+The given example requests 2 relations: "r_user" and "r_email" from a person entity, 
+together with one relationship "rs_user_role". 
+The return is a projection of the entity instance.
+
+The API can save performance if you only need some pieces of the information from a big entity.
+```http request
+GET http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "RELATIONS": ["r_user", "r_email"],
+  "RELATIONSHIPS": ["rs_user_role"]
+ }
+```
+### Get an entity instance through one of its business ID
+The business ID always belongs to one of an entity's relation. 
+For example, the attribute USER_ID is one of the person entity's business IDs,
+which belongs to the relation "r_employee".
+You need to make sure the business ID can uniquely identify the entity, 
+or it will give you the first hit that matches this ID.
+
+The return is a complete entity instance in JSON format.
+```http request
+GET http://localhost:3001/api/entity/instance
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "RELATION_ID": "r_employee",
+  "USER_ID": "DH001"
+}
+```
+### General Query Request
+A query is defined as a JSON object with 3 attributes: "relation", "projection", and "filter".
+The "relation" defines the leading relation(table). You can project fields not only from the leading relation,
+but also from its associated relations. The system helps you do the joins.
+
+The filter is limited with operators: EQ(Equal), NE(Not Equal), GT(Greater Than), GE(Greater than and Equal), 
+LT(Less Than), LE(Less Than and Equal), and BT(Between). 
+You can also use fields from the assoicated relations to do the filtering.
+
+The return is a list of entries that fulfills the query.
+```http request
+POST http://localhost:3001/api/query
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "relation": "r_user",
+  "projection": [
+    "USER_ID",
+    "USER_NAME",
+    "GIVEN_NAME",
+    {"fieldName": "COMPANY_ID", "alias": "Company", "relation": "r_employee"}
+  ],
+  "filter": [
+    {
+      "fieldName": "USER_ID",
+      "operator": "BT",
+      "low": "DH001",
+      "high": "DH999"
+    },
+    {
+      "fieldName": "LANGUAGE",
+      "operator": "EQ",
+      "relation": "r_personalization",
+      "low": "ZH"
+    }
+  ]
+}
+```
 ## Concept Behind
 An entity is a "thing" which can be distinctly identified. A specific person, company, or event is an example of an entity. 
 A relationship is an association among entities. For instance, "marriage" is a relationship between two "person" entities.

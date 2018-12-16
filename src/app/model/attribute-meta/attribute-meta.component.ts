@@ -125,7 +125,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
           DATA_TYPE: [{value: attribute.DATA_TYPE, disabled: this.readonly}],
           DATA_LENGTH: [attribute.DATA_LENGTH],
           DECIMAL: [attribute.DECIMAL],
-          PRIMARY_KEY: [attribute.PRIMARY_KEY],
+          PRIMARY_KEY: [{value: attribute.PRIMARY_KEY, disabled: this.readonly}],
           AUTO_INCREMENT: [{value: attribute.AUTO_INCREMENT, disabled: this.readonly}]
         }));
       });

@@ -6,14 +6,16 @@ const model = require('./controller/model_ctrl.js');
 const path = require('path');
 
 // Entity Service
+router.post('/api/entity', entity.createInstance);
+router.put('/api/entity', entity.changeInstance);
+router.put('/api/entity/overwrite', entity.overwriteInstance);
+router.get('/api/entity/instance/:instanceGUID', entity.getEntityInstance);
+router.get('/api/entity/instance/piece/:instanceGUID', entity.getEntityInstancePiece);
+router.get('/api/entity/instance', entity.getEntityInstanceByID);
 router.get('/api/entity/EntityIDs', entity.listEntityID);
 router.get('/api/entity/meta/:entityID', entity.getEntityMeta);
-router.get('/api/entity/instance/:instanceGUID', entity.getEntityInstance);
-router.post('/api/entity/instance', entity.getEntityInstanceByID);
 router.get('/api/relation/meta/:relationID', entity.getRelationMeta);
 router.get('/api/relation/meta/entity/:entityID', entity.getRelationMetaOfEntity);
-router.put('/api/entity', entity.changeInstance);
-router.post('/api/entity', entity.createInstance);
 
 // Query Service
 router.post('/api/query', query.run);

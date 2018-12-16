@@ -1,52 +1,128 @@
 # For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
-#
 # Following HTTP Request Live Templates are available:
 # * 'gtrp' and 'gtr' create a GET request with or without query parameters;
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
-GET http://localhost:3001/api/entity/meta/blog
+
+### Create a person instance
+POST http://localhost:3001/api/entity
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding"},
+  "r_user": {"USER_ID": "DH999", "USER_NAME":"John", "DISPLAY_NAME": "John Wu"},
+  "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
+  "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"},
+  "relationships":[
+    { "RELATIONSHIP_ID": "rs_user_role",
+      "values":[
+        { "SYNCED":0,
+          "PARTNER_INSTANCES":[
+            {"ENTITY_ID":"system_role", "ROLE_ID":"system_role", "INSTANCE_GUID":"5F50DE92743683E1ED7F964E5B9F6167"}]}
+      ]
+    }]
+}
+
+### Change a person instance:
+### 1) Update the HEIGHT and HOBBY of "person" relation;
+### 2) Update the USER_NAME of "r_user" relation;
+### 3) Add a new email address;
+### 4) Add a new relationship to "system_role".
+PUT http://localhost:3001/api/entity
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "INSTANCE_GUID": "2FBE7490E10F11E8A90957FA46F2CECA",
+  "person": {"action": "update", "HEIGHT": 180, "HOBBY":"Reading, Movie"},
+  "r_user": {"action": "update", "USER_ID": "DH999", "USER_NAME":"JohnWu"},
+  "r_email": [{"action": "add", "EMAIL": "dh999@darkhouse.com", "TYPE": "work", "PRIMARY":0}],
+  "relationships":[
+    {
+      "RELATIONSHIP_ID": "rs_user_role",
+      "values": [
+        {
+          "action": "add",
+          "VALID_FROM": "2020-12-31 00:00:00",
+          "VALID_TO": "2030-12-31 00:00:00",
+          "SYNCED": 1,
+          "PARTNER_INSTANCES": [
+            {
+              "ENTITY_ID": "system_role",
+              "ROLE_ID": "system_role",
+              "INSTANCE_GUID": "F914BC7E2BD65D42A0B17FBEAD8E1AF2"
+            }
+          ]
+        }
+      ]
+    }]
+}
+
+### Overwrite a person instance.
+### Overwrite an instance as a whole. Those appeared relations are updated with new values. Those not appeared are deleted.
+### This API is useful in some UI technologies which always regards an entity as a whole.
+### The pattern is similar to some document/object store.
+### One limitation is that relationships are not supported with overwrite mode. Because a relationship always deals with 2 entities.
+PUT http://localhost:3001/api/entity/overwrite
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{ "ENTITY_ID": "person",
+  "INSTANCE_GUID": "2FBE7490E10F11E8A90957FA46F2CECA",
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding, Singing"},
+  "r_user": {"USER_ID": "DH999", "USER_NAME":"JohnWu", "DISPLAY_NAME": "John Wu"},
+  "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
+  "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"}
+}
+
+### Get an entity instance through its UUID
+### The return is an entity instance in JSON format. The relationships are also included
+GET http://localhost:3001/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 
-###
-
-GET http://localhost:3001/api/entity/instance/64FA60509D6811E8BFADE5B8C5C70BD8
-Accept: */*
-Cache-Control: no-cache
-
-###
-
-POST http://localhost:3001/api/entity/instance
+### Get pieces of an entity instance through its UUID.
+### Use this API to decide which relations or relationships you need.
+### The following example only request 2 relations: "r_user" and "r_email", with one relationship "rs_user_role".
+### The return is a projection of entity instance in JSON format.
+GET http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
 
 {
-  "RELATION_ID": "blog",
-  "ID": "1"
+  "RELATIONS": ["r_user", "r_email"],
+  "RELATIONSHIPS": ["rs_user_role"]
+ }
+
+### Get an entity instance through one of its business ID.
+### The business ID always belong to one of its relation. For example, the attribute USER_ID is one of the person entity's
+### business ID which belongs to relation "r_employee".
+### You need to make sure the business ID can uniquely identify the entity, or it will give you the first instance that matches
+### this ID.
+GET http://localhost:3001/api/entity/instance
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "RELATION_ID": "r_employee",
+  "USER_ID": "DH001"
 }
 
-###
-
-GET http://localhost:3001/api/relation/meta/blog
-Accept: */*
-Cache-Control: no-cache
-
-###
-
-GET http://localhost:3001/api/relation/meta/entity/person
-Accept: */*
-Cache-Control: no-cache
-
-###
-
-GET http://localhost:3001/api/entity/entityIDs
-Accept: */*
-Cache-Control: no-cache
-
-###
-
+### General Query Request
+### The query is defined as a JSON object with attributes: "relation", "projection", and "filter".
+### The "relation" defines the leading relation(table). You can project fields not only from the leading relation,
+### but also from the associated relations. The system helps you do the left joins.
+### The filter is limited with operators: EQ, NE, GT, GE, LT, LE, BT.
+### You can also use fields from the assoicated relations.
 POST http://localhost:3001/api/query
+Accept: */*
+Cache-Control: no-cache
 Content-Type: application/json
 
 {
@@ -61,8 +137,8 @@ Content-Type: application/json
     {
       "fieldName": "USER_ID",
       "operator": "BT",
-      "low": "DH002",
-      "high": "DH006"
+      "low": "DH001",
+      "high": "DH999"
     },
     {
       "fieldName": "LANGUAGE",
@@ -73,56 +149,57 @@ Content-Type: application/json
   ]
 }
 
-###
+### Get the meta data of a given entity type
+GET http://localhost:3001/api/entity/meta/person
+Accept: */*
+Cache-Control: no-cache
 
+### Get the meta data of a given relation
+GET http://localhost:3001/api/relation/meta/r_user
+Accept: */*
+Cache-Control: no-cache
+
+### Get all the relations' meta data of a given entity
+GET http://localhost:3001/api/relation/meta/entity/person
+Accept: */*
+Cache-Control: no-cache
+
+### List all the entity types in the system
+GET http://localhost:3001/api/entity/entityIDs
+Accept: */*
+Cache-Control: no-cache
+
+###
 GET http://localhost:3001/api/model/entity-type/list?term=people
 Accept: */*
 Cache-Control: no-cache
 
 ###
-
 GET http://localhost:3001/api/model/relation/list?term=person
 Accept: */*
 Cache-Control: no-cache
 
 ###
-
-GET http://www.sapmoc.com/spq/mobile/parking/getList/PVG06 HTTP/1.1
-Accept: */*
-User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16A404 MicroMessenger/6.7.3(0x16070321) NetType/WIFI Language/zh_CN
-Cookie: JSESSIONID=5C1AA7FEA5F3152C77CEEA5305AD4837
-
-###
-
-GET http://www.sapmoc.com/spq/mobile/parking/getEntry HTTP/1.1
-Accept: */*
-User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16A404 MicroMessenger/6.7.3(0x16070321) NetType/WIFI Language/zh_CN
-Cookie: JSESSIONID=5C1AA7FEA5F3152C77CEEA5305AD4837
-
-###
-
 GET http://localhost:3001/api/model/relationship/list?term=marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-
 GET http://localhost:3001/api/model/relationship/rs_marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-
 GET http://localhost:3001/api/model/role/system_role
 Accept: */*
 Cache-Control: no-cache
 
 ###
-
 GET http://localhost:3001/api/model/role/desc/system_role
 Accept: */*
 Cache-Control: no-cache
 
 ###
+
 
 

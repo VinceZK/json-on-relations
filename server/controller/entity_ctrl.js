@@ -24,6 +24,13 @@ module.exports = {
     });
   },
 
+  getEntityInstancePiece: function(req, res) {
+    entity.getInstancePieceByGUID(req.params['instanceGUID'], req.body, function (err, instance) {
+      if(err)res.json(err);
+      else res.json(instance);
+    })
+  },
+
   getRelationMeta: function (req, res) {
     res.json(entity.getRelationMeta(req.params['relationID']));
   },
@@ -43,7 +50,6 @@ module.exports = {
   },
 
   changeInstance: function (req, res) {
-    // delete req.body.ENTITY_ID;
     entity.changeInstance(req.body, function (err) {
       if(err) return res.json(err);
       entity.getInstanceByGUID(req.body['INSTANCE_GUID'], function (err, instance){
@@ -51,5 +57,16 @@ module.exports = {
         else res.json(instance);
       })
     })
+  },
+
+  overwriteInstance: function (req, res) {
+    entity.overwriteInstance(req.body, function (err) {
+      if(err) return res.json(err);
+      entity.getInstanceByGUID(req.body['INSTANCE_GUID'], function (err, instance){
+        if(err)res.json(err);
+        else res.json(instance);
+      })
+    })
   }
+
 };

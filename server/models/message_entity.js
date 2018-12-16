@@ -232,6 +232,12 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Instance can not be identified from the given attributes", longText: "dummy"}
     }
+  },
+  { msgCat: "ENTITY",
+    msgName: "OVERWRITE_RELATIONSHIPS_NOT_ALLOWED",
+    msgText: {
+      EN: {shortText: "Relationships of an instance cannot be overwritten", longText: "dummy"}
+    }
   }
 ];
 

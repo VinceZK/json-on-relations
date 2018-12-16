@@ -546,7 +546,8 @@ function syncDBTable(relation, callback) {
       return;
     }
 
-    let alterTable = "alter table " + pool.escapeId(relation.RELATION_ID);
+    // let alterTable = "alter table " + pool.escapeId(relation.RELATION_ID);
+    let alterTable = '';
     const primaryKeys = [];
     let isPrimaryKeyChanged = false;
     columns.forEach(function (column) {
@@ -639,8 +640,8 @@ function syncDBTable(relation, callback) {
       alterTable = alterTable.slice(0, -1); // Remove the last ","
     }
 
-    if (alterTable.includes('add') || alterTable.includes('change') || alterTable.includes('drop')){
-      executeSQL(alterTable, callback);
+    if (alterTable){
+      executeSQL("alter table " + pool.escapeId(relation.RELATION_ID) + alterTable, callback);
     } else {
       callback(null);
     }

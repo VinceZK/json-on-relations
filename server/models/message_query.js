@@ -18,12 +18,6 @@ const msgArray = [
     }
   },
   { msgCat: "QUERY",
-    msgName: "MISS_PROJECTION",
-    msgText: {
-      EN: {shortText: "Projection is missing", longText: "dummy"}
-    }
-  },
-  { msgCat: "QUERY",
     msgName: "INVALID_PROJECTION",
     msgText: {
       EN: {shortText: "Projection is invalid, it must be an Array", longText: "dummy"}
