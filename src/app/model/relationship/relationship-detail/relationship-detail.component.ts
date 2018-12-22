@@ -203,7 +203,15 @@ export class RelationshipDetailComponent implements OnInit {
   }
 
   onChangeRoleID(index: number): void {
-    if (index === this.involveFormArray.length - 1 && this.involveFormArray.controls[index].value.ROLE_ID.trim() !== '') {
+    const currentInvolveFormGroup = this.involveFormArray.controls[index];
+    if (this.involveFormArray.controls.findIndex((involveCtrl, i) =>
+      i !== index && involveCtrl.get('ROLE_ID').value === currentInvolveFormGroup.get('ROLE_ID').value
+    ) !== -1) {
+      currentInvolveFormGroup.get('ROLE_ID').setErrors({message: 'Duplicate roles'});
+      return;
+    }
+
+    if (index === this.involveFormArray.length - 1 && currentInvolveFormGroup.value.ROLE_ID.trim() !== '') {
       // Only work for the last New line
       this.involveFormArray.push(
         this.fb.group({
@@ -215,11 +223,11 @@ export class RelationshipDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRoleDesc(this.involveFormArray.controls[index].value.ROLE_ID).subscribe(data => {
+    this.entityService.getRoleDesc(currentInvolveFormGroup.value.ROLE_ID).subscribe(data => {
       if (data['msgCat']) {
-        this.involveFormArray.controls[index].get('ROLE_ID').setErrors({message: data['msgShortText']});
+        currentInvolveFormGroup.get('ROLE_ID').setErrors({message: data['msgShortText']});
       } else {
-        this.involveFormArray.controls[index].get('ROLE_DESC').setValue(data);
+        currentInvolveFormGroup.get('ROLE_DESC').setValue(data);
       }
     });
   }

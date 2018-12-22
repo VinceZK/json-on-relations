@@ -51,7 +51,7 @@
               [class.dk-invalid]="relationFormGroup.get('RELATION_ID').invalid && (relationFormGroup.touched || relationFormGroup.dirty)">
             <div class="input-group">
               <input class="form-control form-control-sm" type="text" formControlName="RELATION_ID"
-                     [readonly]="readonly || oldRelation(relationFormGroup)" (change)="onChangeRelationID(i)">
+                     [readonly]="readonly || oldRelation(relationFormGroup) && relationFormGroup.valid" (change)="onChangeRelationID(i)">
               <div class="input-group-append">
                 <button class="btn btn-outline-secondary btn-light btn-sm" type="button" id="button-addon2">
                   <span class="fas fa-search"></span>

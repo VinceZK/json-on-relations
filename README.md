@@ -22,12 +22,13 @@ A person can be an employee, thus it has the role "employee". Role "employee" ha
 ![Role: employee](RoleEmployee.png)
 
 A relation corresponds to a DB table which represents a collection of attributes. 
+Besides, you can also define associations among relations.
 ![Relation: r_employee](RelationEmployee.png)
 
 Entities can have relationships with each others. Each relationship is performed by certain roles. 
 For example, relationship "marriage" is performed by 2 roles: "husband" and "wife". 
 Once the 2 roles are respectively assigned to 2 people, they can then potentially have the marriage relationship.  
-![Relation: r_employee](RelationshipMarriage.png)
+![Relationship: rs_marriage](RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
 Once you have the data modelling done, you can immediately create a person instance.  
@@ -178,7 +179,9 @@ Content-Type: application/json
 }
 ```    
 ### Change a person instance
-The example do the following changes:
+The reserved field "action" is introduced for each relation. Its value could be "update", "add", and "delete".
+
+The example will do the following changes:
 1) Update the HEIGHT and HOBBY of "person" relation;
 2) Update the USER_NAME of "r_user" relation;
 3) Add a new email address;
@@ -220,13 +223,13 @@ Content-Type: application/json
 The API overwrites an instance as a whole with a given JSON object. 
 Those appeared relations are updated with new values. 
 Those not appeared will be deleted.
-This API is useful in some UI technologies which regards an entity as a whole.
-Then you don't have to trace every changes from the UI to the backend store.
+This API is useful in some UI technologies which always regards an entity as a whole.
+Then you don't have to trace every changed pieces, just post it as an atomic object to the backend store.
 
 Besides it may introduce some performance overhead, 
 another limitation is that relationships are not supported with "overwrite" mode. 
 This is because a relationship always deals with more than 2 entities,
- thus cannot be overwritten from single side.
+ thus cannot be overwritten from one single side.
 ```http request
 PUT http://localhost:3001/api/entity/overwrite
 Accept: */*
@@ -267,7 +270,7 @@ Content-Type: application/json
  }
 ```
 ### Get an entity instance through one of its business ID
-The business ID always belongs to one of an entity's relation. 
+The business ID always belongs to one of an entity's relations. 
 For example, the attribute USER_ID is one of the person entity's business IDs,
 which belongs to the relation "r_employee".
 You need to make sure the business ID can uniquely identify the entity, 
@@ -285,10 +288,10 @@ Content-Type: application/json
   "USER_ID": "DH001"
 }
 ```
-### General Query Request
+### Generic Query Request
 A query is defined as a JSON object with 3 attributes: "relation", "projection", and "filter".
-The "relation" defines the leading relation(table). You can project fields not only from the leading relation,
-but also from its associated relations. The system helps you do the joins.
+The "relation" defines the leading relation(table). You can project fields not only from one leading relation,
+but also from all its associated relations. The system helps you to do the sql-joins.
 
 The filter is limited with operators: EQ(Equal), NE(Not Equal), GT(Greater Than), GE(Greater than and Equal), 
 LT(Less Than), LE(Less Than and Equal), and BT(Between). 
@@ -338,15 +341,19 @@ as well as indirect attributes from the roles that are assigned to it.
 Roles don't have attributes directly, but are inherit from the relations assigned to them.
 
 A relation corresponds to a DB table, and its attributes are fields of the table.
-From this perspective, an entity itself is also a kind of relation. 
+Relations can have associations with each other. 
+For example, relation "r_employee" has a 1-on-1 association to relation "r_company" based on the field "COMPANY_ID".
+Even 2 relations separately belong to 2 different entities can be associated.
 
-Roles perform relationships. Once roles are assigned to entities, 
-those relationships thus can be applied to the entities. 
+Roles perform relationships. Once a role is assigned to an entity, 
+its relationships thus can be applied to the entity. 
 And the relationship instances are actually the associations among entities.
-Relationship itself is a kind of relation which can also have direct attributes. 
+
+Both Entity and Relationship can be regarded as 2 special kinds of relation.
 
 To achieve re-usability and context consistency, the meta of an attribute can be defined as data elements and data domains.
-data domain is used to boundary the value type and range of an attribute, 
+data domain is used to boundary the value type and range of an attribute. 
+For example, data domain "Country" contains all the country codes in the world so far.
 while a data element can be assigned with a data domain, and adding more business semantics like labels, documentations, and so on. 
 
 ## License

@@ -3,7 +3,7 @@ import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {EntityService} from '../../../entity.service';
 import {Attribute, EntityMeta} from '../../../entity';
-import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../../../msgStore';
 import {forkJoin, Observable, of} from 'rxjs';
@@ -185,7 +185,15 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   onChangeRoleID(index: number): void {
-    if (index === this.roleFormArray.length - 1 && this.roleFormArray.controls[index].value.ROLE_ID.trim() !== '') {
+    const currentRoleFormGroup = this.roleFormArray.controls[index];
+    if (this.roleFormArray.controls.findIndex((roleCtrl, i) =>
+      i !== index && roleCtrl.get('ROLE_ID').value === currentRoleFormGroup.get('ROLE_ID').value
+    ) !== -1) {
+      currentRoleFormGroup.get('ROLE_ID').setErrors({message: 'Duplicate roles'});
+      return;
+    }
+
+    if (index === this.roleFormArray.length - 1 && currentRoleFormGroup.value.ROLE_ID.trim() !== '') {
       // Only work for the last New line
       this.roleFormArray.push(
         this.fb.group({
@@ -195,17 +203,20 @@ export class EntityTypeDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRoleDesc(this.roleFormArray.controls[index].value.ROLE_ID).subscribe(data => {
+    this.entityService.getRoleDesc(currentRoleFormGroup.value.ROLE_ID).subscribe(data => {
       if (data['msgCat']) {
-        this.roleFormArray.controls[index].get('ROLE_ID').setErrors({message: data['msgShortText']});
+        currentRoleFormGroup.get('ROLE_ID').setErrors({message: data['msgShortText']});
       } else {
-        this.roleFormArray.controls[index].get('ROLE_DESC').setValue(data);
+        currentRoleFormGroup.get('ROLE_DESC').setValue(data);
       }
     });
   }
 
-  oldRole(formGroup: FormGroup): boolean {
-    return this.entityMeta.ROLES.findIndex( role => role.ROLE_ID === formGroup.get('ROLE_ID').value ) !== -1;
+  oldRole(formGroup: AbstractControl): boolean {
+    return this.entityMeta.ROLES ?
+      this.entityMeta.ROLES.findIndex(
+        role => role.ROLE_ID === formGroup.get('ROLE_ID').value ) !== -1 :
+      false;
   }
 
   canDeactivate(): Observable<boolean> | boolean {

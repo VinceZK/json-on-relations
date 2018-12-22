@@ -191,7 +191,7 @@ describe.only('model tests', function () {
     })
   });
 
-  describe('Relation', function () {
+  describe.only('Relation', function () {
     let relation = {
       action: 'add',
       RELATION_ID: 'r_testRelationx',
@@ -203,6 +203,11 @@ describe.only('model tests', function () {
         { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_testRelationx',
           ATTR_NAME: 'FIELD2', DATA_TYPE: 2, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
           DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
+      ],
+      ASSOCIATIONS: [
+        {RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1,
+          FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'USER_ID'} ]
+        }
       ]
     };
 
@@ -214,18 +219,49 @@ describe.only('model tests', function () {
     });
 
     it('should save a relation with a new attribute and a new role', function(done){
-      relation = {
+      let relation = {
         action: 'update',
-        ENTITY_ID: 'r_testRelationx',
-        ENTITY_DESC: 'changed description of relation',
+        RELATION_ID: 'r_testRelationx',
+        RELATION_DESC: 'changed description of relation',
         ATTRIBUTES: [
           { action: 'add', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_testRelationx',
             ATTR_NAME: 'FIELD3', DATA_TYPE: 3, PRIMARY_KEY: 0, ATTR_DESC: null, DATA_ELEMENT: null,
             DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
+        ],
+        ASSOCIATIONS: [
+          {action: 'update', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0,
+            FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_NAME'} ]
+          },
+          {
+            RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0,
+            FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_ID'} ]
+          }
         ]
       };
-      model.saveRelation(relation, 'DH002', function(errs) {
-        should(errs).eql(null);
+      model.saveRelation(relation, 'DH002', function(err) {
+        should(err).eql(null);
+        done();
+      });
+    });
+
+    it('should remove an attribute', function (done) {
+      let relation = {
+        action: 'update',
+        RELATION_ID: 'r_testRelationx',
+        ATTRIBUTES: [
+          { action: 'delete', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A' }
+        ],
+        ASSOCIATIONS: [
+          { action: 'update', RIGHT_RELATION_ID: 'r_user', FOREIGN_KEY_CHECK: 1},
+          {
+            action: 'update', RIGHT_RELATION_ID: 'r_employee',
+            FIELDS_MAPPING: [ {action: 'delete', LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_ID'},
+                              {action: 'add', LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'USER_NAME'}]
+          }
+        ]
+      };
+      model.saveRelation(relation, 'DH001', function(err) {
+        should(err).eql(null);
         done();
       });
     });
@@ -233,7 +269,6 @@ describe.only('model tests', function () {
     it('should list some relations', function(done){
       model.listRelation('', function (errs, rows) {
         should(errs).eql(null);
-        console.log(rows);
         done();
       });
     });
@@ -250,6 +285,8 @@ describe.only('model tests', function () {
       let clearSQLs = [
         "delete from relation where RELATION_ID = 'r_testRelationx'",
         "delete from attribute where RELATION_ID = 'r_testRelationx'",
+        "delete from RELATION_ASSOCIATION where LEFT_RELATION_ID = 'r_testRelationx'",
+        "delete from RELATION_ASSOCIATION_FIELDS_MAPPING where LEFT_RELATION_ID = 'r_testRelationx'",
         "drop table `r_testRelationx`"
       ];
       entityDB.doUpdatesParallel(clearSQLs, done);

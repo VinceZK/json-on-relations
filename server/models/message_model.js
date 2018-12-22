@@ -29,6 +29,12 @@ const msgArray = [
       EN: {shortText: "Relation '%s' doesn't exist in DB", longText: "dummy"}
     }
   },
+  { msgCat: "MODEL",
+    msgName: "RELATION_ID_MISSING",
+    msgText: {
+      EN: {shortText: "Relation ID is missing", longText: "dummy"}
+    }
+  },
   { msgCat: 'MODEL',
     msgName: 'ATTRIBUTE_NOT_BELONG_TO_RELATION',
     msgText: {
