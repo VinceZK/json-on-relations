@@ -89,7 +89,7 @@ Cache-Control: no-cache
 ### Use this API to decide which relations or relationships you need.
 ### The following example only request 2 relations: "r_user" and "r_email", with one relationship "rs_user_role".
 ### The return is a projection of entity instance in JSON format.
-GET http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
+POST http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json

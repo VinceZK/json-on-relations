@@ -259,7 +259,7 @@ The return is a projection of the entity instance.
 
 The API can save performance if you only need some pieces of the information from a big entity.
 ```http request
-GET http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
+POST http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
