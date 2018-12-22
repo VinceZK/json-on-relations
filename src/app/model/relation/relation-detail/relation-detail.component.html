@@ -31,4 +31,119 @@
                       [relationID]="relationMeta.RELATION_ID" [isNewMode]="isNewMode">
   </app-attribute-meta>
 
+  <div class="card mt-2">
+    <div class="card-header"><span class="fas fa-atlas"></span> Association</div>
+    <div class="card-body">
+      <table class="table table-bordered table-sm dk-table">
+        <thead class="thead-light">
+        <tr>
+          <th scope="col">Action</th>
+          <th scope="col">Right Relation</th>
+          <th scope="col">Cardinality</th>
+          <th scope="col" title="Foreign Key Check">FC</th>
+        </tr>
+        </thead>
+
+        <tbody formArrayName="ASSOCIATIONS">
+        <tr *ngFor="let associationFormGroup of associationFormArray.controls; let i = index">
+          <td class="dk-actions">
+            <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteAssociation(i)" title="Delete">
+              <span class="far fa-trash-alt"></span>
+            </button>
+            <button class="btn btn-sm" type="button" (click)="openFieldMapModal(i)" title="Fields Mapping">
+              <span class="fas fa-map-signs"></span>
+            </button>
+          </td>
+          <td [formGroup]="associationFormGroup"
+              [class.dk-invalid]="associationFormGroup.get('RIGHT_RELATION_ID').invalid && (associationFormGroup.touched || associationFormGroup.dirty)">
+            <div class="input-group">
+              <input class="form-control form-control-sm" type="text" formControlName="RIGHT_RELATION_ID"
+                     [readonly]="readonly || oldRightRelation(associationFormGroup) && associationFormGroup.valid" (change)="onChangeRightRelationID(i)">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary btn-light btn-sm" type="button" id="button-addon2">
+                  <span class="fas fa-search"></span>
+                </button>
+              </div>
+              <div class="invalid-tooltip">
+                {{associationFormGroup.get('RIGHT_RELATION_ID').errors?.message}}
+              </div>
+            </div>
+          </td>
+          <td [formGroup]="associationFormGroup">
+            <select class="form-control form-control-sm" formControlName="CARDINALITY">
+              <option>[0..1]</option>
+              <option>[1..1]</option>
+              <option>[0..n]</option>
+              <option>[1..n]</option>
+            </select>
+          </td>
+          <td [formGroup]="associationFormGroup">
+            <input type="checkbox" formControlName="FOREIGN_KEY_CHECK">
+          </td>
+        </tr>
+
+        <div *ngIf="currentAssociationForm" class="modal fade dk-modal-open" [ngClass]="{'show': isFieldMapShown}"
+             [ngStyle]="{'display': displayFieldMapModal}" id="detailModal" tabindex="-1" role="dialog">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="detail">Fields Mapping</h5>
+                <button type="button" class="close" (click)="closeFieldMapModal()">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <table class="table table-bordered table-sm dk-table" [formGroup]="currentAssociationForm">
+                  <thead class="thead-light">
+                  <tr>
+                    <th scope="col">Action</th>
+                    <th scope="col">Left Table Field</th>
+                    <th scope="col">Right Table Field</th>
+                  </tr>
+                  </thead>
+
+                  <tbody formArrayName="FIELDS_MAPPING">
+                    <tr *ngFor="let fieldMapFormGroup of fieldMapFormArray.controls; let i = index">
+                      <td class="dk-actions">
+                        <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteFieldMap(i)" title="Delete">
+                          <span class="far fa-trash-alt"></span>
+                        </button>
+                      </td>
+                      <td [formGroup]="fieldMapFormGroup"
+                          [class.dk-invalid]="fieldMapFormGroup.get('LEFT_FIELD').invalid && (fieldMapFormGroup.touched || fieldMapFormGroup.dirty)">
+                        <div class="input-group">
+                          <input class="form-control form-control-sm" type="text" formControlName="LEFT_FIELD"
+                                 [readonly]="readonly || oldFieldMap(fieldMapFormGroup) && fieldMapFormGroup.valid" (change)="onChangeLeftField(i)">
+                          <div class="invalid-tooltip">
+                            {{fieldMapFormGroup.get('LEFT_FIELD').errors?.message}}
+                          </div>
+                        </div>
+                      </td>
+                      <td [formGroup]="fieldMapFormGroup"
+                          [class.dk-invalid]="fieldMapFormGroup.get('RIGHT_FIELD').invalid && (fieldMapFormGroup.touched || fieldMapFormGroup.dirty)">
+                        <div class="input-group">
+                          <input class="form-control form-control-sm" type="text" formControlName="RIGHT_FIELD"
+                                 [readonly]="readonly || oldFieldMap(fieldMapFormGroup) && fieldMapFormGroup.valid" (change)="onChangeRightField(i)">
+                          <div class="invalid-tooltip">
+                            {{fieldMapFormGroup.get('RIGHT_FIELD').errors?.message}}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-primary" (click)="closeFieldMapModal()">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
 </form>
+
+

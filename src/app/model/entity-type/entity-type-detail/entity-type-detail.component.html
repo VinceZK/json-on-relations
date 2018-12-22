@@ -54,7 +54,7 @@
               [class.dk-invalid]="roleFormGroup.get('ROLE_ID').invalid && (roleFormGroup.touched || roleFormGroup.dirty)">
             <div class="input-group">
               <input class="form-control form-control-sm" type="text" formControlName="ROLE_ID"
-                     [readonly]="readonly || oldRole(roleFormGroup)" (change)="onChangeRoleID(i)">
+                     [readonly]="readonly || oldRole(roleFormGroup) && roleFormGroup.valid" (change)="onChangeRoleID(i)">
               <div class="input-group-append">
                 <button class="btn btn-outline-secondary btn-light btn-sm" type="button" id="button-addon2">
                   <span class="fas fa-search"></span>

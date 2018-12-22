@@ -27,7 +27,7 @@ A relation corresponds to a DB table which represents a collection of attributes
 Entities can have relationships with each others. Each relationship is performed by certain roles. 
 For example, relationship "marriage" is performed by 2 roles: "husband" and "wife". 
 Once the 2 roles are respectively assigned to 2 people, they can then potentially have the marriage relationship.  
-![Relation: r_employee](RelationshipMarriage.png)
+![Relationship: rs_marriage](RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
 Once you have the data modelling done, you can immediately create a person instance.  
@@ -338,15 +338,19 @@ as well as indirect attributes from the roles that are assigned to it.
 Roles don't have attributes directly, but are inherit from the relations assigned to them.
 
 A relation corresponds to a DB table, and its attributes are fields of the table.
-From this perspective, an entity itself is also a kind of relation. 
+Relations can have associations with each other. 
+For example, relation "r_employee" has a 1-on-1 association to relation "r_company" based on the field "COMPANY_ID".
+Even 2 relations separately belong to 2 different entities can be associated.
 
-Roles perform relationships. Once roles are assigned to entities, 
-those relationships thus can be applied to the entities. 
+Roles perform relationships. Once a role is assigned to an entity, 
+its relationships thus can be applied to the entity. 
 And the relationship instances are actually the associations among entities.
-Relationship itself is a kind of relation which can also have direct attributes. 
+
+Both Entity and Relationship can be regarded as 2 special kinds of relation.
 
 To achieve re-usability and context consistency, the meta of an attribute can be defined as data elements and data domains.
-data domain is used to boundary the value type and range of an attribute, 
+data domain is used to boundary the value type and range of an attribute. 
+For example, data domain "Country" contains all the country codes in the world so far.
 while a data element can be assigned with a data domain, and adding more business semantics like labels, documentations, and so on. 
 
 ## License

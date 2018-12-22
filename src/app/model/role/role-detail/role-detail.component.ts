@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {RoleMeta} from '../../../entity';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
 import {ModelService} from '../../model.service';
@@ -180,7 +180,15 @@ export class RoleDetailComponent implements OnInit {
   }
 
   onChangeRelationID(index: number): void {
-    if (index === this.relationFormArray.length - 1 && this.relationFormArray.controls[index].value.RELATION_ID.trim() !== '') {
+    const currentRelationFormGroup = this.relationFormArray.controls[index];
+    if (this.relationFormArray.controls.findIndex((relationCtrl, i) =>
+      i !== index && relationCtrl.get('RELATION_ID').value === currentRelationFormGroup.get('RELATION_ID').value
+    ) !== -1) {
+      currentRelationFormGroup.get('RELATION_ID').setErrors({message: 'Duplicate Relations'});
+      return;
+    }
+
+    if (index === this.relationFormArray.length - 1 && currentRelationFormGroup.value.RELATION_ID.trim() !== '') {
       // Only work for the last New line
       this.relationFormArray.push(
         this.fb.group({
@@ -191,17 +199,20 @@ export class RoleDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRelationDesc(this.relationFormArray.controls[index].value.RELATION_ID).subscribe(data => {
+    this.entityService.getRelationDesc(currentRelationFormGroup.value.RELATION_ID).subscribe(data => {
       if (data['msgCat']) {
-        this.relationFormArray.controls[index].get('RELATION_ID').setErrors({message: data['msgShortText']});
+        currentRelationFormGroup.get('RELATION_ID').setErrors({message: data['msgShortText']});
       } else {
-        this.relationFormArray.controls[index].get('RELATION_DESC').setValue(data);
+        currentRelationFormGroup.get('RELATION_DESC').setValue(data);
       }
     });
   }
 
-  oldRelation(formGroup: FormGroup): boolean {
-    return this.roleMeta.RELATIONS.findIndex( relation => relation.RELATION_ID === formGroup.get('RELATION_ID').value ) !== -1;
+  oldRelation(formGroup: AbstractControl): boolean {
+    return this.roleMeta.RELATIONS ?
+      this.roleMeta.RELATIONS.findIndex(
+        relation => relation.RELATION_ID === formGroup.get('RELATION_ID').value ) !== -1 :
+      false;
   }
 
   canDeactivate(): Observable<boolean> | boolean {
