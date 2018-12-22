@@ -278,7 +278,7 @@ or it will give you the first hit that matches this ID.
 
 The return is a complete entity instance in JSON format.
 ```http request
-GET http://localhost:3001/api/entity/instance
+POST http://localhost:3001/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json

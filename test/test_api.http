@@ -104,7 +104,7 @@ Content-Type: application/json
 ### business ID which belongs to relation "r_employee".
 ### You need to make sure the business ID can uniquely identify the entity, or it will give you the first instance that matches
 ### this ID.
-GET http://localhost:3001/api/entity/instance
+POST http://localhost:3001/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
