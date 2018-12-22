@@ -356,6 +356,14 @@ data domain is used to boundary the value type and range of an attribute.
 For example, data domain "Country" contains all the country codes in the world so far.
 while a data element can be assigned with a data domain, and adding more business semantics like labels, documentations, and so on. 
 
+## Planned Features
++ Data Domain and Data Element. 
++ Plug-able validation, substitution, and enrichment during message processing.
++ Entity orchestration: combined operations on multiple entities together.
++ Version management of data modeling.
++ Introduce DB view concept and a report painter tool.
++ Integrate into [Portal](https://github.com/VinceZK/Portal) to support user login and session.
+
 ## License
 [The MIT License](http://opensource.org/licenses/MIT)
 
