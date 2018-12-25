@@ -1,17 +1,9 @@
 # JsonOnRelations
-Json-on-Relations try to bundle the merits from both JSON and relational structures. 
-Nowadays, JSON is the de-facto standard for data communication. 
-Comparing to other data format standards, it is easier to compose and more human readable.
+JSON-On-Relations converts a JSON message to SQL. Thus, a lot of relational data manipulations can be achieved by composing a JSON format message. JSON is now the de facto message format for RESTful communication. On the other hand, the relational database with SQL is still the only trust-able system to store and use structured data. Putting JSON on relations can simplify the development of enterprise level applications(like ERP and CRM). Meanwhile, it can also help to lower the software maintenance effort by standardizing the business entity modeling.
 
-Relational database is still very strong, and no one can replace it so far. 
-Existing ORM solutions focus too much on "object". 
-Ignoring the relational nature of data limits their abilities on building real-world applications. 
-SQL is still proven to be the best abstraction of data manipulation. 
-Any attempts to rebuild the wheel always end with ignorant. 
+Existing ORM solutions focus too much on the “object” concept. Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. SQL is still proven to be the best abstraction of data manipulation. Any attempts to rebuild the wheel, or to cover another level shell, always end like drawing legs on a snake.
 
-The only meaningful work should be done is to connect JSON with SQL in some *domain specific areas*. 
-Json-on-Relations targets to Line-of-Business applications(like ERP, CRM, and HRM), 
-and tries to simplify the development by eliminating pipeline coding.
+Unlike other protocols(for example: OData or JSON API), JSON-On-Relations is not trying to shell SQL with JSON. It acts more like a bridge which connects JSON with SQL DBs towards a niche area. The area, always mixed with other web-based applications, should be regarded as a separate one, which is the enterprise Line-of-Business applications.
 
 ## First Glance
 ### Define Your Entity
@@ -94,6 +86,12 @@ Content-Type: application/json
 ```  
 
 ## How to Use
+**You can either directly explore on the hosted websites:**
+ + [Modeling](https://darkhouse.com.cn/jor/model)
+ + [Entity Browser](https://darkhouse.com.cn/jor/entity/list)
+ 
+**Or by applying following steps to establish in your own environment**
+    
 1. Install it to your node/angular project:
    ```bash
     $ npm install json-on-relations --save
@@ -151,8 +149,8 @@ Content-Type: application/json
     $ node server.js
    ```
 5. Open the links:
-   + [Modelling](http://localhost:3001/model)
-   + [Entity Browser](http://localhost:3001/entity)
+   + [Modeling](http://localhost:3001/model)
+   + [Entity Browser](http://localhost:3001/entity/list)
    
 ## Restful API
 Following APIs are opened in the default route table.
