@@ -5,6 +5,7 @@ import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, Rel
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
 import {msgStore} from './msgStore';
+import {environment} from '../environments/environment';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -14,10 +15,10 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class EntityService {
-  private entityUrl = 'http://localhost:3001/api/entity';
-  private relationUrl = 'http://localhost:3001/api/relation';
-  private queryUrl = 'http://localhost:3001/api/query';
-  private modelUrl = 'http://localhost:3001/api/model';
+  private entityUrl = environment.entityUrl;
+  private relationUrl = environment.relationUrl;
+  private queryUrl = environment.queryUrl;
+  private modelUrl = environment.modelUrl;
 
   constructor(private http: HttpClient,
               private messageService: MessageService) {

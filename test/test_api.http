@@ -114,6 +114,17 @@ Content-Type: application/json
   "USER_ID": "DH001"
 }
 
+###
+POST http://localhost:3001/api/entity/instance
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "RELATION_ID": "blog",
+  "ID": "229"
+}
+
 ### General Query Request
 ### The query is defined as a JSON object with attributes: "relation", "projection", and "filter".
 ### The "relation" defines the leading relation(table). You can project fields not only from the leading relation,
