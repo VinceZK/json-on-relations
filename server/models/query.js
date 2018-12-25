@@ -232,7 +232,7 @@ function run(queryObject, callback) {
 
   // TODO Need enhance to support asc/desc and fields from other relations
   function __parseSort() {
-    if (!queryObject.sort || !Array.isArray(queryObject) || queryObject.sort.length === 0) return;
+    if (!queryObject.sort || !Array.isArray(queryObject.sort) || queryObject.sort.length === 0) return;
     queryObject.sort.forEach(function (sortKey, i) {
       if (i === 0) {
         sortString = sortKey + ' desc';
