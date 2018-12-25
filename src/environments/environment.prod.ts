@@ -1,7 +1,7 @@
 export const environment = {
-  production: false,
-  queryUrl: 'http://localhost:3000/api/query',
-  entityUrl: 'http://localhost:3000/api/entity',
-  relationUrl: 'http://localhost:3000/api/relation',
-  modelUrl: 'http://localhost:3000/api/model'
+  production: true,
+  queryUrl: 'https://darkhouse.com.cn/api/query',
+  entityUrl: 'https://darkhouse.com.cn/api/entity',
+  relationUrl: 'https://darkhouse.com.cn/api/relation',
+  modelUrl: 'https://darkhouse.com.cn/api/model'
 };

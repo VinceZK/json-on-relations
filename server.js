@@ -29,7 +29,7 @@ entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
     rows.forEach( row => entities.push(row.ENTITY_ID));
     entityDB.loadEntities(entities, function (err) {
       if(err) debug("bootstrap: load entities==> %s", err);
-      else app.listen(3001, () => console.log('Example app listening on port 3001!'));
+      else app.listen(3000, () => console.log('Example app listening on port 3000!'));
     })
   }
 });

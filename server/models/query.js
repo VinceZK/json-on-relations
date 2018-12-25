@@ -40,6 +40,11 @@ module.exports = {
           low: 'ZH'
         }
       ]
+
+      sort: [
+        'USER_ID',
+        {fieldName: 'USER_NAME', relation: 'r_user'}
+      ]
     };
  */
 function run(queryObject, callback) {
@@ -48,6 +53,7 @@ function run(queryObject, callback) {
   let projectionString = '';
   let filterString = '';
   let joinString = '';
+  let sortString = '';
   let selectSQL = '';
 
   if(!queryObject['relation']) {
@@ -69,10 +75,13 @@ function run(queryObject, callback) {
   if(errorMessages.length > 0) return callback(errorMessages);
   __parseJoin();
   if(errorMessages.length > 0) return callback(errorMessages);
+  __parseSort();
+  if(errorMessages.length > 0) return callback(errorMessages);
 
   if (projectionString) selectSQL = 'select ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.relation);
   if (joinString) selectSQL += joinString;
   if (filterString) selectSQL += ' where ' + filterString;
+  if (sortString) selectSQL += ' order by ' + sortString;
 
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('QUERY', 'GENERAL_ERROR', 'E', err));
@@ -218,6 +227,18 @@ function run(queryObject, callback) {
         joinString += entityDB.pool.escapeId(queryObject.relation) + '.' + entityDB.pool.escapeId(fieldsMapping.LEFT_FIELD) +
           ' = ' + entityDB.pool.escapeId(joinRelation) + '.' + entityDB.pool.escapeId(fieldsMapping.RIGHT_FIELD);
       })
+    })
+  }
+
+  // TODO Need enhance to support asc/desc and fields from other relations
+  function __parseSort() {
+    if (!queryObject.sort || !Array.isArray(queryObject) || queryObject.sort.length === 0) return;
+    queryObject.sort.forEach(function (sortKey, i) {
+      if (i === 0) {
+        sortString = sortKey + ' desc';
+      } else {
+        sortString += ', ' + sortKey + ' desc';
+      }
     })
   }
 }
