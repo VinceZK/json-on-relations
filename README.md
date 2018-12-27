@@ -112,7 +112,7 @@ Content-Type: application/json
 
    // We don't want to serve sessions for static resources
    const path = require('path');
-   app.use(express.static(path.join(__dirname, 'dist')));
+   app.use(express.static(path.join(__dirname, 'dist/jor')));
 
    const cors = require('cors'); // Allow cross site requests
    app.use(cors());
