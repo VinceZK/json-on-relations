@@ -20,13 +20,19 @@ const msgArray = [
   { msgCat: "QUERY",
     msgName: "INVALID_PROJECTION",
     msgText: {
-      EN: {shortText: "Projection is invalid, it must be an Array", longText: "dummy"}
+      EN: {shortText: "Projection is invalid!", longText: "dummy"}
     }
   },
   { msgCat: "QUERY",
     msgName: "INVALID_FILTER",
     msgText: {
       EN: {shortText: "Filter is invalid, it must be an Array", longText: "dummy"}
+    }
+  },
+  { msgCat: "QUERY",
+    msgName: "INVALID_SORT",
+    msgText: {
+      EN: {shortText: "Sort is invalid!", longText: "dummy"}
     }
   },
   { msgCat: "QUERY",
@@ -38,13 +44,13 @@ const msgArray = [
   { msgCat: "QUERY",
     msgName: "FILTER_MISS_LOW_VALUE",
     msgText: {
-      EN: {shortText: "The low value is not given in the fitler", longText: "dummy"}
+      EN: {shortText: "The low value is not given in the filter", longText: "dummy"}
     }
   },
   { msgCat: "QUERY",
     msgName: "INVALID_FIELD",
     msgText: {
-      EN: {shortText: "Field %s is invalid", longText: "dummy"}
+      EN: {shortText: "Field %s doesn't exist in relation %s", longText: "dummy"}
     }
   },
   { msgCat: "QUERY",

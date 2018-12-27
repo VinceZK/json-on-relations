@@ -293,7 +293,7 @@ but also from all its associated relations. The system helps you to do the sql-j
 
 The filter is limited with operators: EQ(Equal), NE(Not Equal), GT(Greater Than), GE(Greater than and Equal), 
 LT(Less Than), LE(Less Than and Equal), and BT(Between). 
-You can also use fields from the assoicated relations to do the filtering.
+You can also use fields from the assoicated relations to do the filtering and sorting.
 
 The return is a list of entries that fulfills the query.
 ```http request
@@ -322,6 +322,13 @@ Content-Type: application/json
       "operator": "EQ",
       "relation": "r_personalization",
       "low": "ZH"
+    }
+  ],
+  "sort": [
+    {
+      "fieldName": "LANGUAGE",
+      "relation": "r_personalization",
+      "order": "desc"
     }
   ]
 }

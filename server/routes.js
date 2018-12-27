@@ -38,7 +38,7 @@ router.post('/api/model/role', model.saveRole);
 
 // Add this route to support page refresh
 router.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  res.sendFile(path.join(__dirname, '../dist/jor/index.html'));
 });
 
 module.exports = router;

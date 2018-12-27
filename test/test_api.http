@@ -5,7 +5,7 @@
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
 ### Create a person instance
-POST http://localhost:3001/api/entity
+POST http://localhost:3000/api/entity
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -30,7 +30,7 @@ Content-Type: application/json
 ### 2) Update the USER_NAME of "r_user" relation;
 ### 3) Add a new email address;
 ### 4) Add a new relationship to "system_role".
-PUT http://localhost:3001/api/entity
+PUT http://localhost:3000/api/entity
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -66,7 +66,7 @@ Content-Type: application/json
 ### This API is useful in some UI technologies which always regards an entity as a whole.
 ### The pattern is similar to some document/object store.
 ### One limitation is that relationships are not supported with overwrite mode. Because a relationship always deals with 2 entities.
-PUT http://localhost:3001/api/entity/overwrite
+PUT http://localhost:3000/api/entity/overwrite
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 ### Get an entity instance through its UUID
 ### The return is an entity instance in JSON format. The relationships are also included
-GET http://localhost:3001/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
+GET http://localhost:3000/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 
@@ -89,7 +89,7 @@ Cache-Control: no-cache
 ### Use this API to decide which relations or relationships you need.
 ### The following example only request 2 relations: "r_user" and "r_email", with one relationship "rs_user_role".
 ### The return is a projection of entity instance in JSON format.
-POST http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
+POST http://localhost:3000/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -104,7 +104,7 @@ Content-Type: application/json
 ### business ID which belongs to relation "r_employee".
 ### You need to make sure the business ID can uniquely identify the entity, or it will give you the first instance that matches
 ### this ID.
-POST http://localhost:3001/api/entity/instance
+POST http://localhost:3000/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -115,7 +115,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:3001/api/entity/instance
+POST http://localhost:3000/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -131,7 +131,7 @@ Content-Type: application/json
 ### but also from the associated relations. The system helps you do the left joins.
 ### The filter is limited with operators: EQ, NE, GT, GE, LT, LE, BT.
 ### You can also use fields from the assoicated relations.
-POST http://localhost:3001/api/query
+POST http://localhost:3000/api/query
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -157,56 +157,63 @@ Content-Type: application/json
       "relation": "r_personalization",
       "low": "ZH"
     }
+  ],
+  "sort": [
+    {
+      "fieldName": "LANGUAGE",
+      "relation": "r_personalization",
+      "order": "desc"
+    }
   ]
 }
 
 ### Get the meta data of a given entity type
-GET http://localhost:3001/api/entity/meta/person
+GET http://localhost:3000/api/entity/meta/person
 Accept: */*
 Cache-Control: no-cache
 
 ### Get the meta data of a given relation
-GET http://localhost:3001/api/relation/meta/r_user
+GET http://localhost:3000/api/relation/meta/r_user
 Accept: */*
 Cache-Control: no-cache
 
 ### Get all the relations' meta data of a given entity
-GET http://localhost:3001/api/relation/meta/entity/person
+GET http://localhost:3000/api/relation/meta/entity/person
 Accept: */*
 Cache-Control: no-cache
 
 ### List all the entity types in the system
-GET http://localhost:3001/api/entity/entityIDs
+GET http://localhost:3000/api/entity/entityIDs
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/entity-type/list?term=people
+GET http://localhost:3000/api/model/entity-type/list?term=people
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/relation/list?term=person
+GET http://localhost:3000/api/model/relation/list?term=person
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/relationship/list?term=marriage
+GET http://localhost:3000/api/model/relationship/list?term=marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/relationship/rs_marriage
+GET http://localhost:3000/api/model/relationship/rs_marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/role/system_role
+GET http://localhost:3000/api/model/role/system_role
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3001/api/model/role/desc/system_role
+GET http://localhost:3000/api/model/role/desc/system_role
 Accept: */*
 Cache-Control: no-cache
 

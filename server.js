@@ -7,7 +7,7 @@ const entityDB = require('./server/models/connections/mysql_mdb.js');
 const app = express();
 
 // We don't want to serve sessions for static resources
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist/jor')));
 
 app.use(cors());
 app.use(require('body-parser').json());

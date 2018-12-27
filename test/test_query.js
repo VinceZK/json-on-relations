@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/mysql_mdb.js');
 const query = require('../server/models/query.js');
 
-describe('query tests', function () {
+describe.only('query tests', function () {
   before(function (done) {
     entityDB.loadEntity('person', done);
   });
@@ -24,7 +24,7 @@ describe('query tests', function () {
         {
           fieldName: 'USER_ID',
           operator: 'BT',
-          low: 'DH002',
+          low: 'DH001',
           high: 'DH006'
         },
         {
@@ -33,13 +33,17 @@ describe('query tests', function () {
           relation: 'r_personalization',
           low: 'ZH'
         }
+      ],
+
+      sort: [
+
       ]
     };
 
   it('should return query result', function(done){
     query.run(queryObject, function (errs, rows) {
       should(errs).eql(null);
-      console.log(rows);
+      // console.log(rows);
       done();
     });
   });
@@ -176,6 +180,74 @@ describe('query tests', function () {
         msgName: 'INVALID_OPERATOR',
         msgType: 'E'
       }]);
+      done();
+    });
+  });
+
+  it('should report INVALID_SORT', function(done){
+    queryObject.filter = [];
+    queryObject.sort = [
+      {
+        relation: 'r_personalization'
+      }
+    ];
+    query.run(queryObject, function (errs) {
+      errs.should.containDeep([{
+        msgCat: 'QUERY',
+        msgName: 'INVALID_SORT',
+        msgType: 'E'
+      }]);
+      done();
+    });
+  });
+
+  it('should report INVALID_RELATION', function(done){
+    queryObject.filter = [];
+    queryObject.sort = [
+      {
+        fieldName: 'LANGUAGE',
+        relation: 'r_personalization1'
+      }
+    ];
+    query.run(queryObject, function (errs) {
+      errs.should.containDeep([{
+        msgCat: 'QUERY',
+        msgName: 'INVALID_RELATION',
+        msgType: 'E'
+      }]);
+      done();
+    });
+  });
+
+  it('should report INVALID_FIELD', function(done){
+    queryObject.filter = [];
+    queryObject.sort = [
+      {
+        fieldName: 'LANGUAGE1',
+        relation: 'r_personalization'
+      }
+    ];
+    query.run(queryObject, function (errs) {
+      errs.should.containDeep([{
+        msgCat: 'QUERY',
+        msgName: 'INVALID_FIELD',
+        msgType: 'E'
+      }]);
+      done();
+    });
+  });
+
+  it('should return query result with sorting', function(done){
+    queryObject.filter = [];
+    queryObject.sort = [
+      {
+        fieldName: 'LANGUAGE',
+        relation: 'r_personalization',
+        order: 'DESC'
+      }
+    ];
+    query.run(queryObject, function (errs) {
+      should(errs).eql(null);
       done();
     });
   });

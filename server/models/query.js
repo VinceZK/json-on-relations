@@ -43,7 +43,7 @@ module.exports = {
 
       sort: [
         'USER_ID',
-        {fieldName: 'USER_NAME', relation: 'r_user'}
+        {fieldName: 'USER_NAME', relation: 'r_user', order: 'DESC|ASC'}
       ]
     };
  */
@@ -61,21 +61,19 @@ function run(queryObject, callback) {
     return callback(errorMessages);
   }
 
-  const relationMetaMap = {};
   const factRelationMeta = entityDB.getRelationMeta(queryObject.relation);
   if (!factRelationMeta) {
     errorMessages.push(message.report('QUERY', 'INVALID_RELATION', 'E', queryObject.relation));
     return callback(errorMessages);
-  } else
-    relationMetaMap[queryObject.relation] = factRelationMeta;
+  }
 
   __parseProjection();
   if(errorMessages.length > 0) return callback(errorMessages);
   __parseFilter();
   if(errorMessages.length > 0) return callback(errorMessages);
-  __parseJoin();
-  if(errorMessages.length > 0) return callback(errorMessages);
   __parseSort();
+  if(errorMessages.length > 0) return callback(errorMessages);
+  __parseJoin();
   if(errorMessages.length > 0) return callback(errorMessages);
 
   if (projectionString) selectSQL = 'select ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.relation);
@@ -109,22 +107,25 @@ function run(queryObject, callback) {
       let relation;
       let fieldName;
 
-      if (i !== 0) projectionString += " , ";
+      if (i !== 0) projectionString += ", ";
 
       if(typeof projectedField === 'string') {
         relation = queryObject.relation;
         relationMeta = factRelationMeta;
         fieldName = projectedField;
       } else { // {fieldName: 'Field3', Alias: 'Field3_XXXX', relation: 'r_relation1'}
-        relation = projectedField.relation ? projectedField.relation : queryObject.relation;
-        __putJoinRelation(relation);
+        if (!projectedField.fieldName) {
+          errorMessages.push(message.report('QUERY', 'INVALID_PROJECTION', 'E'));
+          return;
+        }
         fieldName = projectedField.fieldName;
-        if(!projectedField.relation) {
+        if(!projectedField.relation || projectedField.relation === queryObject.relation) {
           relation = queryObject.relation;
           relationMeta = factRelationMeta;
         } else {
           relation = projectedField.relation;
-          relationMeta = relationMetaMap[relation] ? relationMetaMap[relation] : entityDB.getRelationMeta(relation);
+          relationMeta = entityDB.getRelationMeta(relation);
+          __putJoinRelation(relation);
         }
       }
 
@@ -136,11 +137,11 @@ function run(queryObject, callback) {
         return attribute.ATTR_NAME === fieldName;
       });
       if (index === -1) {
-        errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', fieldName));
+        errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', fieldName, relation));
       } else {
         projectionString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(fieldName);
-        if (projectedField.alias) projectionString += ' as ' + entityDB.pool.escapeId(projectedField.alias);
       }
+      if (projectedField.alias) projectionString += ' as ' + entityDB.pool.escapeId(projectedField.alias);
     });
 
     projectionString += ' , ' + entityDB.pool.escapeId(queryObject.relation) + '.' + entityDB.pool.escapeId('INSTANCE_GUID');
@@ -157,10 +158,20 @@ function run(queryObject, callback) {
         errorMessages.push(message.report('QUERY', 'FILTER_MISS_FIELD_NAME', 'E'));
         return;
       }
-      if (!selectOption.low) { return; } // If low value is not given, bypass.
-      const relation = selectOption.relation ? selectOption.relation : queryObject.relation;
-      __putJoinRelation(relation);
-      const relationMeta = relationMetaMap[relation] ? relationMetaMap[relation] : entityDB.getRelationMeta(relation);
+
+      if (!selectOption.low) {
+        errorMessages.push(message.report('QUERY', 'FILTER_MISS_LOW_VALUE', 'E'));
+        return; } // If low value is not given, bypass.
+
+      let relation;
+      if(!selectOption.relation || selectOption.relation === queryObject.relation) {
+        relation = queryObject.relation;
+      } else {
+        relation = selectOption.relation;
+        __putJoinRelation(relation);
+      }
+
+      const relationMeta = entityDB.getRelationMeta(relation);
       if (!relationMeta) {
         errorMessages.push(message.report('QUERY', 'INVALID_RELATION', 'E', queryObject.relation));
         return;
@@ -169,7 +180,7 @@ function run(queryObject, callback) {
         return attribute.ATTR_NAME === selectOption.fieldName
       });
       if (index === -1) {
-        errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', selectOption.fieldName));
+        errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', selectOption.fieldName, relation));
         return;
       }
       if (i !== 0) filterString += " AND ";
@@ -230,16 +241,61 @@ function run(queryObject, callback) {
     })
   }
 
-  // TODO Need enhance to support asc/desc and fields from other relations
   function __parseSort() {
-    if (!queryObject.sort || !Array.isArray(queryObject.sort) || queryObject.sort.length === 0) return;
-    queryObject.sort.forEach(function (sortKey, i) {
-      if (i === 0) {
-        sortString = sortKey + ' desc';
-      } else {
-        sortString += ', ' + sortKey + ' desc';
+    if (!queryObject.sort) return;
+
+    if(!Array.isArray(queryObject.sort)) {
+      errorMessages.push(message.report('QUERY', 'INVALID_SORT', 'E'));
+      return;
+    } else {
+      if(queryObject.sort.length === 0) {
+        return;
       }
-    })
+    }
+
+    queryObject.sort.forEach(function (sortField, i) {
+      if (i !== 0) sortString += ", ";
+
+      let relationMeta;
+      let relation;
+      let fieldName;
+
+      if(typeof sortField === 'string') {
+        relation = queryObject.relation;
+        relationMeta = factRelationMeta;
+        fieldName = sortField;
+      } else { // {fieldName: 'Field3', relation: 'r_relation1', order: 'DESC'}
+        if (!sortField.fieldName) {
+          errorMessages.push(message.report('QUERY', 'INVALID_SORT', 'E'));
+          return;
+        }
+        fieldName = sortField.fieldName;
+        if(!sortField.relation || sortField.relation === queryObject.relation) {
+          relation = queryObject.relation;
+          relationMeta = factRelationMeta;
+        } else {
+          relation = sortField.relation;
+          relationMeta = entityDB.getRelationMeta(relation);
+          __putJoinRelation(relation);
+        }
+      }
+
+      if(!relationMeta) {
+        errorMessages.push(message.report('QUERY', 'INVALID_RELATION', 'E', relation));
+        return;
+      }
+      const index = relationMeta.ATTRIBUTES.findIndex(function (attribute) {
+        return attribute.ATTR_NAME === fieldName;
+      });
+      if (index === -1) {
+        errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', fieldName, relation));
+      } else {
+        sortString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(fieldName);
+      }
+
+      sortField.order && sortField.order.toUpperCase() === 'DESC'?
+        sortString += ' DESC' : sortString += ' ASC';
+    });
   }
 }
 
