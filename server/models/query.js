@@ -159,9 +159,7 @@ function run(queryObject, callback) {
         return;
       }
 
-      if (!selectOption.low) {
-        errorMessages.push(message.report('QUERY', 'FILTER_MISS_LOW_VALUE', 'E'));
-        return; } // If low value is not given, bypass.
+      if (!selectOption.low) { return; } // If low value is not given, bypass.
 
       let relation;
       if(!selectOption.relation || selectOption.relation === queryObject.relation) {
