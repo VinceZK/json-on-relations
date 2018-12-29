@@ -24,8 +24,15 @@ module.exports = {
     });
   },
 
-  getEntityInstancePiece: function(req, res) {
+  getEntityInstancePieceByGUID: function(req, res) {
     entity.getInstancePieceByGUID(req.params['instanceGUID'], req.body, function (err, instance) {
+      if(err)res.json(err);
+      else res.json(instance);
+    })
+  },
+
+  getEntityInstancePieceByID: function(req, res) {
+    entity.getInstancePieceByID(req.body['ID'], req.body['piece'], function (err, instance) {
       if(err)res.json(err);
       else res.json(instance);
     })

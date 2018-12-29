@@ -51,6 +51,7 @@ module.exports = {
   getInstanceByGUID: getInstanceByGUID,
   getInstanceByID: getInstanceByID,
   getInstancePieceByGUID: getInstancePieceByGUID,
+  getInstancePieceByID: getInstancePieceByID,
   changeInstance: changeInstance,
   overwriteInstance: overwriteInstance,
   softDeleteInstanceByGUID: softDeleteInstanceByGUID,
@@ -427,6 +428,23 @@ function getInstanceByGUID(instanceGUID, callback) {
       }, callback);
     })
   }
+}
+
+/**
+ * Get a piece of information from an instance from its business ID
+ * @param idAttr
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'}
+ * @param piece
+ *  {RELATIONS: ['r_user', 'r_email'],
+ *  RELATIONSHIPS: ['user_role'] }
+ * @param callback(err, instance)
+ * For the return instance example, please refer method getInstanceByGUID
+ */
+function getInstancePieceByID(idAttr, piece, callback) {
+  _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
+    if(err) return callback(err);
+    getInstancePieceByGUID(instanceGUID, piece, callback);
+  })
 }
 
 /**

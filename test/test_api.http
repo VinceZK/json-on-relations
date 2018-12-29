@@ -114,6 +114,23 @@ Content-Type: application/json
   "USER_ID": "DH001"
 }
 
+### Get pieces of an entity instance through its business ID.
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user", "r_email"],
+    "RELATIONSHIPS": ["rs_user_role"]
+  }
+}
+
 ###
 POST http://localhost:3000/api/entity/instance
 Accept: */*
