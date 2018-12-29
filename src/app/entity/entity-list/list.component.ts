@@ -5,6 +5,7 @@ import {Observable} from 'rxjs';
 import {Attribute, QueryObject, RelationMeta, Selection} from '../../entity';
 import {HotTableRegisterer} from '@handsontable/angular';
 import {Router} from '@angular/router';
+import {MessageService} from 'ui-message-angular';
 
 @Component({
   selector: 'app-list',
@@ -32,10 +33,11 @@ export class ListComponent implements OnInit {
     {ID: 'BT', LABEL: 'Between'}
   ];
   selections: Selection[] = [];
-  settingsObj: Handsontable.GridSettings
+  settingsObj: Handsontable.GridSettings;
   entityIDPattern: RegExp;
 
   constructor(private entityService: EntityService,
+              private messageService: MessageService,
               private router: Router,
               private hotRegisterer: HotTableRegisterer) { }
 
@@ -109,15 +111,14 @@ export class ListComponent implements OnInit {
     this.queryObject.filter = this.selections;
     this.entityService.searchEntities(this.queryObject).subscribe(data => {
       this.data = data;
-      this.data.forEach(line =>
-        line.INSTANCE_GUID = `<a href="javascript:void(0)" role="button">${line.INSTANCE_GUID}</a>`);
+      if (this.data[0]['INSTANCE_GUID']) {
+        this.data.forEach(line =>
+          line.INSTANCE_GUID = `<a href="javascript:void(0)" role="button">${line.INSTANCE_GUID}</a>`);
+      } else {
+        this.data.forEach(err => this.messageService.add(err));
+        this.data = [];
+      }
     });
-  }
-
-  navBack() {
-    console.log('navBack is called');
-    const hotInstance = this.hotRegisterer.getInstance(this.instance);
-    hotInstance.selectCell(2, 2);
   }
 
   _attributeColumnDisplay(attribute: Attribute): any {
