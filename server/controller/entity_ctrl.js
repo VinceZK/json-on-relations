@@ -1,5 +1,5 @@
 const entity = require('../models/entity.js');
-const entityDB = require('../models/connections/mysql_mdb.js');
+const entityDB = require('../models/connections/sql_mdb.js');
 
 module.exports = {
   listEntityID: function (req, res) {

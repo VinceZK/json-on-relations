@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors'); // Allow cross site requests
 const compress = require('compression');
 const path = require('path');
-const entityDB = require('./server/models/connections/mysql_mdb.js');
+const entityDB = require('./server/models/connections/sql_mdb.js');
 
 const app = express();
 

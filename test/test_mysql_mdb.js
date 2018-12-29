@@ -1,12 +1,23 @@
 /**
  * Created by VinceZK on 10/10/14.
  */
-const entityDB = require('../server/models/connections/mysql_mdb.js');
+const entityDB = require('../server/models/connections/sql_mdb.js');
 const _ = require('underscore');
 
-describe('mysql connections tests', function () {
+describe.only('mysql connections tests', function () {
 
   before('#loadEntitye(person)', function (done) {
+    entityDB.setConnPool('mysql', { //Default connection pool
+      connectionLimit : 10,
+      host: 'localhost',
+      user: 'nodejs',
+      password: 'nodejs',
+      database: 'MDB',
+      createDatabaseTable: true,
+      multipleStatements: true,
+      dateStrings: true,
+      port: 3306
+    });
     entityDB.loadEntity('person', done);
   });
 
@@ -78,7 +89,7 @@ describe('mysql connections tests', function () {
       entityDB.getRelationMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'},{ATTR_NAME: 'HOBBY'}]);
       entityDB.getRelationMeta('rs_user_role').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'SYNCED'}]);
       entityDB.getRelationMeta('r_user')
-        .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0,
+        .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
         FIELDS_MAPPING: [ { LEFT_FIELD: 'USER_ID', RIGHT_FIELD: 'USER_ID' } ] }]);
       entityDB.getRelationMeta('r_employee')
         .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_company', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
@@ -287,17 +298,17 @@ describe('mysql connections tests', function () {
 
   describe('#doUpdatesParallel()', function () {
     let recGuid = '305635FFA99B4CA2800ED393F746227F';
-    it("should insert an entry in both ENTITY_INSTANCES and UIX_GUID", function (done) {
+    it("should insert an entry in both ENTITY_INSTANCES and Main Table", function (done) {
       let insertSQLs = [];
       let insertSQL = "INSERT INTO ENTITY_INSTANCES VALUES ("
         + " 'blog', "
         + entityDB.pool.escape(recGuid)
         + ", null ,"
         + "'1')";
-      insertSQLs.push(_.clone(insertSQL));
-      insertSQL = "INSERT INTO NIX_6C357AF2BE7B3FC9D4EB39424D2F541B (`VALUE`,`INSTANCE_GUID`) VALUES ('0', " +
+      insertSQLs.push(insertSQL);
+      insertSQL = "INSERT INTO blog (`NAME`,`INSTANCE_GUID`) VALUES ('AAA', " +
         entityDB.pool.escape(recGuid) + ")";
-      insertSQLs.push(_.clone(insertSQL));
+      insertSQLs.push(insertSQL);
 
       entityDB.doUpdatesParallel(insertSQLs, function (err, results) {
         should(err).eql(null);
@@ -313,12 +324,12 @@ describe('mysql connections tests', function () {
         + entityDB.pool.escape(recGuid)
         + ", null ,"
         + "'1')";
-      insertSQLs.push(_.clone(insertSQL));
-      insertSQL = "INSERT INTO NIX_6C357AF2BE7B3FC9D4EB39424D2F541B (`VALUE`,`INSTANCE_GUID`) VALUES ('0', " +
+      insertSQLs.push(insertSQL);
+      insertSQL = "INSERT INTO blog (`NAME`,`INSTANCE_GUID`) VALUES ('AAA', " +
         entityDB.pool.escape(recGuid) + ")";
-      insertSQLs.push(_.clone(insertSQL));
+      insertSQLs.push(insertSQL);
 
-      entityDB.doUpdatesParallel(insertSQLs, function (err, results) {
+      entityDB.doUpdatesParallel(insertSQLs, function (err) {
         should(err).not.eql(null);
         err.code.should.equal('ER_DUP_ENTRY');
         done();
@@ -329,7 +340,7 @@ describe('mysql connections tests', function () {
       let updateSQLs = [];
       let updateSQL = "UPDATE ENTITY_INSTANCES SET DEL ='1' " +
         "WHERE ENTITY_ID ='blog' AND INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
-      updateSQLs.push(_.clone(updateSQL));
+      updateSQLs.push(updateSQL);
 
       entityDB.doUpdatesParallel(updateSQLs, function (err, results) {
         should(err).eql(null);
@@ -353,10 +364,9 @@ describe('mysql connections tests', function () {
       let delSQLs = [];
       let delSQL = "DELETE FROM ENTITY_INSTANCES " +
         "WHERE ENTITY_ID ='blog' and INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
-      delSQLs.push(_.clone(delSQL));
-      delSQL = "DELETE FROM NIX_6C357AF2BE7B3FC9D4EB39424D2F541B " +
-        "WHERE INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
-      delSQLs.push(_.clone(delSQL));
+      delSQLs.push(delSQL);
+      delSQL = "DELETE FROM blog WHERE INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
+      delSQLs.push(delSQL);
 
       entityDB.doUpdatesParallel(delSQLs, function (err, results) {
         should(err).eql(null);
@@ -375,10 +385,10 @@ describe('mysql connections tests', function () {
         + entityDB.pool.escape(recGuid)
         + ", null ,"
         + "'1')";
-      insertSQLs.push(_.clone(insertSQL));
-      insertSQL = "INSERT INTO NIX_6C357AF2BE7B3FC9D4EB39424D2F541B (`VALUE`, `INSTANCE_GUID`) VALUES ('0', " +
+      insertSQLs.push(insertSQL);
+      insertSQL = "INSERT INTO blog (`NAME`,`INSTANCE_GUID`) VALUES ('AAA', " +
         entityDB.pool.escape(recGuid) + ")";
-      insertSQLs.push(_.clone(insertSQL));
+      insertSQLs.push(insertSQL);
 
       entityDB.doUpdatesSeries(insertSQLs, function (err, results) {
         should(err).eql(null);
@@ -392,8 +402,7 @@ describe('mysql connections tests', function () {
       let delSQL = "DELETE FROM ENTITY_INSTANCES " +
         "WHERE ENTITY_ID ='blog' and INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
       delSQLs.push(_.clone(delSQL));
-      delSQL = "DELETE FROM NIX_6C357AF2BE7B3FC9D4EB39424D2F541B " +
-        "WHERE INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
+      delSQL = "DELETE FROM blog WHERE INSTANCE_GUID = " + entityDB.pool.escape(recGuid);
       delSQLs.push(_.clone(delSQL));
 
       entityDB.doUpdatesParallel(delSQLs, function (err, results) {

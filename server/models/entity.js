@@ -1,7 +1,6 @@
 /**
  * Created by VinceZK on 10/25/14.
  * { ENTITY_ID: 'people',
- *   ENTITY_DESC: 'People Entity',
  *   ATTRIBUTES:
  *   [
  *     RowDataPacket {
@@ -34,7 +33,7 @@
 const _ = require('underscore');
 const async = require('async');
 const guid = require('../util/guid.js');
-const entityDB = require('./connections/mysql_mdb.js');
+const entityDB = require('./connections/sql_mdb.js');
 const timeUtil = require('../util/date_time.js');
 const Message = require('ui-message').Message;
 const MsgArrayStore = require('ui-message').MsgArrayStore;

@@ -1,7 +1,7 @@
 /**
  * Created by VinceZK on 06/29/18.
  */
-const entityDB = require('../server/models/connections/mysql_mdb.js');
+const entityDB = require('../server/models/connections/sql_mdb.js');
 const model = require('../server/models/model.js');
 
 describe('model tests', function () {

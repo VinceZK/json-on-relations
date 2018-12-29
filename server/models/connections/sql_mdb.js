@@ -5,17 +5,6 @@
 const debug = require('debug')('darkhouse:mysql_mdb');
 const async = require('async');
 const mysql = require('mysql');
-const pool = mysql.createPool({
-    connectionLimit : 10,
-    host: 'localhost',
-    user: 'nodejs',
-    password: 'nodejs',
-    database: 'MDB',
-    createDatabaseTable: true,
-    multipleStatements: true,
-    dateStrings: true,
-    port: 3306
-});
 const _ = require('underscore');
 const entities = [];
 const relations = [];
@@ -29,12 +18,24 @@ const dataTypes = [
   {key: 7, dataType: 'Date', sqlType: 'date'},
   {key: 8, dataType: 'Timestamp', sqlType: 'datetime'}
 ];
+let pool = null;
+setConnPool('mysql', { //Default connection pool
+  connectionLimit : 10,
+  host: 'localhost',
+  user: 'nodejs',
+  password: 'nodejs',
+  database: 'MDB',
+  createDatabaseTable: true,
+  multipleStatements: true,
+  dateStrings: true,
+  port: 3306
+});
 
 module.exports = {
   pool: pool,
   entities: entities,
   relations: relations,
-
+  setConnPool: setConnPool,
   loadEntity: loadEntity,
   loadEntities: loadEntities,
   loadRelation: getRelation,
@@ -50,6 +51,17 @@ module.exports = {
   closeMDB: closeMDB
 };
 
+function setConnPool(nodeDB, config) {
+  if (!nodeDB) return debug("Node DB connector is missing!");
+  if (!config) return debug("Connection configuration is not provided!");
+  switch (nodeDB) {
+    case 'mysql':
+    default:
+      if (!config.createDatabaseTable || !config.multipleStatements || !config.dateStrings)
+        debug("createDatabaseTable, multipleStatements, dateStrings must be set to true");
+      pool = mysql.createPool(config);
+  }
+}
 /**
  * Load multiple entities meta into cache
  * TODO Use REDIS as the global cache layer to store entities meta

@@ -131,6 +131,18 @@ Content-Type: application/json
    });
    
    const entityDB = require('json-on-relations').EntityDB;
+   entityDB.setConnPool('mysql', { // Set the connection pool to your mysql DB.
+                                   // Currently, we only support mysql.
+                                   connectionLimit : 10,
+                                   host: 'localhost', // To be replaced by your DB host
+                                   user: 'nodejs', // To be replaced by your own DB user
+                                   password: 'nodejs', // To be replaced by your own DB password
+                                   database: 'MDB',
+                                   createDatabaseTable: true,
+                                   multipleStatements: true,
+                                   dateStrings: true,
+                                   port: 3306   // replaced by your DB port.
+                                 });
    entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
      if(err) debug("bootstrap: get entities==> %s", err);
      else {

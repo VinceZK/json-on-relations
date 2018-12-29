@@ -1,4 +1,4 @@
-const EntityDB = require('./server/models/connections/mysql_mdb');
+const EntityDB = require('./server/models/connections/sql_mdb');
 const Entity = require('./server/models/entity');
 const Model = require('./server/models/model');
 const Query = require('./server/models/query');

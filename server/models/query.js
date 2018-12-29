@@ -2,7 +2,7 @@
 Created by VinceZK on 2018.09.02
  */
 
-const entityDB = require('./connections/mysql_mdb.js');
+const entityDB = require('./connections/sql_mdb.js');
 const Message = require('ui-message').Message;
 const MsgArrayStore = require('ui-message').MsgArrayStore;
 const msgArray = require('./message_query.js');
