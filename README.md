@@ -418,7 +418,7 @@ By default, you can use following User AddIns to enhance standard APIs:
 7. afterEntityChanging: Use this AddIn to add logic after an entity instance is changed.
 8. afterEntityReading: Use this AddIn to add logic after an entity instance is read.
 
-### Create User Function
+### Register User Functions
 If you register a User Function as following:
 ```javascript 1.8
 const userFunction = require('./server/models/userFunction');
@@ -467,7 +467,6 @@ while a data element can be assigned with a data domain, and adding more busines
 
 ## Planned Features
 + Data Domain and Data Element. 
-+ Plug-able validation, substitution, and enrichment during message processing.
 + Entity orchestration: combined operations on multiple entities together.
 + Version management of data modeling.
 + Introduce DB view concept and a report painter tool.
