@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntity('person', done);
   });
@@ -383,7 +383,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_NOT_EXIST', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_NOT_EXIST', msgType: 'E'}]);
         done();
       })
     });
@@ -442,7 +442,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'}]);
         done();
       })
     });
@@ -495,7 +495,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'}]);
         done();
       })
     });
@@ -541,7 +541,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'RELATIONSHIP_DELETION_NOT_ALLOWED', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'RELATIONSHIP_DELETION_NOT_ALLOWED', msgType: 'E'}]);
         done();
       })
     });
@@ -561,7 +561,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'FUTURE_RELATIONSHIP', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'FUTURE_RELATIONSHIP', msgType: 'E'}]);
         done();
       })
     });
@@ -601,7 +601,7 @@ describe('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        err.should.containDeep({msgCat: 'ENTITY', msgName: 'CHANGE_TO_EXPIRED_RELATIONSHIP', msgType: 'E'});
+        err.should.containDeep([{msgCat: 'ENTITY', msgName: 'CHANGE_TO_EXPIRED_RELATIONSHIP', msgType: 'E'}]);
         done();
       })
     });
@@ -737,11 +737,11 @@ describe('entity tests', function () {
 
     it('should fail to delete the instance from DB', function (done) {
       entity.hardDeleteByID({RELATION_ID: 'r_user', USER_NAME: 'VINCEZK'}, function (err) {
-        err.should.containDeep({
+        err.should.containDeep([{
           msgCat: 'ENTITY',
           msgName: 'INSTANCE_NOT_MARKED_DELETE',
           msgType: 'E'
-        });
+        }]);
         done();
       })
     });

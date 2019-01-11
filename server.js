@@ -17,6 +17,12 @@ app.use(compress());
 const routes = require('./server/routes');
 app.use('/', routes);
 
+// User Function
+const userFunction = require('./server/models/userFunction');
+userFunction.register('testFunction', function (input, callback) {
+  callback(null, 'The input is ' + input.data );
+});
+
 process.on('SIGINT',function(){
   console.log("Closing.....");
   process.exit()

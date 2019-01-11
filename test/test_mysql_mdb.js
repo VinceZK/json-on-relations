@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const _ = require('underscore');
 
-describe.only('mysql connections tests', function () {
+describe('mysql connections tests', function () {
 
   before('#loadEntitye(person)', function (done) {
     entityDB.setConnPool('mysql', { //Default connection pool

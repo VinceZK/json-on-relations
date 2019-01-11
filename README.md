@@ -1,9 +1,22 @@
 # JsonOnRelations
-JSON-On-Relations converts a JSON message to SQL. Thus, a lot of relational data manipulations can be achieved by composing a JSON format message. JSON is now the de facto message format for RESTful communication. On the other hand, the relational database with SQL is still the only trust-able system to store and use structured data. Putting JSON on relations can simplify the development of enterprise level applications(like ERP and CRM). Meanwhile, it can also help to lower the software maintenance effort by standardizing the business entity modeling.
+JSON-On-Relations converts a JSON message to SQL. 
+Thus, a lot of relational data manipulations can be achieved by composing a JSON format message. 
+JSON is now the de facto message format for RESTful communication. 
+On the other hand, the relational database with SQL is still the only trust-able system to store and use structured data. 
+Putting JSON on relations can simplify the development of enterprise applications(like ERP and CRM). 
+Meanwhile, it can also help to lower the software maintenance effort by standardizing the business entity modeling.
 
-Existing ORM solutions focus too much on the “object” concept. Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. SQL is still proven to be the best abstraction of data manipulation. Any attempts to rebuild the wheel, or to cover another level shell, always end like drawing legs on a snake.
+Existing ORM solutions focus too much on the “object” concept. 
+Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. 
+SQL is still proven to be the best abstraction of data manipulation. 
+Any attempts to rebuild the wheel, or to cover another level shell, 
+always end like drawing legs on a snake.
 
-Unlike other protocols(for example: OData or JSON API), JSON-On-Relations is not trying to shell SQL with JSON. It acts more like a bridge which connects JSON with SQL DBs towards a niche area. The area, always mixed with other web-based applications, should be regarded as a separate one, which is the enterprise Line-of-Business applications.
+Unlike other protocols(for example: OData or JSON API), 
+JSON-On-Relations is not trying to shell SQL with JSON. 
+It acts more like a bridge which connects JSON with SQL DBs towards a niche area. 
+The area, always mixed with other web-based applications, 
+should be regarded as a separate one, which is the enterprise Line-of-Business applications.
 
 ## First Glance
 ### Define Your Entity
@@ -345,6 +358,85 @@ Content-Type: application/json
   ]
 }
 ```
+
+## User AddIn & Function
+Providing CRUD to an entity instance is far more enough. 
+We need more on business level validation, substitution, and enrichment.
+For example, we need run a permission check before the user is allowed to change an instance.
+Or we need enrich some information which can be auto derived, like changed-by, changed time, and so on.
+Another more specific example in financial area, is to auto generate tax line items when posting an invoice.
+
+With such very domain specific logic, a framework can hardly do everything for you.
+However, a good framework can help you focus on writing your domain specific logic. 
+That is to say, you don't need to care about or worry about how the data is persisted, 
+how the incoming requests are routed, how the security is ensured, and so on.
+
+JSON-ON-Relations, of course, can not address all of those generic and basis services. 
+However, it fills a gap between API/UI and relational schema.
+The gap, in fact, is never well filled in my opinion. 
+Existing ORM solutions just connect relational schema to an object schema.
+There is still a long way to the API/UI consumption. 
+
+Other solutions, like Ruby-on-Rails, provide very efficient development model 
+by generating DB tables, API, and UI based on a relational schema. 
+But they can only help if you are building a "toy" for fun.
+Too much limitations are found in using a relational-to-UI approach.
+And I have never seen a real success one.
+
+### Default User AddIns
+User AddIn is an exist for you to add additional business logic. 
+It allows a delivered business process can be easily enhanced in predefined call points.
+
+In the following example, a function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
+Then, when an entity instance is successfully created, 
+it is re-read from the DB and returned to the UI.
+```javascript 1.8
+afterEntityCreation.use('*', getEntityInstance);
+
+function getEntityInstance(req, callback) {
+  entity.getInstanceByGUID(req.body['INSTANCE_GUID'], function (err, instance){
+    if(err) callback(err); 
+    else {
+      req.body = instance; // Pass the instance to the next addIn function
+      callback(null, instance);
+    }
+  })
+}
+```
+A User AddIn function has 2 parameters: the first one is the http request object, 
+and the second one is a callback function. You can register an AddIn function under a topic.
+Thus, only the requests that belong to the topic will invoke the AddIn function.
+If you register it under the topic '*', then all the requests will invoke the function.
+
+By default, you can use following User AddIns to enhance standard APIs:
+1. beforeEntityCreation: Use this AddIn to add logic before creating an entity instance.
+2. beforeEntityChanging: Use this AddIn to add logic before changing an entity instance.
+3. beforeEntityQuery: Use this AddIn to add logic before query entity instances.
+4. beforeMetaReading: Use this AddIn to add logic before reading entity meta data.
+5. beforeModelProcessing: Use this AddIn add logic before processing models.
+6. afterEntityCreation: Use this AddIn to add logic after an entity instance is created.
+7. afterEntityChanging: Use this AddIn to add logic after an entity instance is changed.
+8. afterEntityReading: Use this AddIn to add logic after an entity instance is read.
+
+### Create User Function
+If you register a User Function as following:
+```javascript 1.8
+const userFunction = require('./server/models/userFunction');
+
+userFunction.register('testFunction', function (input, callback) {
+  callback(null, 'The input is ' + input.data );
+});
+```
+Then, this function can be RESTfully called:
+```http request
+POST http://localhost:3000/api/function/testFunction
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{"data": "Hello Vincent"}
+```
+
 ## Concept Behind
 An entity is a "thing" which can be distinctly identified. A specific person, company, or event is an example of an entity. 
 A relationship is an association among entities. For instance, "marriage" is a relationship between two "person" entities.

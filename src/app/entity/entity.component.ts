@@ -47,23 +47,34 @@ export class EntityComponent implements OnInit {
           this.entity = new Entity();
           this.entity.ENTITY_ID = params.get('entityID');
           this.entity.relationships = [];
-          return of(this.entity);
+          return of([this.entity]);
         } else {
           this.readonly = true;
           return this.entityService.getEntityInstance(instanceGUID);
         }
       }),
       switchMap(data => {
-          this.entity = data;
+        if (data[0]['ENTITY_ID']) {
+          this.entity = data[0];
           const entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
           const relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
           return forkJoin(entityMeta$, relationMetas$);
+        } else {
+          return of(data);
+        }
       })
     ).subscribe(data => {
-        this.entityMeta = data[0];
-        this.relationMetas = data[1];
-        this.formGroup = this.fb.group({});
-        this._createFormFromMeta();
+        if (data[0]['ENTITY_ID']) {
+          // @ts-ignore
+          this.entityMeta = data[0];
+          // @ts-ignore
+          this.relationMetas = data[1];
+          this.formGroup = this.fb.group({});
+          this._createFormFromMeta();
+        } else {
+          // @ts-ignore
+          data.forEach(err => this.messageService.add(err));
+        }
     });
 
   }
@@ -431,18 +442,15 @@ export class EntityComponent implements OnInit {
   }
 
   _postActivityAfterSaving(data: any) {
-    if (data['ENTITY_ID']) {
+    if (data[0]['ENTITY_ID']) {
       this.readonly = true;
-      this.entity = data;
-      this._refreshFormGroupValue(data);
+      this.entity = data[0];
+      this._refreshFormGroupValue(this.entity);
       this.formGroup.reset(this.formGroup.value);
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
     } else {
-      if (data instanceof Array) {
-        data.forEach(err => this.messageService.add(err));
-      } else {
-        this.messageService.report(data);
-      }
+      // Error messages are always an array
+      data.forEach(err => this.messageService.add(err));
     }
   }
 

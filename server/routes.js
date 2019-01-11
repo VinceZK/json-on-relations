@@ -3,25 +3,57 @@ const router = express.Router();
 const entity = require('./controller/entity_ctrl.js');
 const query = require('./controller/query_ctrl.js');
 const model = require('./controller/model_ctrl.js');
+const defaultAddIns = require('./controller/default_addIns_ctrl');
+const userFunction = require('./controller/userFunction_ctrl');
 const path = require('path');
 
-// Entity Service
-router.post('/api/entity', entity.createInstance);
-router.put('/api/entity', entity.changeInstance);
-router.put('/api/entity/overwrite', entity.overwriteInstance);
-router.get('/api/entity/instance/:instanceGUID', entity.getEntityInstance);
-router.get('/api/entity/instance/piece/:instanceGUID', entity.getEntityInstancePieceByGUID);
-router.post('/api/entity/instance', entity.getEntityInstanceByID);
-router.post('/api/entity/instance/piece', entity.getEntityInstancePieceByID);
-router.get('/api/entity/EntityIDs', entity.listEntityID);
-router.get('/api/entity/meta/:entityID', entity.getEntityMeta);
-router.get('/api/relation/meta/:relationID', entity.getRelationMeta);
-router.get('/api/relation/meta/entity/:entityID', entity.getRelationMetaOfEntity);
+// Entity Instance Service
+router.post('/api/entity',
+  defaultAddIns.beforeEntityCreation,
+  entity.createInstance,
+  defaultAddIns.afterEntityCreation);
+router.put('/api/entity',
+  defaultAddIns.beforeEntityChanging,
+  entity.changeInstance,
+  defaultAddIns.afterEntityChanging);
+router.put('/api/entity/overwrite',
+  defaultAddIns.beforeEntityChanging,
+  entity.overwriteInstance,
+  defaultAddIns.afterEntityChanging);
+router.get('/api/entity/instance/:instanceGUID',
+  entity.getEntityInstance,
+  defaultAddIns.afterEntityReading);
+router.post('/api/entity/instance/piece/:instanceGUID',
+  entity.getEntityInstancePieceByGUID,
+  defaultAddIns.afterEntityReading);
+router.post('/api/entity/instance',
+  entity.getEntityInstanceByID,
+  defaultAddIns.afterEntityReading);
+router.post('/api/entity/instance/piece',
+  entity.getEntityInstancePieceByID,
+  defaultAddIns.afterEntityReading);
+
+// Entity Meta Service
+router.get('/api/entity/EntityIDs',
+  defaultAddIns.beforeMetaReading,
+  entity.listEntityID);
+router.get('/api/entity/meta/:entityID',
+  defaultAddIns.beforeMetaReading,
+  entity.getEntityMeta);
+router.get('/api/relation/meta/:relationID',
+  defaultAddIns.beforeMetaReading,
+  entity.getRelationMeta);
+router.get('/api/relation/meta/entity/:entityID',
+  defaultAddIns.beforeMetaReading,
+  entity.getRelationMetaOfEntity);
 
 // Query Service
-router.post('/api/query', query.run);
+router.post('/api/query',
+  defaultAddIns.beforeEntityQuery,
+  query.run);
 
 // Model Service
+router.all('/api/model/*', defaultAddIns.beforeModelProcessing);
 router.get('/api/model/entity-type/list', model.listEntityType);
 router.get('/api/model/entity-type/desc/:entityID', model.getEntityTypeDesc);
 router.post('/api/model/entity-type', model.saveEntityType);
@@ -36,6 +68,9 @@ router.get('/api/model/role/list', model.listRole);
 router.get('/api/model/role/:roleID', model.getRole);
 router.get('/api/model/role/desc/:roleID', model.getRoleDesc);
 router.post('/api/model/role', model.saveRole);
+
+// User Functions
+router.post('/api/function/:functionName', userFunction.execute);
 
 // Add this route to support page refresh
 router.get('*', (req, res) => {

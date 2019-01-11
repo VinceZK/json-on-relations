@@ -235,6 +235,13 @@ Accept: */*
 Cache-Control: no-cache
 
 ###
+POST http://localhost:3000/api/function/testFunction
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
 
+{"data": "Hello Vincent"}
+
+###
 
 

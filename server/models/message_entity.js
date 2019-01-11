@@ -238,6 +238,12 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Relationships of an instance cannot be overwritten", longText: "dummy"}
     }
+  },
+  { msgCat: "ENTITY",
+    msgName: "PERMISSION_MISSING",
+    msgText: {
+      EN: {shortText: "You don't have permission to access entity type: %s", longText: "dummy"}
+    }
   }
 ];
 

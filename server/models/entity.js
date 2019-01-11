@@ -64,12 +64,12 @@ module.exports = {
 
 function getEntityMeta(entityID) {
   let entityMeta = entityDB.getEntityMeta(entityID);
-  return entityMeta? entityMeta : message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', entityID);
+  return entityMeta? entityMeta : [message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', entityID)];
 }
 
 function getRelationMeta(relationID) {
   let relationMeta = entityDB.getRelationMeta(relationID);
-  return relationMeta? relationMeta : message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID);
+  return relationMeta? relationMeta : [message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID)];
 }
 
 function getRelationMetaOfEntity(entityID) {
@@ -119,12 +119,12 @@ function createInstance(instance, callback) {
   let results;
 
   if(!instance['ENTITY_ID']){
-    return callback(message.report('ENTITY', 'ENTITY_ID_MISSING', 'E'));
+    return callback([message.report('ENTITY', 'ENTITY_ID_MISSING', 'E')]);
   }
 
   let entityMeta = entityDB.getEntityMeta(instance['ENTITY_ID']);
   if(!entityMeta)
-    return callback(message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', instance['ENTITY_ID']));
+    return callback([message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', instance['ENTITY_ID'])]);
 
 
   entityMeta.ROLES.forEach(function(role){
@@ -170,7 +170,7 @@ function createInstance(instance, callback) {
       async.map(foreignRelations, function (relation, callback) {
         _checkForeignKey(relation.relationRow, relation.association, callback);
       }, function (err, results) {
-        if(err) return callback(err);
+        if(err) return callback(err); // err is an array
         if(results.length > 0 && results[0]) return callback(results);//The results should already be error messages
           else return callback(null);
       });
@@ -187,7 +187,7 @@ function createInstance(instance, callback) {
     function (callback) {//Run all insert SQLs parallel
       entityDB.doUpdatesParallel(insertSQLs, function (err) {
         if (err) {
-          callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+          callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
         } else {
           callback(null);
         }
@@ -210,7 +210,7 @@ function createInstance(instance, callback) {
  */
 function softDeleteInstanceByID(idAttr, callback) {
   _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
-    if(err) return callback(err);
+    if(err) return callback(err); // err should be already a message array
     softDeleteInstanceByGUID(instanceGUID,callback);
   })
 }
@@ -222,7 +222,7 @@ function softDeleteInstanceByID(idAttr, callback) {
 function softDeleteInstanceByGUID(instanceGUID, callback) {
   let updateSQL = "update ENTITY_INSTANCES set DEL = 1 where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(updateSQL, function (err) {
-    if(err) callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if(err) callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     else callback(null);
   })
 }
@@ -245,7 +245,7 @@ function restoreInstanceByID(idAttr, callback) {
 function restoreInstanceByGUID(instanceGUID, callback) {
   let updateSQL = "update ENTITY_INSTANCES set DEL = 0 where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(updateSQL, function (err) {
-    if(err) callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if(err) callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     else callback(null);
   })
 }
@@ -258,7 +258,7 @@ function restoreInstanceByGUID(instanceGUID, callback) {
  */
 function hardDeleteByID(idAttr, callback) {
   _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
-    if(err) return callback(err);
+    if(err) return callback(err); // err should already be a message array
     hardDeleteByGUID(instanceGUID,callback);
   })
 }
@@ -271,11 +271,12 @@ function hardDeleteByGUID(instanceGUID, callback) {
   _getEntityInstanceHead(instanceGUID, function (err, instanceHead) {
     if(err)return callback(err); //Already message instance
     if(instanceHead['DEL'] === 0)
-      return callback(message.report('ENTITY', 'INSTANCE_NOT_MARKED_DELETE', 'E', instanceHead.INSTANCE_GUID, instanceHead.ENTITY_ID));
+      return callback([
+        message.report('ENTITY', 'INSTANCE_NOT_MARKED_DELETE', 'E', instanceHead.INSTANCE_GUID, instanceHead.ENTITY_ID)]);
 
     let entityMeta = entityDB.getEntityMeta(instanceHead.ENTITY_ID);
     if(!entityMeta)
-      return callback(message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', instanceHead.ENTITY_ID));
+      return callback([message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', instanceHead.ENTITY_ID)]);
 
     _generateDeletionSQL(instanceGUID, entityMeta, function (err, deleteSQLs) {
       if (err) return callback(err);
@@ -283,7 +284,7 @@ function hardDeleteByGUID(instanceGUID, callback) {
       deleteSQLs.push("delete from ENTITY_INSTANCES where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
       entityDB.doUpdatesParallel(deleteSQLs, function (err) {
         if (err) {
-          callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+          callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
         } else {
           callback(null);
         }
@@ -307,7 +308,7 @@ function _generateDeletionSQL(instanceGUID, entityMeta, callback) {
   let selectSQL = "select RELATIONSHIP_INSTANCE_GUID, RELATIONSHIP_ID from RELATIONSHIP_INVOLVES_INSTANCES "
     + " where ENTITY_INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     let GUIDArray;
     results.forEach(function (row) {
       GUIDArray ? GUIDArray = GUIDArray + " , " + entityDB.pool.escape(row['RELATIONSHIP_INSTANCE_GUID'])
@@ -366,17 +367,14 @@ function getInstanceByID(idAttr, callback) {
 function getInstanceByGUID(instanceGUID, callback) {
 
   _getEntityInstanceHead(instanceGUID, function (err, instanceHead) {
-    if(err)return callback(err); //Already message instance
+    if(err)return callback(err); // Already message array
     let instance = {INSTANCE_GUID: instanceGUID};
     instance.ENTITY_ID = instanceHead.ENTITY_ID;
     let entityMeta = entityDB.getEntityMeta(instance.ENTITY_ID);
     if(!entityMeta)
-      return callback(message.report('ENTITY', 'ENTITY_NOT_EXIST', 'E', instanceGUID));
+      return callback([message.report('ENTITY', 'ENTITY_NOT_EXIST', 'E', instanceGUID)]);
 
     async.parallel([
-      // function (callback) { // Commented due to attributes are not needed
-      //   __getAttributeValue(instanceGUID, instance, entityMeta, callback);
-      // },
       function (callback) {
         __getRelationValue(instance, entityMeta, callback);
       },
@@ -402,7 +400,7 @@ function getInstanceByGUID(instanceGUID, callback) {
       let selectSQL = "select * from " + entityDB.pool.escapeId(relation.RELATION_ID)
         + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
       entityDB.executeSQL(selectSQL, function (err, results) {
-        if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+        if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
         if(results.length > 0){
           results.forEach(function (line) {
             delete line.INSTANCE_GUID;
@@ -412,7 +410,7 @@ function getInstanceByGUID(instanceGUID, callback) {
         callback(null);
       })
     },function (err) {
-      if(err) callback(err);
+      if(err) callback(err); // Already message array
       else callback(null);
     })
   }
@@ -464,7 +462,7 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
     instance.ENTITY_ID = instanceHead.ENTITY_ID;
     let entityMeta = entityDB.getEntityMeta(instance.ENTITY_ID);
     if(!entityMeta)
-      return callback(message.report('ENTITY', 'ENTITY_NOT_EXIST', 'E', instanceGUID));
+      return callback([message.report('ENTITY', 'ENTITY_NOT_EXIST', 'E', instanceGUID)]);
 
     async.parallel([
       function (callback) {
@@ -496,7 +494,7 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
       let selectSQL = "select * from " + entityDB.pool.escapeId(relation.RELATION_ID)
         + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
       entityDB.executeSQL(selectSQL, function (err, results) {
-        if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+        if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
         if(results.length > 0){
           results.forEach(function (line) {
             delete line.INSTANCE_GUID;
@@ -558,7 +556,7 @@ function _getRelationshipPieces(instance, relationshipIDs, callback) {
   }
 
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (results.length === 0) return callback(null);
 
     instance.relationships = [];
@@ -569,7 +567,7 @@ function _getRelationshipPieces(instance, relationshipIDs, callback) {
       }).ROLE_ID;
 
       value.forEach(function (row) {
-        if (row['ENTITY_INSTANCE_GUID'] === instanceGUID) return; //Bypass self
+        if (row['ENTITY_INSTANCE_GUID'] === instanceGUID) return; // Bypass self
         let relationship = instance.relationships.find(function (element) {
           return element.RELATIONSHIP_ID === row.RELATIONSHIP_ID;
         });
@@ -620,7 +618,7 @@ function _getRelationshipAttributeValue(instanceGUID, instance, relationshipID, 
   let selectSQL = "select * from " + entityDB.pool.escapeId(relationshipID) +
     " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     _.each(results[0], function (attrValue, attrKey) {
       if (attrKey === 'INSTANCE_GUID') return;
       instance[attrKey] = attrValue;
@@ -708,7 +706,7 @@ function changeInstance(instance, callback) {
         async.map(foreignRelations, function (relation, callback) {
           _checkForeignKey(relation.relationRow, relation.association, callback);
         }, function (err, results) {
-          if(err) return callback(err);
+          if(err) return callback(err); // Already message array
           if(results.length > 0 && results[0]) return callback(results);//The results should already be error messages
           else return callback(null);
         });
@@ -717,7 +715,7 @@ function changeInstance(instance, callback) {
         async.map(add01Relations, function(relation, callback){
           _checkAdd01Relation(relation, instance['INSTANCE_GUID'], callback)
         }, function (err, results) {
-          if(err) return callback(err);
+          if(err) return callback(err); // Already message array
           if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
           else return callback(null);
         })
@@ -726,7 +724,7 @@ function changeInstance(instance, callback) {
         async.map(delete1nRelations, function(relation, callback){
           _checkDelete1nRelation(relation, instance['INSTANCE_GUID'], callback)
         }, function (err, results) {
-          if(err) return callback(err);
+          if(err) return callback(err); // Already message array
           if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
           else return callback(null);
         })
@@ -745,21 +743,21 @@ function changeInstance(instance, callback) {
           _checkRelationshipValueValidity(
             instance['INSTANCE_GUID'], relationshipInstance, callback)
         }, function (err) {
-          if(err) return callback(err);
+          if(err) return callback(err); // Already message array
           else return callback(null);
         })
       },
       function (callback) {//Run all insert SQLs parallel
         entityDB.doUpdatesParallel(updateSQLs, function (err) {
           if (err) {
-            callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+            callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
           } else {
             callback(null);
           }
         });
       }
     ],function (err) {
-      if(err) callback(err); //The err should already be error messages
+      if(err) callback(err); // Already message array
       else callback(null);
     });
   })
@@ -863,8 +861,6 @@ function overwriteInstance(instance, callback) {
     if(errorMessages.length > 0) return callback(errorMessages);
 
     // Finally, change the instance
-    // console.log(instance);
-    // callback(null);
     changeInstance(instance, callback);
   });
 
@@ -930,9 +926,9 @@ function _mergeResults(to, from) {
 function _getEntityInstanceHead(instanceGUID, callback) {
   let selectSQL = "select * from ENTITY_INSTANCES where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if(err)return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if(results.length === 0)
-      return callback(message.report('ENTITY','ENTITY_INSTANCE_NOT_EXIST','E', instanceGUID));
+      return callback([message.report('ENTITY','ENTITY_INSTANCE_NOT_EXIST','E', instanceGUID)]);
     callback(null, results[0]);
   })
 }
@@ -1483,7 +1479,7 @@ function _checkForeignKey(relationRow, association, callback) {
   });
 
   entityDB.executeSQL(selectSQL, function (err, rows) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (rows.length === 0)
       callback(null, message.report('ENTITY','FOREIGN_KEY_CHECK_ERROR','E',foreignKeyValue,association.RIGHT_RELATION_ID));
     else callback(null, null);
@@ -1496,7 +1492,7 @@ function _checkEntityExist(relationshipInstance, callback) {
     + entityDB.pool.escape(relationshipInstance.PARTNER_INSTANCE_GUID)
     + " and ENTITY_ID = " + entityDB.pool.escape(relationshipInstance.ENTITY_ID);
   entityDB.executeSQL(selectSQL, function (err, rows) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (rows.length === 0)
       callback(null, message.report('ENTITY','ENTITY_INSTANCE_NOT_EXIST','E', relationshipInstance.PARTNER_INSTANCE_GUID));
     else callback(null, null);
@@ -1525,25 +1521,25 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
   }
 
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (relationship.action === 'add') {
       const line = results.find(function (result) {
         return (relationship.VALID_FROM < result.VALID_TO && relationship.VALID_TO > result.VALID_FROM);
       });
       if (line)
-        return callback(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_OVERLAP', 'E',
-          relationship.VALID_FROM+'~'+relationship.VALID_TO, line.VALID_FROM+'~'+line.VALID_TO));
+        return callback([message.report('ENTITY', 'RELATIONSHIP_INSTANCE_OVERLAP', 'E',
+          relationship.VALID_FROM+'~'+relationship.VALID_TO, line.VALID_FROM+'~'+line.VALID_TO)]);
     } else {
       const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
       if (results.length === 0)
-        return callback(message.report('ENTITY', 'RELATIONSHIP_INSTANCE_NOT_EXIST', 'E', relationship.RELATIONSHIP_INSTANCE_GUID));
+        return callback([message.report('ENTITY', 'RELATIONSHIP_INSTANCE_NOT_EXIST', 'E', relationship.RELATIONSHIP_INSTANCE_GUID)]);
       let originalValue = results[0];
       if (originalValue.VALID_TO <= currentTime)
-        return callback(message.report('ENTITY', 'CHANGE_TO_EXPIRED_RELATIONSHIP', 'E', relationship.RELATIONSHIP_INSTANCE_GUID));
+        return callback([message.report('ENTITY', 'CHANGE_TO_EXPIRED_RELATIONSHIP', 'E', relationship.RELATIONSHIP_INSTANCE_GUID)]);
       if((relationship.action === 'expire' || relationship.action === 'extend') && originalValue.VALID_FROM > currentTime)
-        return callback(message.report('ENTITY', 'FUTURE_RELATIONSHIP', 'E', originalValue.RELATIONSHIP_INSTANCE_GUID));
+        return callback([message.report('ENTITY', 'FUTURE_RELATIONSHIP', 'E', originalValue.RELATIONSHIP_INSTANCE_GUID)]);
       if(relationship.action === 'delete' && originalValue.VALID_FROM <= currentTime)
-        return callback(message.report('ENTITY', 'RELATIONSHIP_DELETION_NOT_ALLOWED', 'E'));
+        return callback([message.report('ENTITY', 'RELATIONSHIP_DELETION_NOT_ALLOWED', 'E')]);
     }
     callback(null);
   });
@@ -1553,7 +1549,7 @@ function _checkAdd01Relation(relationID, instanceGUID, callback) {
   let selectSQL = "select * from " + entityDB.pool.escapeId(relationID)
     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (results.length > 0) callback(null, message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', relationID));
     else callback(null, null);
   })
@@ -1563,7 +1559,7 @@ function _checkDelete1nRelation(deleteRelation, instanceGUID, callback) {
   let selectSQL = "select * from " + entityDB.pool.escapeId(deleteRelation.RELATION_ID)
     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
-    if (err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if (results.length <= deleteRelation.COUNT)
       callback(null, message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', deleteRelation.RELATION_ID));
     else callback(null, null);
@@ -1579,10 +1575,10 @@ function _checkDelete1nRelation(deleteRelation, instanceGUID, callback) {
  * @private
  */
 function _getGUIDFromBusinessID(idAttr, callback) {
-  if(!idAttr.RELATION_ID)return callback(message.report('ENTITY', 'RELATION_ID_MISSING', 'E'));
+  if(!idAttr.RELATION_ID)return callback([message.report('ENTITY', 'RELATION_ID_MISSING', 'E')]);
 
   let relationMeta = entityDB.getRelationMeta(idAttr.RELATION_ID);
-  if(!relationMeta)return callback(message.report('ENTITY', 'RELATION_NOT_EXIST', 'E', idAttr.RELATION_ID));
+  if(!relationMeta)return callback([message.report('ENTITY', 'RELATION_NOT_EXIST', 'E', idAttr.RELATION_ID)]);
 
   // Compose select SQL
   let selectSQL;
@@ -1594,12 +1590,12 @@ function _getGUIDFromBusinessID(idAttr, callback) {
       whereClause = " where " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(value);
   });
   if(whereClause)selectSQL += whereClause;
-  else return callback(message.report('ENTITY', 'IDENTIFY_ATTRIBUTE_MISSING', 'E'));
+  else return callback([message.report('ENTITY', 'IDENTIFY_ATTRIBUTE_MISSING', 'E')]);
 
   selectSQL += " limit 1";
   entityDB.executeSQL(selectSQL, function(err, results){
-    if(err) return callback(message.report('ENTITY', 'GENERAL_ERROR', 'E', err));
-    if(results.length === 0) return callback(message.report('ENTITY', 'INSTANCE_NOT_IDENTIFIED', 'E'));
+    if(err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+    if(results.length === 0) return callback([message.report('ENTITY', 'INSTANCE_NOT_IDENTIFIED', 'E')]);
 
     _getEntityInstanceHead(results[0].INSTANCE_GUID, function (err, instanceHead) {
       if(err) return callback(err);

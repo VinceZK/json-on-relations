@@ -10,10 +10,13 @@ module.exports = {
     res.json(entity.getEntityMeta(req.params['entityID']))
   },
 
-  getEntityInstance: function (req, res) {
+  getEntityInstance: function (req, res, next) {
     entity.getInstanceByGUID(req.params['instanceGUID'], function (err, instance) {
       if(err)res.json(err);
-      else res.json(instance);
+      else {
+        req.body = instance;
+        next();
+      }
     });
   },
 
@@ -46,34 +49,24 @@ module.exports = {
     res.json(entity.getRelationMetaOfEntity(req.params['entityID']));
   },
   
-  createInstance: function (req, res) {
-    entity.createInstance(req.body, function (err, instance) {
-      if(err) return res.json(err);
-      entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, instance){
-        if(err)res.json(err);
-        else res.json(instance);
-      })
+  createInstance: function (req, res, next) {
+    entity.createInstance(req.body, function (err) {
+      if(err) res.json(err);
+      else next();
     })
   },
 
-  changeInstance: function (req, res) {
+  changeInstance: function (req, res, next) {
     entity.changeInstance(req.body, function (err) {
-      if(err) return res.json(err);
-      entity.getInstanceByGUID(req.body['INSTANCE_GUID'], function (err, instance){
-        if(err)res.json(err);
-        else res.json(instance);
-      })
+      if(err) res.json(err);
+      else next();
     })
   },
 
-  overwriteInstance: function (req, res) {
+  overwriteInstance: function (req, res, next) {
     entity.overwriteInstance(req.body, function (err) {
-      if(err) return res.json(err);
-      entity.getInstanceByGUID(req.body['INSTANCE_GUID'], function (err, instance){
-        if(err)res.json(err);
-        else res.json(instance);
-      })
+      if(err) res.json(err);
+      else next();
     })
   }
-
 };
