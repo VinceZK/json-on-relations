@@ -5,6 +5,8 @@ const Query = require('./server/models/query');
 const EntityController = require('./server/controller/entity_ctrl');
 const ModelController = require('./server/controller/model_ctrl');
 const QueryController = require('./server/controller/query_ctrl');
+const DefaultUserAddIns = require('./server/models/default_addIns');
+const UserFunction = require('./server/models/userFunction');
 const Routes = require('./server/routes');
 
 module.exports = {
@@ -15,5 +17,7 @@ module.exports = {
   EntityController: EntityController,
   ModelController: ModelController,
   QueryController: QueryController,
+  DefaultUserAddIns: DefaultUserAddIns,
+  UserFunction: UserFunction,
   Routes: Routes
 };

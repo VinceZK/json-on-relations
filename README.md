@@ -373,14 +373,16 @@ how the incoming requests are routed, how the security is ensured, and so on.
 
 JSON-ON-Relations, of course, can not address all of those generic and basis services. 
 However, it fills a gap between API/UI and relational schema.
-The gap, in fact, is never well filled in my opinion. 
-Existing ORM solutions just connect relational schema to an object schema.
+The gap, in fact, is never well filled. 
+Existing ORM solutions just connect a relational schema to an object schema.
 There is still a long way to the API/UI consumption. 
+And it only considers the development efficiency. Less consideration is given for the maintenance efficiency.
+While here "maintenance", I mean model changes, business process adjustments, and UI changes during the software lifecycle.
 
 Other solutions, like Ruby-on-Rails, provide very efficient development model 
 by generating DB tables, API, and UI based on a relational schema. 
 But they can only help if you are building a "toy" for fun.
-Too much limitations are found in using a relational-to-UI approach.
+Too much limitations are found in using a relation-to-UI approach.
 And I have never seen a real success one.
 
 ### Default User AddIns
@@ -419,6 +421,10 @@ By default, you can use following User AddIns to enhance standard APIs:
 8. afterEntityReading: Use this AddIn to add logic after an entity instance is read.
 
 ### Register User Functions
+User Function allows you to implement arbitrary business logic. It has 2 parameters, 
+with the first one 'input' pointing to the 'req.body', 
+and the second a callback function for the return value.
+ 
 If you register a User Function as following:
 ```javascript 1.8
 const userFunction = require('./server/models/userFunction');
