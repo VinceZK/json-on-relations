@@ -39,7 +39,7 @@ Once the 2 roles are respectively assigned to 2 people, they can then potentiall
 Once you have the data modelling done, you can immediately create a person instance.  
 ![A person instance](PersonInstance.png)
 
-You can also search instances of different entity types based on all their available attributes from relations and relationships. 
+You can also search instances of an entity type based on all its relations. 
 ![Instance Search and List](InstanceList.png)
 
 ### Compose Your Message
@@ -181,7 +181,7 @@ Content-Type: application/json
    + [Modeling](http://localhost:3001/model)
    + [Entity Browser](http://localhost:3001/entity/list)
    
-## Restful API
+## RESTful API
 Following APIs are opened in the default route table.
 ### Create a person instance
 ```http request
@@ -332,32 +332,33 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 {
-  "relation": "r_user",
-  "projection": [
+  "ENTITY_ID": "person",
+  "RELATION_ID": "r_user",
+  "PROJECTION": [
     "USER_ID",
     "USER_NAME",
     "GIVEN_NAME",
-    {"fieldName": "COMPANY_ID", "alias": "Company", "relation": "r_employee"}
+    {"FIELD_NAME": "COMPANY_ID", "ALIAS": "Company", "RELATION_ID": "r_employee"}
   ],
-  "filter": [
+  "FILTER": [
     {
-      "fieldName": "USER_ID",
-      "operator": "BT",
-      "low": "DH001",
-      "high": "DH999"
+      "FIELD_NAME": "USER_ID",
+      "OPERATOR": "BT",
+      "LOW": "DH001",
+      "HIGH": "DH999"
     },
     {
-      "fieldName": "LANGUAGE",
-      "operator": "EQ",
-      "relation": "r_personalization",
-      "low": "ZH"
+      "FIELD_NAME": "LANGUAGE",
+      "OPERATOR": "EQ",
+      "RELATION_ID": "r_personalization",
+      "LOW": "ZH"
     }
   ],
-  "sort": [
+  "SORT": [
     {
-      "fieldName": "LANGUAGE",
-      "relation": "r_personalization",
-      "order": "desc"
+      "FIELD_NAME": "LANGUAGE",
+      "RELATION_ID": "r_personalization",
+      "ORDER": "desc"
     }
   ]
 }
@@ -391,7 +392,7 @@ And I have never seen a real success one.
 
 ### Default User AddIns
 User AddIn is an exist for you to add additional business logic. 
-It allows a delivered business process can be easily enhanced in predefined call points.
+It allows a delivered business process can be easily enhanced in predefined calling points.
 
 In the following example, a function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
 Then, when an entity instance is successfully created, 

@@ -70,7 +70,12 @@ export class ListComponent implements OnInit {
   getRelationIDs() {
     this.entityService.getRelationMetaOfEntity(this.entityID).
     subscribe(relationMetas => {
-      this.relationMetas = relationMetas;
+      this.relationMetas = [];
+      relationMetas.forEach( relationMeta => {
+        if (relationMeta.RELATION_ID.substr(0, 2) !== 'rs') {
+          this.relationMetas.push(relationMeta);
+        }
+      });
       this.relationID = this.relationMetas[0].RELATION_ID;
       this.getAttributes();
     });
@@ -79,11 +84,11 @@ export class ListComponent implements OnInit {
   getAttributes() {
     this.attributes = this.relationMetas.find(relationMeta => relationMeta.RELATION_ID === this.relationID).ATTRIBUTES;
     this.selections = [];
-    this.selections.push({ fieldName : this.attributes[0].ATTR_NAME, operator: 'EQ', low: '', high: ''});
+    this.selections.push({ FIELD_NAME : this.attributes[0].ATTR_NAME, OPERATOR: 'EQ', LOW: '', HIGH: ''});
   }
 
   addSelection() {
-    this.selections.push({ fieldName : this.attributes[0].ATTR_NAME, operator: 'EQ', low: '', high: ''});
+    this.selections.push({ FIELD_NAME : this.attributes[0].ATTR_NAME, OPERATOR: 'EQ', LOW: '', HIGH: ''});
   }
 
   deleteSelection(index: number) {
@@ -99,16 +104,17 @@ export class ListComponent implements OnInit {
   }
 
   search() {
-    this.queryObject.relation = this.relationID;
-    this.queryObject.projection = [];
+    this.queryObject.ENTITY_ID = this.entityID;
+    this.queryObject.RELATION_ID = this.relationID;
+    this.queryObject.PROJECTION = [];
     this.columns = [{data: 'INSTANCE_GUID', renderer: 'html'}];
     this.colHeaders = ['ENTITY_UUID'];
     this.attributes.forEach(attribute => {
-      this.queryObject.projection.push(attribute.ATTR_NAME);
+      this.queryObject.PROJECTION.push(attribute.ATTR_NAME);
       this.columns.push(this._attributeColumnDisplay(attribute));
       this.colHeaders.push(attribute.ATTR_NAME);
     });
-    this.queryObject.filter = this.selections;
+    this.queryObject.FILTER = this.selections;
     this.entityService.searchEntities(this.queryObject).subscribe(data => {
       this.data = data;
       if (this.data[0]['INSTANCE_GUID']) {

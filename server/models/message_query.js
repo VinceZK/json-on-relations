@@ -12,6 +12,18 @@ const msgArray = [
     }
   },
   { msgCat: "QUERY",
+    msgName: "MISS_ENTITY",
+    msgText: {
+      EN: {shortText: "Entity is missing", longText: "dummy"}
+    }
+  },
+  { msgCat: "QUERY",
+    msgName: "RELATIONSHIP_RELATION_NOT_SUPPORTED",
+    msgText: {
+      EN: {shortText: "Relationship relation is not supported for generic query!", longText: "dummy"}
+    }
+  },
+  { msgCat: "QUERY",
     msgName: "INVALID_RELATION",
     msgText: {
       EN: {shortText: "Relation %s is invalid", longText: "dummy"}

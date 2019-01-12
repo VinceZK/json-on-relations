@@ -154,32 +154,33 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 {
-  "relation": "r_user",
-  "projection": [
+  "ENTITY_ID": "person",
+  "RELATION_ID": "r_user",
+  "PROJECTION": [
     "USER_ID",
     "USER_NAME",
     "GIVEN_NAME",
-    {"fieldName": "COMPANY_ID", "alias": "Company", "relation": "r_employee"}
+    {"FIELD_NAME": "COMPANY_ID", "ALIAS": "Company", "RELATION_ID": "r_employee"}
   ],
-  "filter": [
+  "FILTER": [
     {
-      "fieldName": "USER_ID",
-      "operator": "BT",
-      "low": "DH001",
-      "high": "DH999"
+      "FIELD_NAME": "USER_ID",
+      "OPERATOR": "BT",
+      "LOW": "DH001",
+      "HIGH": "DH999"
     },
     {
-      "fieldName": "LANGUAGE",
-      "operator": "EQ",
-      "relation": "r_personalization",
-      "low": "ZH"
+      "FIELD_NAME": "LANGUAGE",
+      "OPERATOR": "EQ",
+      "RELATION_ID": "r_personalization",
+      "LOW": "ZH"
     }
   ],
-  "sort": [
+  "SORT": [
     {
-      "fieldName": "LANGUAGE",
-      "relation": "r_personalization",
-      "order": "desc"
+      "FIELD_NAME": "LANGUAGE",
+      "RELATION_ID": "r_personalization",
+      "ORDER": "desc"
     }
   ]
 }

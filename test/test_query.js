@@ -4,40 +4,39 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const query = require('../server/models/query.js');
 
-describe('query tests', function () {
+describe.only('query tests', function () {
   before(function (done) {
     entityDB.loadEntity('person', done);
   });
 
   let queryObject =
     {
-      relation: 'r_user',
+      ENTITY_ID: 'person',
+      RELATION_ID: 'r_user',
 
-      projection: [
+      PROJECTION: [
         'USER_ID',
         'USER_NAME',
         'GIVEN_NAME',
-        {fieldName: 'COMPANY_ID', alias: 'Company', relation: 'r_employee'}
+        {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'}
       ],
 
-      filter: [
+      FILTER: [
         {
-          fieldName: 'USER_ID',
-          operator: 'BT',
-          low: 'DH001',
-          high: 'DH006'
+          FIELD_NAME: 'USER_ID',
+          OPERATOR: 'BT',
+          LOW: 'DH001',
+          HIGH: 'DH006'
         },
         {
-          fieldName: 'LANGUAGE',
-          operator: 'EQ',
-          relation: 'r_personalization',
-          low: 'ZH'
+          FIELD_NAME: 'LANGUAGE',
+          OPERATOR: 'EQ',
+          RELATION_ID: 'r_personalization',
+          LOW: 'ZH'
         }
       ],
 
-      sort: [
-
-      ]
+      sort: []
     };
 
   it('should return query result', function(done){
@@ -49,7 +48,7 @@ describe('query tests', function () {
   });
 
   it('should report missing relation', function(done){
-    delete queryObject.relation;
+    delete queryObject.RELATION_ID;
     query.run(queryObject, function (errs) {
       errs.should.containDeep([{
         msgCat: 'QUERY',
@@ -60,8 +59,20 @@ describe('query tests', function () {
     });
   });
 
+  it('should report relationship relation is not supported', function (done) {
+    queryObject.RELATION_ID = 'rs_marriage';
+    query.run(queryObject, function (errs) {
+      errs.should.containDeep([{
+        msgCat: 'QUERY',
+        msgName: 'RELATIONSHIP_RELATION_NOT_SUPPORTED',
+        msgType: 'E'
+      }]);
+      done();
+    })
+  });
+
   it('should report invalid relation', function(done){
-    queryObject.relation = 'r_invalid_relation';
+    queryObject.RELATION_ID = 'r_invalid_relation';
     query.run(queryObject, function (errs) {
       errs.should.containDeep([{
         msgCat: 'QUERY',
@@ -73,8 +84,8 @@ describe('query tests', function () {
   });
 
   it('should report invalid relation in projected field', function(done){
-    queryObject.relation = 'r_user';
-    queryObject.projection[3].relation = 'r_invalid_relation';
+    queryObject.RELATION_ID = 'r_user';
+    queryObject.PROJECTION[3].RELATION_ID = 'r_invalid_relation';
     query.run(queryObject, function (errs) {
       errs.should.containDeep([{
         msgCat: 'QUERY',
@@ -86,8 +97,8 @@ describe('query tests', function () {
   });
 
   it('should report invalid field in projection', function(done){
-    queryObject.projection[0] = 'INVALID_FIELD';
-    queryObject.projection[3].relation = 'r_employee';
+    queryObject.PROJECTION[0] = 'INVALID_FIELD';
+    queryObject.PROJECTION[3].RELATION_ID = 'r_employee';
     query.run(queryObject, function (errs) {
       errs.should.containDeep([{
         msgCat: 'QUERY',
@@ -99,8 +110,8 @@ describe('query tests', function () {
   });
 
   it('should report invalid filter', function(done){
-    queryObject.projection[0] = 'USER_ID';
-    queryObject.filter = 'xxxxxx';
+    queryObject.PROJECTION[0] = 'USER_ID';
+    queryObject.FILTER = 'xxxxxx';
     query.run(queryObject, function (errs) {
       errs.should.containDeep([{
         msgCat: 'QUERY',
@@ -112,12 +123,12 @@ describe('query tests', function () {
   });
 
   it('should report invalid field in the filter', function(done){
-    queryObject.filter = [
+    queryObject.FILTER = [
       {
-        fieldName: 'INVALID_FIELD',
-        operator: 'BT',
-        low: 'DH002',
-        high: 'DH006'
+        FIELD_NAME: 'INVALID_FIELD',
+        OPERATOR: 'BT',
+        LOW: 'DH002',
+        HIGH: 'DH006'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -130,29 +141,13 @@ describe('query tests', function () {
     });
   });
 
-  it('should report missing low value', function(done){
-    queryObject.filter = [
-      {
-        fieldName: 'USER_ID',
-      }
-    ];
-    query.run(queryObject, function (errs) {
-      errs.should.containDeep([{
-        msgCat: 'QUERY',
-        msgName: 'FILTER_MISS_LOW_VALUE',
-        msgType: 'E'
-      }]);
-      done();
-    });
-  });
-
   it('should report invalid relation in the filter', function(done){
-    queryObject.filter = [
+    queryObject.FILTER = [
       {
-        fieldName: 'LANGUAGE',
-        operator: 'EQ',
-        relation: 'r_personalization1',
-        low: 'ZH'
+        FIELD_NAME: 'LANGUAGE',
+        OPERATOR: 'EQ',
+        RELATION_ID: 'r_personalization1',
+        LOW: 'ZH'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -166,12 +161,12 @@ describe('query tests', function () {
   });
 
   it('should report invalid operator in the filter', function(done){
-    queryObject.filter = [
+    queryObject.FILTER = [
       {
-        fieldName: 'LANGUAGE',
-        operator: 'AA',
-        relation: 'r_personalization',
-        low: 'ZH'
+        FIELD_NAME: 'LANGUAGE',
+        OPERATOR: 'AA',
+        RELATION_ID: 'r_personalization',
+        LOW: 'ZH'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -185,10 +180,10 @@ describe('query tests', function () {
   });
 
   it('should report INVALID_SORT', function(done){
-    queryObject.filter = [];
-    queryObject.sort = [
+    queryObject.FILTER = [];
+    queryObject.SORT = [
       {
-        relation: 'r_personalization'
+        RELATION_ID: 'r_personalization'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -202,11 +197,11 @@ describe('query tests', function () {
   });
 
   it('should report INVALID_RELATION', function(done){
-    queryObject.filter = [];
-    queryObject.sort = [
+    queryObject.FILTER = [];
+    queryObject.SORT = [
       {
-        fieldName: 'LANGUAGE',
-        relation: 'r_personalization1'
+        FIELD_NAME: 'LANGUAGE',
+        RELATION_ID: 'r_personalization1'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -220,11 +215,11 @@ describe('query tests', function () {
   });
 
   it('should report INVALID_FIELD', function(done){
-    queryObject.filter = [];
-    queryObject.sort = [
+    queryObject.FILTER = [];
+    queryObject.SORT = [
       {
-        fieldName: 'LANGUAGE1',
-        relation: 'r_personalization'
+        FIELD_NAME: 'LANGUAGE1',
+        RELATION_ID: 'r_personalization'
       }
     ];
     query.run(queryObject, function (errs) {
@@ -238,12 +233,12 @@ describe('query tests', function () {
   });
 
   it('should return query result with sorting', function(done){
-    queryObject.filter = [];
-    queryObject.sort = [
+    queryObject.FILTER = [];
+    queryObject.SORT = [
       {
-        fieldName: 'LANGUAGE',
-        relation: 'r_personalization',
-        order: 'DESC'
+        FIELD_NAME: 'LANGUAGE',
+        RELATION_ID: 'r_personalization',
+        ORDER: 'DESC'
       }
     ];
     query.run(queryObject, function (errs) {
