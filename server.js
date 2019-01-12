@@ -13,9 +13,14 @@ app.use(cors());
 app.use(require('body-parser').json());
 app.use(compress());
 
-// Routing
+// API Routing
 const routes = require('./server/routes');
 app.use('/', routes);
+
+// The index page as an entry point
+app.route('*').get( (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/jor/index.html'));
+});
 
 // User Function
 const userFunction = require('./server/models/userFunction');
