@@ -137,6 +137,10 @@ Content-Type: application/json
    // Routing
    const routes = require('json-on-relations').Routes;
    app.use('/', routes);
+   // The index page as an entry point
+   app.route('*').get( (req, res) => {   
+     res.sendFile(path.join(__dirname, '../dist/jor/index.html'));
+   });
    
    process.on('SIGINT',function(){
      console.log("Closing.....");
