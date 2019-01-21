@@ -4,7 +4,7 @@ import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationshi
 import {forkJoin, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from './attribute/attribute-control.service';
-import {MessageService} from 'ui-message-angular';
+import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
@@ -54,26 +54,26 @@ export class EntityComponent implements OnInit {
         }
       }),
       switchMap(data => {
+        let entityMeta$ = of({});
+        let relationMetas$ = of([]);
+        let errMessages$ = of([]);
         if (data[0]['ENTITY_ID']) {
-          this.entity = data[0];
-          const entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
-          const relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
-          return forkJoin(entityMeta$, relationMetas$);
+          this.entity = data[0] as Entity;
+          entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
+          relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
         } else {
-          return of(data);
+          errMessages$ = of(data);
         }
+        return forkJoin(entityMeta$, relationMetas$, errMessages$);
       })
     ).subscribe(data => {
-        if (data[0]['ENTITY_ID']) {
-          // @ts-ignore
-          this.entityMeta = data[0];
-          // @ts-ignore
-          this.relationMetas = data[1];
+        if (data[2].length > 0) {
+          data[2].forEach(err => this.messageService.add(err as Message));
+        } else {
+          this.entityMeta = <EntityMeta>data[0];
+          this.relationMetas = <RelationMeta[]>data[1];
           this.formGroup = this.fb.group({});
           this._createFormFromMeta();
-        } else {
-          // @ts-ignore
-          data.forEach(err => this.messageService.add(err));
         }
     });
 

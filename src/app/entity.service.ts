@@ -25,13 +25,13 @@ export class EntityService {
     this.messageService.setMessageStore(msgStore, 'EN');
   }
 
-  listEntityID(): Observable<EntityMeta> {
+  listEntityID(): Observable<EntityMeta | {}> {
     return this.http.get<EntityMeta>(this.entityUrl + `/EntityIDs`).pipe(
       catchError(this.handleError<any>('listEntityID')));
   }
 
-  getEntityMeta(entityID: string): Observable<any> {
-    return this.http.get<any>(this.entityUrl + `/meta/${entityID}`).pipe(
+  getEntityMeta(entityID: string): Observable<EntityMeta | {}> {
+    return this.http.get<EntityMeta>(this.entityUrl + `/meta/${entityID}`).pipe(
       catchError(this.handleError<any>('getEntityMeta')));
   }
 
@@ -40,13 +40,13 @@ export class EntityService {
       catchError(this.handleError<any>('searchEntities')));
   }
 
-  getEntityInstance(instanceGUID: string): Observable<Entity> {
-    return this.http.get<Entity>(this.entityUrl + `/instance/${instanceGUID}`).pipe(
+  getEntityInstance(instanceGUID: string): Observable<Entity[]> {
+    return this.http.get<Entity[]>(this.entityUrl + `/instance/${instanceGUID}`).pipe(
       catchError(this.handleError<any>('getEntityInstance')));
   }
 
-  getRelationMeta(relationID: string): Observable<any> {
-    return this.http.get<any>(this.relationUrl + `/meta/${relationID}`).pipe(
+  getRelationMeta(relationID: string): Observable<RelationMeta | {}> {
+    return this.http.get<RelationMeta>(this.relationUrl + `/meta/${relationID}`).pipe(
       catchError(this.handleError<any>('getRelationMeta')));
   }
 
@@ -70,7 +70,7 @@ export class EntityService {
       catchError(this.handleError<any>('listEntityType')));
   }
 
-  getEntityTypeDesc(entityID: string): Observable<string> {
+  getEntityTypeDesc(entityID: string): Observable<string | {}> {
     return this.http.get<string>( this.modelUrl + `/entity-type/desc/${entityID}`).pipe(
       catchError(this.handleError<any>('getEntityTypeDesc')));
   }
@@ -85,7 +85,7 @@ export class EntityService {
       catchError(this.handleError<any>('listRelation')));
   }
 
-  getRelationDesc(relationID: string): Observable<string> {
+  getRelationDesc(relationID: string): Observable<string | {}> {
     return this.http.get<string>( this.modelUrl + `/relation/desc/${relationID}`).pipe(
       catchError(this.handleError<any>('getRelationDesc')));
   }
@@ -105,7 +105,7 @@ export class EntityService {
       catchError(this.handleError<any>('getRelationship')));
   }
 
-  getRelationshipDesc(relationshipID: string): Observable<string> {
+  getRelationshipDesc(relationshipID: string): Observable<string | {}> {
     return this.http.get<string>( this.modelUrl + `/relationship/desc/${relationshipID}`).pipe(
       catchError(this.handleError<any>('getRelationshipDesc')));
   }
@@ -125,7 +125,7 @@ export class EntityService {
       catchError(this.handleError<any>('getRole')));
   }
 
-  getRoleDesc(roleID: string): Observable<string> {
+  getRoleDesc(roleID: string): Observable<string | {}> {
     return this.http.get<string>( this.modelUrl + `/role/desc/${roleID}`).pipe(
       catchError(this.handleError<any>('getRoleDesc')));
   }
@@ -141,7 +141,11 @@ export class EntityService {
       // TODO: send the error to remote logging infrastructure
       console.error(error); // log to console instead
 
-      this.messageService.addMessage('EXCEPTION', 'GENERIC', messageType.Exception, operation, error.message);
+      if (error.status === '401') {
+        this.messageService.addMessage('EXCEPTION', 'SESSION_EXPIRED', messageType.Exception);
+      } else {
+        this.messageService.addMessage('EXCEPTION', 'GENERIC', messageType.Exception, operation, error.message);
+      }
 
       // Let the app keep running by returning an empty result.
       return of(result as T);

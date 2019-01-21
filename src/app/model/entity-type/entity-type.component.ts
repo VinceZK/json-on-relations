@@ -34,7 +34,7 @@ export class EntityTypeComponent implements OnInit {
     ).subscribe(data => {
       this.entityTypeList = data;
       let entityID;
-      if (this.route.snapshot.firstChild){
+      if (this.route.snapshot.firstChild) {
         entityID = this.route.snapshot.firstChild.paramMap.get('entityID');
       }
       if (entityID ) {

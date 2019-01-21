@@ -17,7 +17,11 @@ module.exports = {
   },
 
   saveEntityType: function (req, res) {
-    model.saveEntityType(req.body, 'DH001' ,function (err) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveEntityType(req.body, userID ,function (err) {
       if(err) return res.json(err);
       entityDB.loadEntity(req.body.ENTITY_ID, function (err) {
         if(err) res.json(err);
@@ -43,7 +47,11 @@ module.exports = {
   },
 
   saveRelation: function (req, res) {
-    model.saveRelation(req.body, 'DH001' ,function (err) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveRelation(req.body, userID ,function (err) {
       if(err) return res.json(err);
       entityDB.loadRelation(req.body.RELATION_ID, function (err) {
         if(err) res.json(err);
@@ -74,7 +82,11 @@ module.exports = {
   },
 
   saveRelationship: function (req, res) {
-    model.saveRelationship(req.body, 'DH001', function (err) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveRelationship(req.body, userID, function (err) {
       if(err) return res.json(err);
       model.getRelationship(req.body.RELATIONSHIP_ID, function (err, relationship) {
         if(err) return res.json(err);
@@ -108,7 +120,11 @@ module.exports = {
   },
 
   saveRole: function (req, res) {
-    model.saveRole(req.body, 'DH001', function (err) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveRole(req.body, userID, function (err) {
       if(err) return res.json(err);
       else{
         model.getRole(req.body.ROLE_ID, function (err, role) {

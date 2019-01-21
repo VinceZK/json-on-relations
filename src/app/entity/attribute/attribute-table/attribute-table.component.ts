@@ -59,7 +59,7 @@ export class AttributeTableComponent implements OnInit {
         break;
       case '[1..n]':
         if (this.formArray.length === 1) {
-          this.openErrorModal('Deletion Fail', 'The relation requires at lease one entry!')
+          this.openErrorModal('Deletion Fail', 'The relation requires at lease one entry!');
         } else {
           this.formArray.removeAt(index);
           this.formArray.markAsDirty();

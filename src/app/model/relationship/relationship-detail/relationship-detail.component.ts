@@ -73,7 +73,7 @@ export class RelationshipDetailComponent implements OnInit {
       } else {
         this.messageService.clearMessages();
         this.relationshipMeta = data[0];
-        this.attributes = 'msgName' in data[1] ? [] : data[1].ATTRIBUTES;
+        this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
         this._generateRelationshipForm();
       }
     });

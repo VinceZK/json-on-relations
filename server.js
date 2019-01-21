@@ -19,7 +19,7 @@ app.use('/', routes);
 
 // The index page as an entry point
 app.route('*').get( (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/jor/index.html'));
+  res.sendFile(path.join(__dirname, 'dist/jor/index.html'));
 });
 
 // User Function

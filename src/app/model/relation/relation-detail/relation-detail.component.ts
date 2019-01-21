@@ -82,7 +82,7 @@ export class RelationDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
-        this.relationMeta = data;
+        this.relationMeta = <RelationMeta>data;
         this._generateRelationForm();
       }
     });
@@ -233,7 +233,7 @@ export class RelationDetailComponent implements OnInit {
 
     this.entityService.getRelationMeta(this.currentAssociationForm.get('RIGHT_RELATION_ID').value)
       .subscribe( data => {
-        this.currentRightRelationMeta = data;
+        this.currentRightRelationMeta = <RelationMeta>data;
       });
 
     if (this.readonly === false) {

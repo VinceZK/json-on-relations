@@ -6,6 +6,13 @@ export const msgStore = [
            longText: '%s2'}
     }
   },
+  { msgCat: 'EXCEPTION',
+    msgName: 'SESSION_EXPIRED',
+    msgText: {
+      EN: {shortText: 'Your session is expired',
+        longText: 'Your session is expired, please <a href="/logon">re-logon</a>'}
+    }
+  },
   { msgCat: 'ENTITY',
     msgName: 'NO_CHANGE',
     msgText: {

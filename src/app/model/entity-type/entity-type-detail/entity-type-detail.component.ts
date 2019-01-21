@@ -71,8 +71,8 @@ export class EntityTypeDetailComponent implements OnInit {
         this.messageService.report(<Message>data[0]);
       } else {
         this.messageService.clearMessages();
-        this.entityMeta = data[0];
-        this.attributes = 'msgName' in data[1] ? [] : data[1].ATTRIBUTES;
+        this.entityMeta = <EntityMeta>data[0];
+        this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
         this._generateEntityTypeForm();
       }
     });
