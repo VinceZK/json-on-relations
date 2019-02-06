@@ -141,7 +141,7 @@ export class EntityService {
       // TODO: send the error to remote logging infrastructure
       console.error(error); // log to console instead
 
-      if (error.status === '401') {
+      if (error.status === 401) {
         this.messageService.addMessage('EXCEPTION', 'SESSION_EXPIRED', messageType.Exception);
       } else {
         this.messageService.addMessage('EXCEPTION', 'GENERIC', messageType.Exception, operation, error.message);

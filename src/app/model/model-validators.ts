@@ -5,6 +5,7 @@ import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import {ModelService} from './model.service';
 
+// noinspection JSAnnotator
 @Injectable({
   providedIn: 'root'
 })
@@ -29,6 +30,7 @@ export class UniqueRoleValidator implements AsyncValidator {
   }
 }
 
+// noinspection JSAnnotator
 @Injectable({
   providedIn: 'root'
 })
@@ -54,6 +56,7 @@ export class UniqueRelationValidator implements AsyncValidator {
   }
 }
 
+// noinspection JSAnnotator
 @Injectable({
   providedIn: 'root'
 })
@@ -79,6 +82,7 @@ export class UniqueRelationshipValidator implements AsyncValidator {
   }
 }
 
+// noinspection JSAnnotator
 @Injectable({
   providedIn: 'root'
 })

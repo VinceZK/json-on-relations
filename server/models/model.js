@@ -263,7 +263,10 @@ function _syncDBTable(relationID, callback) {
   entityDB.executeSQL(selectSQL, function (err, attributes) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     let relation = { RELATION_ID: relationID, ATTRIBUTES: attributes};
-    entityDB.syncDBTable(relation, callback);
+    entityDB.syncDBTable(relation, function (err) {
+      if(err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      else callback(null);
+    });
   })
 }
 /**

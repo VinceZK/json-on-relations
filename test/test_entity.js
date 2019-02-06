@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntity('person', done);
   });
@@ -27,7 +27,7 @@ describe('entity tests', function () {
          { RELATIONSHIP_ID: 'rs_user_role',
            values:[
              {action:'add', SYNCED:0,
-               PARTNER_INSTANCES:[{ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167'}]}
+               PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167'}]}
            ]
            }]
     };
@@ -128,7 +128,7 @@ describe('entity tests', function () {
               values:[
                 {action:'add', SYNCED: 1,
                   PARTNER_INSTANCES:[
-                    {ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239'}
+                    {ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239'}
                     ]}]}
           ]
         };
@@ -294,8 +294,8 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' },
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'AC560C8786095BB7B4842ABA2F323478' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' },
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'AC560C8786095BB7B4842ABA2F323478' }
               ]}
           ]
         }
@@ -312,7 +312,7 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role1',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role1',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
           ]
         }
@@ -329,7 +329,7 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2017-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
           ]
         }
@@ -346,7 +346,7 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2031-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
           ]
         }
@@ -363,7 +363,7 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2019-12-31 00:00:00', VALID_TO:'2028-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
           ]
         }
@@ -394,11 +394,11 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
               ]},
             { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
               ]}
           ]
         }
@@ -436,7 +436,7 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
               ]}
           ]
         }
@@ -454,11 +454,11 @@ describe('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2124-12-31 00:00:00', VALID_TO:'2128-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
               ]},
             { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' }
+                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' }
               ]}
           ]
         },
@@ -506,16 +506,16 @@ describe('entity tests', function () {
            values:
            [{ RELATIONSHIP_INSTANCE_GUID: '383AF8109A5011E888D27D8CC56E2EFC',
               VALID_FROM: '2118-12-31 00:00:00', VALID_TO: '2128-12-31 00:00:00', SYNCED: '1',
-              PARTNER_INSTANCES: [{ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
             { RELATIONSHIP_INSTANCE_GUID: '383AF8119A5011E888D27D8CC56E2EFC',
               VALID_FROM: '2020-12-31 00:00:00', VALID_TO: '2030-12-31 00:00:00', SYNCED: '0',
-              PARTNER_INSTANCES: [{ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' } ]},
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' } ]},
             { RELATIONSHIP_INSTANCE_GUID: 'E54922A198B811E8B53245D7B7311FC8',
               VALID_FROM: '2018-08-05 22:07:32', VALID_TO: '2118-10-20 22:07:32', SYNCED: '0',
-              PARTNER_INSTANCES: [{ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
             { RELATIONSHIP_INSTANCE_GUID: 'E556902098B811E8B53245D7B7311FC8',
               VALID_FROM: '2018-08-05 22:07:32', VALID_TO: '2118-10-20 22:07:32', SYNCED: '1',
-              PARTNER_INSTANCES: [{ENTITY_ID:'system_role',ROLE_ID:'system_role',INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239' }]}]}
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239' }]}]}
      ]
      */
     it('should read the instance', function (done) {

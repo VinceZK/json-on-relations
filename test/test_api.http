@@ -191,7 +191,7 @@ Accept: */*
 Cache-Control: no-cache
 
 ### Get the meta data of a given relation
-GET http://localhost:3000/api/relation/meta/r_user
+GET http://localhost:3000/api/relation/meta/r_app_category
 Accept: */*
 Cache-Control: no-cache
 

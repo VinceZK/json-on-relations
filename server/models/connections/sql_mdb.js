@@ -558,7 +558,6 @@ function syncDBTable(relation, callback) {
       return;
     }
 
-    // let alterTable = "alter table " + pool.escapeId(relation.RELATION_ID);
     let alterTable = '';
     const primaryKeys = [];
     let isPrimaryKeyChanged = false;
@@ -676,7 +675,7 @@ function syncDBTable(relation, callback) {
 function createDBTable(relation, callback) {
   let createTable = "create table " + pool.escapeId(relation.RELATION_ID) + " (";
   const primaryKeys = [];
-  if (relation.RELATION_ID.substring(0,2) !== 'r_'){ // Entity or Relationship
+  if (relation.RELATION_ID.substring(0,2) !== 'r_') { // Entity or Relationship
     createTable += "`INSTANCE_GUID` varchar(32) NOT NULL, ";
   }
   relation.ATTRIBUTES.forEach(function(attribute){

@@ -22,6 +22,7 @@ export class RoleDetailComponent implements OnInit {
   isNewMode = false;
   roleForm: FormGroup;
   changedRole = {};
+  bypassProtection = false;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -49,6 +50,7 @@ export class RoleDetailComponent implements OnInit {
           role.RELATIONS = [];
           this.isNewMode = true;
           this.readonly = false;
+          this.bypassProtection = false;
           return of(role);
         } else {
           this.readonly = true;
@@ -216,7 +218,7 @@ export class RoleDetailComponent implements OnInit {
   }
 
   canDeactivate(): Observable<boolean> | boolean {
-    if (this.isNewMode || (this.roleForm && this.roleForm.dirty)) {
+    if (this.isNewMode || (!this.bypassProtection && this.roleForm && this.roleForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');
       dialogAnswer.subscribe(confirm => {
         if (confirm) {
@@ -297,6 +299,7 @@ export class RoleDetailComponent implements OnInit {
     if (data && data['ROLE_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
+        this.bypassProtection = true;
         this.router.navigate(['/model/role/' + data['ROLE_ID']]);
       } else {
         this.readonly = true;
@@ -309,7 +312,7 @@ export class RoleDetailComponent implements OnInit {
       if (data instanceof Array) {
         data.forEach(err => this.messageService.add(err));
       } else {
-        this.messageService.report(data);
+        this.messageService.report(<Message>data);
       }
     }
   }

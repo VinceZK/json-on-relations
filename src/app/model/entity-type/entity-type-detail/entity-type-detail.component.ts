@@ -24,6 +24,7 @@ export class EntityTypeDetailComponent implements OnInit {
   isNewMode = false;
   entityTypeForm: FormGroup;
   changedEntityType = {};
+  bypassProtection = false;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -54,6 +55,7 @@ export class EntityTypeDetailComponent implements OnInit {
           entityType.ROLES = [];
           this.isNewMode = true;
           this.readonly = false;
+          this.bypassProtection = false;
           return forkJoin(of(entityType), of([]));
         } else {
           this.readonly = true;
@@ -64,16 +66,20 @@ export class EntityTypeDetailComponent implements OnInit {
         }
       })
     ).subscribe(data => {
-      if ( 'msgName' in data[0]) {
+      if ( 'ENTITY_ID' in data[0]) {
+        this.messageService.clearMessages();
+        this.entityMeta = <EntityMeta>data[0];
+        this.attributes = 'RELATION_ID' in data[1] ? data[1]['ATTRIBUTES'] : [];
+        this._generateEntityTypeForm();
+      } else {
         this.messageService.clearMessages();
         this.entityMeta = null;
         this.entityTypeForm = null;
-        this.messageService.report(<Message>data[0]);
-      } else {
-        this.messageService.clearMessages();
-        this.entityMeta = <EntityMeta>data[0];
-        this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
-        this._generateEntityTypeForm();
+        if (data[0] instanceof Array) {
+          data[0].forEach(err => this.messageService.add(err));
+        } else {
+          this.messageService.report(<Message>data[0]);
+        }
       }
     });
   }
@@ -220,7 +226,7 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   canDeactivate(): Observable<boolean> | boolean {
-    if (this.isNewMode || (this.entityTypeForm && this.entityTypeForm.dirty)) {
+    if (this.isNewMode || (!this.bypassProtection && this.entityTypeForm && this.entityTypeForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');
       dialogAnswer.subscribe(confirm => {
         if (confirm) {
@@ -292,6 +298,7 @@ export class EntityTypeDetailComponent implements OnInit {
     if (data[0] && data[0]['ENTITY_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
+        this.bypassProtection = true;
         this.router.navigate(['/model/entity-type/' + data[0]['ENTITY_ID']]);
       } else {
         this.readonly = true;
@@ -305,7 +312,7 @@ export class EntityTypeDetailComponent implements OnInit {
       if (data instanceof Array) {
         data.forEach(err => this.messageService.add(err));
       } else {
-        this.messageService.report(data);
+        this.messageService.report(<Message>data);
       }
     }
   }

@@ -24,6 +24,7 @@ export class RelationshipDetailComponent implements OnInit {
   isNewMode = false;
   relationshipForm: FormGroup;
   changedRelationship = {};
+  bypassProtection = false;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -55,6 +56,7 @@ export class RelationshipDetailComponent implements OnInit {
           relationship.INVOLVES = [];
           this.isNewMode = true;
           this.readonly = false;
+          this.bypassProtection = false;
           return forkJoin(of(relationship), of([]));
         } else {
           this.readonly = true;
@@ -237,7 +239,7 @@ export class RelationshipDetailComponent implements OnInit {
   }
 
   canDeactivate(): Observable<boolean> | boolean {
-    if (this.isNewMode || (this.relationshipForm && this.relationshipForm.dirty)) {
+    if (this.isNewMode || (!this.bypassProtection && this.relationshipForm && this.relationshipForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');
       dialogAnswer.subscribe(confirm => {
         if (confirm) {
@@ -319,6 +321,7 @@ export class RelationshipDetailComponent implements OnInit {
     if (data[0] && data[0]['RELATIONSHIP_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
+        this.bypassProtection = true;
         this.router.navigate(['/model/relationship/' + data[0]['RELATIONSHIP_ID']]);
       } else {
         this.readonly = true;
@@ -332,7 +335,7 @@ export class RelationshipDetailComponent implements OnInit {
       if (data instanceof Array) {
         data.forEach(err => this.messageService.add(err));
       } else {
-        this.messageService.report(data);
+        this.messageService.report(<Message>data);
       }
     }
   }

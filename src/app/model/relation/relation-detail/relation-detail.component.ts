@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {Association, RelationMeta} from '../../../entity';
-import {AbstractControl, Form, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
 import {EntityService} from '../../../entity.service';
@@ -27,6 +27,7 @@ export class RelationDetailComponent implements OnInit {
   currentAssociation: Association;
   currentRightRelationMeta: RelationMeta;
   changedRelation = {};
+  bypassProtection = false;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -67,6 +68,7 @@ export class RelationDetailComponent implements OnInit {
           relation.ATTRIBUTES = [];
           this.isNewMode = true;
           this.readonly = false;
+          this.bypassProtection = false;
           return of(relation);
         } else {
           this.readonly = true;
@@ -75,15 +77,19 @@ export class RelationDetailComponent implements OnInit {
         }
       })
     ).subscribe(data => {
-      if ( 'msgName' in data) { // If the return data is a message
-        this.messageService.clearMessages();
-        this.relationMeta = null;
-        this.relationForm = null;
-        this.messageService.report(<Message>data);
-      } else {
+      if ( 'RELATION_ID' in data) { // If the return data is a message
         this.messageService.clearMessages();
         this.relationMeta = <RelationMeta>data;
         this._generateRelationForm();
+      } else {
+        this.messageService.clearMessages();
+        this.relationMeta = null;
+        this.relationForm = null;
+        if (data instanceof Array) {
+          data.forEach(err => this.messageService.add(err));
+        } else {
+          this.messageService.report(<Message>data);
+        }
       }
     });
   }
@@ -360,7 +366,7 @@ export class RelationDetailComponent implements OnInit {
   }
 
   canDeactivate(): Observable<boolean> | boolean {
-    if (this.isNewMode || (this.relationForm && this.relationForm.dirty)) {
+    if (this.isNewMode || (!this.bypassProtection && this.relationForm && this.relationForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');
       dialogAnswer.subscribe(confirm => {
         if (confirm) {
@@ -398,7 +404,6 @@ export class RelationDetailComponent implements OnInit {
     this.changedRelation['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
     this._processChangedAssociation();
 
-    // console.log(this.changedRelation);
     this.entityService.saveRelation(this.changedRelation)
       .subscribe(data => this._postActivityAfterSavingRelation(data));
   }
@@ -475,6 +480,7 @@ export class RelationDetailComponent implements OnInit {
     if (data['RELATION_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
+        this.bypassProtection = true;
         this.router.navigate(['/model/relation/' + data['RELATION_ID']]);
       } else {
         this.readonly = true;
@@ -487,7 +493,7 @@ export class RelationDetailComponent implements OnInit {
       if (data instanceof Array) {
         data.forEach(err => this.messageService.add(err));
       } else {
-        this.messageService.report(data);
+        this.messageService.report(<Message>data);
       }
     }
   }

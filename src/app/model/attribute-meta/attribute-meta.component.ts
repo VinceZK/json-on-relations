@@ -38,8 +38,8 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
 
   deleteAttribute(index: number): void {
     if (index !== this.formArray.length - 1) {
-      this.formArray.removeAt(index);
       this.deletedAttributes.push(this.formArray.at(index).get('ATTR_GUID').value);
+      this.formArray.removeAt(index);
       this.formArray.markAsDirty();
     }
   }

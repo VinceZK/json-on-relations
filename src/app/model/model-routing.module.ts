@@ -31,7 +31,7 @@ const routes: Routes = [
         children: [{ path: ':relationshipID', canDeactivate: [WorkProtectionGuard], component: DataElementDetailComponent }] },
       { path: 'data-domain', component: DataDomainComponent,
         children: [{ path: ':relationshipID', canDeactivate: [WorkProtectionGuard], component: DataDomainDetailComponent }] },
-      { path: '', redirectTo: '/model/entity-type', pathMatch: 'full' },
+      { path: '**', redirectTo: '/model/entity-type', pathMatch: 'full' },
     ]
   }
 ];

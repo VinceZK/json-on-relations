@@ -1509,11 +1509,13 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
       "ON A.RELATIONSHIP_INSTANCE_GUID = B.RELATIONSHIP_INSTANCE_GUID " +
       "JOIN RELATIONSHIP_INVOLVES_INSTANCES as C " +
       "ON A.RELATIONSHIP_INSTANCE_GUID = C.RELATIONSHIP_INSTANCE_GUID " +
-      "WHERE B.RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) +
-      " AND B.ENTITY_INSTANCE_GUID = " + entityDB.pool.escape(selfGUID);
-    if (relationship.CARDINALITY === '[1..1]')
+      "WHERE A.RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) +
+      "  AND B.RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) +
+      "  AND C.RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) +
+      "  AND B.ENTITY_INSTANCE_GUID = " + entityDB.pool.escape(selfGUID);
+    if (relationship.CARDINALITY === '[1..1]') // Must have one and only one partner entity in a given period
       selectSQL = selectSQL + " AND C.ENTITY_INSTANCE_GUID != " + entityDB.pool.escape(selfGUID);
-    else if (relationship.CARDINALITY === '[1..n]')
+    else if (relationship.CARDINALITY === '[1..n]') // Can have one and more partner entities in a given period
       selectSQL = selectSQL + " AND C.ENTITY_INSTANCE_GUID = " + entityDB.pool.escape(relationship.PARTNER_INSTANCE_GUID);
   } else {
     selectSQL = "SELECT * from RELATIONSHIP_INSTANCES where RELATIONSHIP_INSTANCE_GUID = " +
@@ -1526,9 +1528,10 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
       const line = results.find(function (result) {
         return (relationship.VALID_FROM < result.VALID_TO && relationship.VALID_TO > result.VALID_FROM);
       });
-      if (line)
+      if (line) {
         return callback([message.report('ENTITY', 'RELATIONSHIP_INSTANCE_OVERLAP', 'E',
           relationship.VALID_FROM+'~'+relationship.VALID_TO, line.VALID_FROM+'~'+line.VALID_TO)]);
+      }
     } else {
       const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
       if (results.length === 0)
