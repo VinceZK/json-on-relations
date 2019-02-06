@@ -24,8 +24,8 @@ app.route('*').get( (req, res) => {
 
 // User Function
 const userFunction = require('./server/models/userFunction');
-userFunction.register('testFunction', function (input, callback) {
-  callback(null, 'The input is ' + input.data );
+userFunction.register('testFunction', function (req, callback) {
+  callback(null, 'The input is ' + req.data );
 });
 
 process.on('SIGINT',function(){

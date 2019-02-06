@@ -427,15 +427,15 @@ By default, you can use following User AddIns to enhance standard APIs:
 
 ### Register User Functions
 User Function allows you to implement arbitrary business logic. It has 2 parameters, 
-with the first one 'input' pointing to the 'req.body', 
-and the second a callback function for the return value.
+with the first one 'req' pointing to the http request object passed by expressJS, 
+and the second is a callback function for the returned value.
  
 If you register a User Function as following:
 ```javascript 1.8
 const userFunction = require('./server/models/userFunction');
 
-userFunction.register('testFunction', function (input, callback) {
-  callback(null, 'The input is ' + input.data );
+userFunction.register('testFunction', function (req, callback) {
+  callback(null, 'The input is ' + req.data );
 });
 ```
 Then, this function can be RESTfully called:
