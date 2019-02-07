@@ -568,26 +568,26 @@ function syncDBTable(relation, callback) {
       });
       if (attribute) {
         let changeColumn = " change column " + pool.escapeId(column.ATTR_NAME) + " " + pool.escapeId(attribute.ATTR_NAME);
-        let isChanged = false;
+        let isChanged = column.ATTR_NAME !== attribute.ATTR_NAME;
         let sqlType = _map2sqlType(attribute.DATA_TYPE);
         switch (sqlType){
           case 'varchar':
             changeColumn += " varchar(" + attribute.DATA_LENGTH + ")";
-            isChanged = attribute.DATA_LENGTH !== column.DATA_LENGTH;
+            isChanged = isChanged || attribute.DATA_LENGTH !== column.DATA_LENGTH;
             break;
           case 'decimal':
             changeColumn += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
-            isChanged = attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale'] ;
+            isChanged = isChanged || attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale'] ;
             break;
           default:
             changeColumn += " " + sqlType;
         }
-        if (sqlType !== column.DATA_TYPE) isChanged = true;
+        isChanged = isChanged || sqlType !== column.DATA_TYPE;
 
         if (attribute.PRIMARY_KEY){
           changeColumn += " NOT NULL";
           if (attribute.AUTO_INCREMENT) changeColumn += " AUTO_INCREMENT";
-          isChanged = (column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
+          isChanged = isChanged || (column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
             (column['extra'] === 'auto_increment' && !attribute.AUTO_INCREMENT);
           primaryKeys.push(attribute.ATTR_NAME);
           if (column['column_key'] !== 'PRI') isPrimaryKeyChanged = true;

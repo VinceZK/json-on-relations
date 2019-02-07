@@ -140,6 +140,7 @@ export class EntityComponent implements OnInit {
       this.messageService.reportMessage('RELATIONSHIP', 'RELATIONSHIP_MANDATORY', 'E');
       return;
     }
+    if (!this.entity.relationships) { this.entity.relationships = []; }
     const index = this.entity.relationships.findIndex(
       relationship => relationship.RELATIONSHIP_ID === this.toBeAddRelationship.RELATIONSHIP_ID);
     if (index !== -1) {

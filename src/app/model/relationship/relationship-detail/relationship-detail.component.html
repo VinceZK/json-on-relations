@@ -28,7 +28,7 @@
               formControlName="RELATIONSHIP_DESC" [readonly]="readonly" (change)="onChangeRelationshipDesc()"></textarea>
   </div>
   <div class="form-group" >
-    <label for="valid_period" class="col-form-label form-control-sm">Valid Period:
+    <label for="valid_period" class="col-form-label form-control-sm">Valid Period(second):
       <span class="errorMessage" *ngIf="!relationshipForm.get('VALID_PERIOD').valid">
         {{relationshipForm.get('VALID_PERIOD').errors['message']}}
       </span>

@@ -38,12 +38,6 @@ export const msgStore = [
     }
   },
   { msgCat: 'RELATIONSHIP',
-    msgName: 'VALID_FROM_EMPTY',
-    msgText: {
-      EN: {shortText: 'Valid From is Mandatory', longText: ''}
-    }
-  },
-  { msgCat: 'RELATIONSHIP',
     msgName: 'VALID_TO_EMPTY',
     msgText: {
       EN: {shortText: 'Valid To is Mandatory', longText: ''}

@@ -1021,7 +1021,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
           });
 
           value.RELATIONSHIP_INSTANCE_GUID = guid.genTimeBased();
-          if(!value['VALID_FROM'] ||
+          if(!value['VALID_FROM'] || value['VALID_FROM'] === 'now' ||
             Math.abs(timeUtil.StringToDate(value['VALID_FROM']).DateDiff('s', currentTime)) <= 60) //Tolerance 60 seconds
             value['VALID_FROM'] = currentTime;
           if(value['VALID_FROM'] < currentTime)

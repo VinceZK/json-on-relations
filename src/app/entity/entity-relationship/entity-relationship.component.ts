@@ -39,7 +39,7 @@ export class EntityRelationshipComponent implements OnInit {
   @Input() readonly: boolean;
   @ViewChildren('p') popovers !: QueryList<NgbPopover>;
   private static _getFormattedDate(offset?: number): string {
-    const d = offset ? new Date(new Date().getTime() + offset ) : new Date();
+    const d = offset ? new Date(new Date().getTime() + offset * 1000 ) : new Date();
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-'
       + ('0' + d.getDate()).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) +
       ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2);
@@ -67,7 +67,7 @@ export class EntityRelationshipComponent implements OnInit {
     this.detailValue = new RelationshipInstance();
     this.detailValue.action = 'add';
     this.detailValue.RELATIONSHIP_INSTANCE_GUID = this._generateFakeUUID();
-    this.detailValue.VALID_FROM = EntityRelationshipComponent._getFormattedDate();
+    this.detailValue.VALID_FROM = 'now';
     this.detailValue.VALID_TO = EntityRelationshipComponent._getFormattedDate(this.relationshipMeta.VALID_PERIOD);
     this.detailValue.PARTNER_INSTANCES = [];
     const involves = this.relationshipMeta.INVOLVES.filter(involve => involve.ROLE_ID !== this.relationship.SELF_ROLE_ID);
@@ -150,8 +150,7 @@ export class EntityRelationshipComponent implements OnInit {
     if (hasError) { return; }
 
     if (this.detailValue.VALID_FROM === '') {
-      this.messageService.reportMessage('RELATIONSHIP', 'VALID_FROM_EMPTY', 'E');
-      return;
+      this.detailValue.VALID_FROM = EntityRelationshipComponent._getFormattedDate();
     }
 
     if (this.detailValue.VALID_TO === '') {
@@ -159,7 +158,7 @@ export class EntityRelationshipComponent implements OnInit {
       return;
     }
 
-    if (this.detailValue.VALID_FROM >= this.detailValue.VALID_TO) {
+    if (this.detailValue.VALID_FROM !== 'now' && this.detailValue.VALID_FROM >= this.detailValue.VALID_TO) {
       this.messageService.reportMessage('RELATIONSHIP', 'VALID_FROM_AFTER_VALID_TO', 'E');
       return;
     }

@@ -244,6 +244,22 @@ describe('model tests', function () {
       });
     });
 
+    it('should change the attribute name from FIELD3 to FIELD30', function (done) {
+      let relation = {
+        action: 'update',
+        RELATION_ID: 'r_testRelationx',
+        ATTRIBUTES: [
+          { action: 'update', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_testRelationx',
+            ATTR_NAME: 'FIELD30', DATA_TYPE: 3, PRIMARY_KEY: 0, ATTR_DESC: null, DATA_ELEMENT: null,
+            DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
+        ]
+      };
+      model.saveRelation(relation, 'DH001', function(err) {
+        should(err).eql(null);
+        done();
+      });
+    });
+
     it('should remove an attribute', function (done) {
       let relation = {
         action: 'update',
