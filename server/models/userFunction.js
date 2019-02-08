@@ -14,7 +14,7 @@ function register(name, lambda) {
   lamdbas[name] = lambda;
 }
 
-function execute(name, input, callback) {
+function execute(name, input, user, callback) {
   const lambda = lamdbas[name];
   if (!lambda) return callback([
     { msgCat: 'FUNCTION',
@@ -23,5 +23,5 @@ function execute(name, input, callback) {
       msgShortText: 'Function: ' + name + ' is invalid'
     }]);
 
-  lambda(input, callback);
+  lambda(input, user, callback);
 }

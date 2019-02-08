@@ -479,7 +479,7 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
   });
 
   function __getRelationValue(instance, entityMeta, callback) {
-    let relationIDs = piece.RELATIONS;
+    let relationIDs = piece.RELATIONS || [];
     let errorMessages = [];
     let relations = [];
     relationIDs.forEach(function (relationID) {

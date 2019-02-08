@@ -1,3 +1,4 @@
+// TODO Export these types in packaging
 export class Entity {
   ENTITY_ID: string;
   INSTANCE_GUID: string;
@@ -96,24 +97,31 @@ export class EntityRelation {
 }
 
 export class Selection {
-  fieldName: string;
-  operator: string;
-  low: string;
-  high: string;
+  RELATION_ID?: string;
+  FIELD_NAME: string;
+  OPERATOR: string;
+  LOW: string;
+  HIGH?: string;
 }
 
 export class Projection {
-  fieldName: string;
-  alias: string;
-  relation: string;
+  RELATION_ID?: string;
+  FIELD_NAME: string;
+  ALIAS?: string;
 }
 
 export class QueryObject {
-  relation: string;
-  projection: Array<string|Projection>;
-  filter: Selection[];
+  ENTITY_ID: string;
+  RELATION_ID: string;
+  PROJECTION?: Array<string|Projection>;
+  FILTER?: Selection[];
+  SORT?: Sort[];
 }
-
+export class Sort {
+  FIELD_NAME: string;
+  RELATION_ID: string;
+  ORDER: string;
+}
 export class EntityType {
   ENTITY_ID: string;
   ENTITY_DESC: string;
