@@ -115,12 +115,12 @@ export class QueryObject {
   RELATION_ID: string;
   PROJECTION?: Array<string|Projection>;
   FILTER?: Selection[];
-  SORT?: Sort[];
+  SORT?: string|Sort[];
 }
 export class Sort {
   FIELD_NAME: string;
-  RELATION_ID: string;
-  ORDER: string;
+  RELATION_ID?: string;
+  ORDER?: string;
 }
 export class EntityType {
   ENTITY_ID: string;
