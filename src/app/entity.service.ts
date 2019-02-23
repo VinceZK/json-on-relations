@@ -40,8 +40,8 @@ export class EntityService {
       catchError(this.handleError<any>('searchEntities')));
   }
 
-  getEntityInstance(instanceGUID: string): Observable<Entity[]> {
-    return this.http.get<Entity[]>(this.entityUrl + `/instance/${instanceGUID}`).pipe(
+  getEntityInstance(instanceGUID: string): Observable<Entity | any[]> {
+    return this.http.get<Entity | any[]>(this.entityUrl + `/instance/${instanceGUID}`).pipe(
       catchError(this.handleError<any>('getEntityInstance')));
   }
 

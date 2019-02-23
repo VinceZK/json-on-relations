@@ -19,13 +19,13 @@ UserAddIn.prototype.execute = function(topic, req, callback) {
   let addIns = this._userAddIns['*'];
   if (!addIns) addIns = [];
   addIns.concat(this._userAddIns[topic]);
-  if (addIns.length === 0) return callback(null, [req.body]);
+  if (addIns.length === 0) return callback(null, req.body);
 
   async.mapSeries(addIns, function (addInFunction, callback) {
     addInFunction(req, callback)
   }, function (err, results) {
     if (err) callback(err);
-    else callback(null, results);
+    else callback(null, results[results.length - 1]); // Only return the last one
   });
 };
 

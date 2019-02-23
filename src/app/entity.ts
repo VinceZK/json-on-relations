@@ -115,7 +115,7 @@ export class QueryObject {
   RELATION_ID: string;
   PROJECTION?: Array<string|Projection>;
   FILTER?: Selection[];
-  SORT?: string|Sort[];
+  SORT?: string[]|Sort[];
 }
 export class Sort {
   FIELD_NAME: string;

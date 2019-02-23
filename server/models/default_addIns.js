@@ -16,7 +16,7 @@ afterEntityChanging.use('*', getEntityInstance);
 /**
  * A User AddIn function has 2 parameters:
  * @param req: http request
- * @param callback(err, result)
+ * @param callback(err, result)re
  * err: error message array
  * result: any object
  */

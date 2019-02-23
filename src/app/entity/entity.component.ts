@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
-import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipMeta} from '../entity';
+import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from '../entity';
 import {forkJoin, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from './attribute/attribute-control.service';
@@ -47,7 +47,7 @@ export class EntityComponent implements OnInit {
           this.entity = new Entity();
           this.entity.ENTITY_ID = params.get('entityID');
           this.entity.relationships = [];
-          return of([this.entity]);
+          return of(this.entity);
         } else {
           this.readonly = true;
           return this.entityService.getEntityInstance(instanceGUID);
@@ -57,12 +57,12 @@ export class EntityComponent implements OnInit {
         let entityMeta$ = of({});
         let relationMetas$ = of([]);
         let errMessages$ = of([]);
-        if (data[0]['ENTITY_ID']) {
-          this.entity = data[0] as Entity;
+        if (data['ENTITY_ID']) {
+          this.entity = data as Entity;
           entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
           relationMetas$ = this.entityService.getRelationMetaOfEntity(this.entity.ENTITY_ID);
         } else {
-          errMessages$ = of(data);
+          errMessages$ = of(<any[]>data);
         }
         return forkJoin(entityMeta$, relationMetas$, errMessages$);
       })
@@ -209,11 +209,11 @@ export class EntityComponent implements OnInit {
       changedRelationship.values = [];
       if (!this.entity.INSTANCE_GUID) { // Create a new entity
         relationship.values.forEach( value => {
-           if (value.action === 'add' || value.action === 'update' || value.action === 'extend') {
-             const copyValue = { ...value };
-             copyValue['action'] = 'add';
-             changedRelationship.values.push(copyValue);
-           }
+          if (value.action === 'add' || value.action === 'update' || value.action === 'extend') {
+            const copyValue = { ...value } as RelationshipInstance;
+            copyValue.action = 'add';
+            changedRelationship.values.push(copyValue);
+          }
         });
       } else {
         relationship.values.forEach(value => {
@@ -443,9 +443,9 @@ export class EntityComponent implements OnInit {
   }
 
   _postActivityAfterSaving(data: any) {
-    if (data[0]['ENTITY_ID']) {
+    if (data['ENTITY_ID']) {
       this.readonly = true;
-      this.entity = data[0];
+      this.entity = data;
       this._refreshFormGroupValue(this.entity);
       this.formGroup.reset(this.formGroup.value);
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');

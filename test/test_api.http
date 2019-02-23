@@ -18,7 +18,7 @@ Content-Type: application/json
   "relationships":[
     { "RELATIONSHIP_ID": "rs_user_role",
       "values":[
-        { "SYNCED":0,
+        { "SYNCED":0, "action": "add",
           "PARTNER_INSTANCES":[
             {"ENTITY_ID":"system_role", "ROLE_ID":"system_role", "INSTANCE_GUID":"5F50DE92743683E1ED7F964E5B9F6167"}]}
       ]
@@ -242,6 +242,14 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 {"data": "Hello Vincent"}
+
+###
+POST http://localhost:3000/api/query
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{"ENTITY_ID":"blog", "RELATION_ID":"blog", "PROJECTION":["AUTHOR","ID","NUM_READS","PUBLISHED","PUBLISH_TIME","TITLE","ABSTRACT","NAME"],"SORT":["PUBLISH_TIME"]}
 
 ###
 
