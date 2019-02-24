@@ -5,7 +5,6 @@ const query = require('./controller/query_ctrl.js');
 const model = require('./controller/model_ctrl.js');
 const defaultAddIns = require('./controller/default_addIns_ctrl');
 const userFunction = require('./controller/userFunction_ctrl');
-const path = require('path');
 
 // Entity Instance Service
 router.post('/api/entity',

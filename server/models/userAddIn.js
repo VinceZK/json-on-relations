@@ -18,7 +18,9 @@ UserAddIn.prototype.use = function(topic, addIn) {
 UserAddIn.prototype.execute = function(topic, req, callback) {
   let addIns = this._userAddIns['*'];
   if (!addIns) addIns = [];
-  addIns = addIns.concat(this._userAddIns[topic]);
+  if (this._userAddIns[topic]) {
+    this._userAddIns[topic].forEach( fun => addIns.push(fun))
+  }
   if (addIns.length === 0) return callback(null, req.body);
 
   async.mapSeries(addIns, function (addInFunction, callback) {

@@ -14,7 +14,7 @@ module.exports = {
     })
   },
   beforeEntityQuery: function (req, res, next) {
-    defaultAddIn.beforeEntityQuery.execute(req.body['RELATION'], req, function (errors) {
+    defaultAddIn.beforeEntityQuery.execute(req.body['RELATION_ID'], req, function (errors) {
       if (!errors) next();
       else res.json(errors);
     })
