@@ -151,14 +151,14 @@ Content-Type: application/json
    entityDB.setConnPool('mysql', { // Set the connection pool to your mysql DB.
                                    // Currently, we only support mysql.
                                    connectionLimit : 10,
-                                   host: 'localhost', // To be replaced by your DB host
-                                   user: 'nodejs', // To be replaced by your own DB user
+                                   host: 'localhost',  // To be replaced by your DB host
+                                   user: 'nodejs',     // To be replaced by your own DB user
                                    password: 'nodejs', // To be replaced by your own DB password
                                    database: 'MDB',
                                    createDatabaseTable: true,
                                    multipleStatements: true,
                                    dateStrings: true,
-                                   port: 3306   // replaced by your DB port.
+                                   port: 3306           // replaced by your DB port.
                                  });
    entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
      if(err) debug("bootstrap: get entities==> %s", err);
@@ -180,6 +180,8 @@ Content-Type: application/json
 5. Open the links:
    + [Modeling](http://localhost:3001/model)
    + [Entity Browser](http://localhost:3001/entity/list)
+   
+*If you use Angular for UI development, you can install the package 'npm i jor-angular' for the types.*  
    
 ## RESTful API
 Following APIs are opened in the default route table.
@@ -345,7 +347,7 @@ Content-Type: application/json
       "FIELD_NAME": "USER_ID",
       "OPERATOR": "BT",
       "LOW": "DH001",
-      "HIGH": "DH999"
+      "HIGH": "DH999
     },
     {
       "FIELD_NAME": "LANGUAGE",
@@ -362,6 +364,7 @@ Content-Type: application/json
     }
   ]
 }
+
 ```
 
 ## User AddIn & Function
@@ -426,16 +429,17 @@ By default, you can use following User AddIns to enhance standard APIs:
 8. afterEntityReading: Use this AddIn to add logic after an entity instance is read.
 
 ### Register User Functions
-User Function allows you to implement arbitrary business logic. It has 2 parameters, 
-with the first one 'req' pointing to the http request object passed by expressJS, 
-and the second is a callback function for the returned value.
+User Function allows you to implement arbitrary business logic. It has 3 parameters, 
+with the first one 'input' pointing to the *req.body* passed by ExpressJS.
+The second parameter is 'user' which points the logon user context passed by PassportJS.
+The third one is a callback function for the returned value which will be read by the client.
  
 If you register a User Function as following:
 ```javascript 1.8
 const userFunction = require('./server/models/userFunction');
 
-userFunction.register('testFunction', function (req, callback) {
-  callback(null, 'The input is ' + req.data );
+userFunction.register('testFunction', function (input, user, callback) {
+  callback(null, 'The input is read from req.body: ' + input, 'and the user context is ' + user );
 });
 ```
 Then, this function can be RESTfully called:
