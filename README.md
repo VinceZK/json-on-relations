@@ -110,10 +110,14 @@ Content-Type: application/json
     $ npm install json-on-relations --save
    ```
 2. Create the database in MySQL: 
-   ```
-   Copy the "node_modules/json-on-relations/db.sql" to your sql console and execute.
-   The script will create database named "MDB" which contains all the tables. 
-   ```
+
+   Copy file "node_modules/json-on-relations/MDB.sql" to your sql console and execute. 
+   The script will create database "MDB" which contains all the tables and test data.
+   
+   Please also create a DB user 'nodejs' with password 'nodejs'. 
+   By default, Portal uses credential 'nodejs/nodejs' to connect MySql at port 3306. 
+   You can of course change the default settings. Please refer the next step.
+   
 3. In Node:
    ``` 
    copy "node_modules/json-on-relations/dist" to your project root. 
@@ -317,16 +321,43 @@ Content-Type: application/json
   "USER_ID": "DH001"
 }
 ```
+
+### Get pieces of an entity instance through its business ID.
+Use this API to get pieces of an entity from its business ID.
+In following example, it gets relations "r_user" and "r_email", and the relationship "rs_user_role"
+for the user "DH001".
+```http request
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user", "r_email"],
+    "RELATIONSHIPS": ["rs_user_role"]
+  }
+}
+```
+
 ### Generic Query Request
-A query is defined as a JSON object with 3 attributes: "relation", "projection", and "filter".
-The "relation" defines the leading relation(table). You can project fields not only from one leading relation,
-but also from all its associated relations. The system helps you to do the sql-joins.
+A query is defined as a JSON object with 2 mandatory attributes: "ENTITY_ID" and "RELATION_ID".
+You must tell the system on which entity and which leading relation the query is made on. 
+
+"PROJECTION" is an array in which you can include fields not only from the leading relation,
+but also from all the associated relations. The system helps you to do the sql-joins.
+If "PROJECTION" is not given, then it means all the fields from the leading relation. 
 
 The filter is limited with operators: EQ(Equal), NE(Not Equal), GT(Greater Than), GE(Greater than and Equal), 
 LT(Less Than), LE(Less Than and Equal), and BT(Between). 
 You can also use fields from the assoicated relations to do the filtering and sorting.
 
-The return is a list of entries that fulfills the query.
+You can also define sort criteria. On which which fields you want to sort the result sets, 
+ascending(asc) or descending(desc). The return is a list of entries that fulfills the query.
 ```http request
 POST http://localhost:3001/api/query
 Accept: */*
@@ -364,7 +395,6 @@ Content-Type: application/json
     }
   ]
 }
-
 ```
 
 ## User AddIn & Function
@@ -394,12 +424,11 @@ Too much limitations are found in using a relation-to-UI approach.
 And I have never seen a real success one.
 
 ### Default User AddIns
-User AddIn is an exist for you to add additional business logic. 
-It allows a delivered business process can be easily enhanced in predefined calling points.
+User AddIn allows you to enhance existing business logic.
+However, you can only add your logic in predefined calling points.
 
-In the following example, a function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
-Then, when an entity instance is successfully created, 
-it is re-read from the DB and returned to the UI.
+In the following example, the function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
+Then, after an entity instance is created, it will be read from the DB and returned to the UI.
 ```javascript 1.8
 afterEntityCreation.use('*', getEntityInstance);
 
@@ -413,12 +442,12 @@ function getEntityInstance(req, callback) {
   })
 }
 ```
-A User AddIn function has 2 parameters: the first one is the http request object, 
+A User AddIn function has 2 parameters: the first one is the http request object passed by ExpressJS, 
 and the second one is a callback function. You can register an AddIn function under a topic.
 Thus, only the requests that belong to the topic will invoke the AddIn function.
 If you register it under the topic '*', then all the requests will invoke the function.
 
-By default, you can use following User AddIns to enhance standard APIs:
+By default, following User AddIns are defined by Json-on-Relations:
 1. beforeEntityCreation: Use this AddIn to add logic before creating an entity instance.
 2. beforeEntityChanging: Use this AddIn to add logic before changing an entity instance.
 3. beforeEntityQuery: Use this AddIn to add logic before query entity instances.
@@ -429,9 +458,10 @@ By default, you can use following User AddIns to enhance standard APIs:
 8. afterEntityReading: Use this AddIn to add logic after an entity instance is read.
 
 ### Register User Functions
-User Function allows you to implement arbitrary business logic. It has 3 parameters, 
-with the first one 'input' pointing to the *req.body* passed by ExpressJS.
-The second parameter is 'user' which points the logon user context passed by PassportJS.
+With User Function, you can implement arbitrary business logic. 
+
+A User Function has 3 parameters, with the first one 'input' pointing to the *req.body* passed by ExpressJS.
+The second parameter is 'user' which points the user session context passed by PassportJS.
 The third one is a callback function for the returned value which will be read by the client.
  
 If you register a User Function as following:
@@ -449,7 +479,7 @@ Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
 
-{"data": "Hello Vincent"}
+"Hello World!"
 ```
 
 ## Concept Behind
@@ -485,7 +515,6 @@ while a data element can be assigned with a data domain, and adding more busines
 + Entity orchestration: combined operations on multiple entities together.
 + Version management of data modeling.
 + Introduce DB view concept and a report painter tool.
-+ Integrate into [Portal](https://github.com/VinceZK/Portal) to support user login and session.
 
 ## License
 [The MIT License](http://opensource.org/licenses/MIT)

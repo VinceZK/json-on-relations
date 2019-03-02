@@ -57,6 +57,7 @@ export class EntityComponent implements OnInit {
         let entityMeta$ = of({});
         let relationMetas$ = of([]);
         let errMessages$ = of([]);
+        console.log(data);
         if (data['ENTITY_ID']) {
           this.entity = data as Entity;
           entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
