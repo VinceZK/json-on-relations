@@ -146,7 +146,7 @@ const msgArray = [
   { msgCat: "ENTITY",
     msgName: "RELATIONSHIP_INSTANCE_OVERLAP",
     msgText: {
-      EN: {shortText: "Relationship %s overlaps with relationship %s", longText: "dummy"}
+      EN: {shortText: "Relationship %s has overlaps during inserting", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",
@@ -237,6 +237,18 @@ const msgArray = [
     msgName: "OVERWRITE_RELATIONSHIPS_NOT_ALLOWED",
     msgText: {
       EN: {shortText: "Relationships of an instance cannot be overwritten", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_PARTNER_ENTITY_AMBIGUOUS",
+    msgText: {
+      EN: {shortText: "Partner entity is ambiguous in relationship %s", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "RELATIONSHIP_IS_NOT_TIME_DEPENDENT",
+    msgText: {
+      EN: {shortText: "The relationship %s is not time-dependent", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",

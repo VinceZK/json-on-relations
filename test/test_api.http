@@ -126,8 +126,87 @@ Content-Type: application/json
     "USER_ID": "DH001"
   },
   "piece": {
-    "RELATIONS": ["r_user", "r_email"],
+    "RELATIONS": ["r_user", "r_employee", "r_email", "r_address", "r_personalization"],
     "RELATIONSHIPS": ["rs_user_role"]
+  }
+}
+
+### Get pieces of an entity instance through its business ID as well as some partner entity information .
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user", "r_personalization"],
+    "RELATIONSHIPS": [{"RELATIONSHIP_ID": "rs_user_role",
+                       "PARTNER_ENTITY_PIECES": {
+                          "RELATIONS": ["r_role"], "RELATIONSHIPS": ["rs_user_role"]}
+    }]
+  }
+}
+
+### Get pieces of partner entities' infromation throught its business ID.
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user", "r_personalization"],
+    "RELATIONSHIPS": [
+      {"RELATIONSHIP_ID": "rs_user_role",
+       "PARTNER_ENTITY_PIECES": [
+        {"ENTITY_ID": "permission",
+         "piece": {"RELATIONS": ["r_role"], "RELATIONSHIPS": ["rs_user_role"]}}]},
+      {"RELATIONSHIP_ID": "rs_marriage",
+       "PARTNER_ENTITY_PIECES": [
+         {"ENTITY_ID": "person",
+           "piece": {"RELATIONS": ["person"]}}]}
+    ]
+  }
+}
+
+### Get recursive pieces of partner entities' infromation throught its business ID.
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user"],
+    "RELATIONSHIPS": [
+      {"RELATIONSHIP_ID": "rs_user_role",
+        "PARTNER_ENTITY_PIECES": [
+          {"ENTITY_ID": "permission",
+            "piece": {
+              "RELATIONS": ["r_role"],
+              "RELATIONSHIPS": [{
+                "RELATIONSHIP_ID": "rs_user_role",
+                "PARTNER_ENTITY_PIECES": {"RELATIONSHIPS": ["rs_marriage"]}
+              }]}}]},
+      {"RELATIONSHIP_ID": "rs_marriage",
+        "PARTNER_ENTITY_PIECES":  {
+          "RELATIONS": ["person"],
+          "RELATIONSHIPS": [{
+            "RELATIONSHIP_ID": "rs_marriage",
+            "PARTNER_ENTITY_PIECES": {"RELATIONSHIPS": ["rs_user_role"]}}]}}
+    ]
   }
 }
 

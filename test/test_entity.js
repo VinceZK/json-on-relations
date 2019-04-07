@@ -6,7 +6,7 @@ const _ = require('underscore');
 
 describe('entity tests', function () {
   before(function (done) {
-    entity.entityDB.loadEntity('person', done);
+    entity.entityDB.loadEntities(['person', 'permission'], done);
   });
 
   let instance =
@@ -109,7 +109,7 @@ describe('entity tests', function () {
         instancePiece.relationships.should.containDeep(instance.relationships);
         done();
       })
-    })
+    });
   });
 
   describe('Entity Changing', function () {
@@ -257,6 +257,20 @@ describe('entity tests', function () {
       entity.changeInstance(instance3, function (err) {
         err.should.containDeep([ {
           msgCat: 'ENTITY', msgName: 'RELATIONSHIP_ACTION_INVALID', msgType: 'E'} ]);
+        done();
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_NOT_VALID', function (done) {
+      instance3.relationships = [
+        { RELATIONSHIP_ID: 'rs_mtest01',
+          values:[
+            { action: 'extend', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1}]
+        }
+      ];
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep([ {
+          msgCat: 'ENTITY', msgName: 'RELATIONSHIP_NOT_VALID', msgType: 'E'} ]);
         done();
       })
     });
@@ -413,11 +427,11 @@ describe('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_marriage',
           values:[
-            { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
+            { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00',
               PARTNER_INSTANCES:[
                 {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
               ]},
-            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00', SYNCED: 1,
+            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00',
               PARTNER_INSTANCES:[
                 {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1483BE56BDA717184CD170467A214695' }
               ]}
@@ -502,7 +516,13 @@ describe('entity tests', function () {
 
     /**
      * Current relationships in DB
-     * [ { RELATIONSHIP_ID: 'rs_user_role', SELF_ROLE_ID: 'system_user',
+     * [ { RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'husband',
+           values:
+           [{ RELATIONSHIP_INSTANCE_GUID: '4CE4A6D058E111E9AF76BF12C8099888',
+              PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'wife', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ],
+              VALID_FROM: '2019-04-07 11:00:29', VALID_TO: '2029-04-04 11:00:29', REG_PLACE: null, COUNTRY: null } ] },
+
+         { RELATIONSHIP_ID: 'rs_user_role', SELF_ROLE_ID: 'system_user',
            values:
            [{ RELATIONSHIP_INSTANCE_GUID: '383AF8109A5011E888D27D8CC56E2EFC',
               VALID_FROM: '2118-12-31 00:00:00', VALID_TO: '2128-12-31 00:00:00', SYNCED: '1',
@@ -526,6 +546,68 @@ describe('entity tests', function () {
       });
     });
 
+    it('should get pieces of an instance with additional partner entity information', function (done) {
+      let piece = {
+        RELATIONS: ['r_user'],
+        RELATIONSHIPS: [
+          {RELATIONSHIP_ID: 'rs_marriage',
+            PARTNER_ENTITY_PIECES: {
+              RELATIONSHIPS: ['rs_marriage']
+            }}] };
+      entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
+        should(err).eql(null);
+
+        // instancePiece.relationships[0].values.forEach(value => console.log(value.PARTNER_INSTANCES[0]));
+        instancePiece.r_user.should.containDeep(instance2.r_user);
+        instancePiece.relationships[0].values[0].PARTNER_INSTANCES[0].should.containDeep(
+          { ENTITY_ID: 'person',
+            ROLE_ID: 'wife',
+            INSTANCE_GUID: '1A4EB21F9CE0B3236F61EDBB57BC9738',
+            relationships:
+              [ { RELATIONSHIP_ID: 'rs_marriage',
+                SELF_ROLE_ID: 'husband' },
+                { RELATIONSHIP_ID: 'rs_marriage',
+                  SELF_ROLE_ID: 'wife'} ],
+          });
+        done();
+      })
+    });
+
+    it('should get pieces of an instance with complex partner information', function (done) {
+      let piece = {
+        RELATIONSHIPS:
+          [
+            {
+              RELATIONSHIP_ID: 'rs_marriage',
+              PARTNER_ENTITY_PIECES: [
+                { ENTITY_ID: 'person',
+                  piece: {RELATIONS: ['r_user'], RELATIONSHIPS: ['rs_marriage']}
+                }
+              ]
+            },
+            {
+              RELATIONSHIP_ID: 'rs_user_role',
+              PARTNER_ENTITY_PIECES: [
+                { ENTITY_ID: 'permission',
+                  piece: {RELATIONS: ['r_role'], RELATIONSHIPS: ['rs_user_role']}
+                }
+              ]
+            },
+          ]
+      };
+      entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
+        should(err).eql(null);
+
+        instancePiece.relationships.should.containDeep([
+          { RELATIONSHIP_ID: 'rs_marriage',
+            SELF_ROLE_ID: 'husband'},
+          { RELATIONSHIP_ID: 'rs_user_role',
+            SELF_ROLE_ID: 'system_user'},
+        ]);
+        done();
+      })
+    });
+
     it('should report an error of RELATIONSHIP_DELETION_NOT_ALLOWED', function (done) {
       let userRoleRelationship = instance2.relationships.find(function (relationship) {
         return relationship.RELATIONSHIP_ID === 'rs_user_role';
@@ -536,7 +618,7 @@ describe('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'delete', RELATIONSHIP_INSTANCE_GUID:currentRelationshipGUID }
+            { action: 'delete', RELATIONSHIP_INSTANCE_GUID: currentRelationshipGUID }
           ]
         }
       ];
@@ -712,7 +794,21 @@ describe('entity tests', function () {
   });
 
   describe('Entity Deletion', function () {
-    it('should soft delete an instance', function (done) {
+    it('should soft delete an instance by GUID', function (done) {
+      entity.softDeleteInstanceByGUID(instance.INSTANCE_GUID, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should restore an instance', function (done) {
+      entity.restoreInstanceByGUID(instance.INSTANCE_GUID, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should soft delete an instance by ID', function (done) {
       entity.softDeleteInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.person.FINGER_PRINT}, function (err) {
         should(err).eql(null);
         let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
@@ -728,8 +824,8 @@ describe('entity tests', function () {
       })
     });
 
-    it('should restore an instance', function (done) {
-      entity.restoreInstanceByGUID(instance.INSTANCE_GUID, function (err) {
+    it('should restore an instance by ID', function (done) {
+      entity.restoreInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.person.FINGER_PRINT}, function (err) {
         should(err).eql(null);
         done();
       })

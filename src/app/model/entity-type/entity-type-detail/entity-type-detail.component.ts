@@ -61,8 +61,8 @@ export class EntityTypeDetailComponent implements OnInit {
           this.readonly = true;
           this.isNewMode = false;
           return forkJoin(
-            this.entityService.getEntityMeta(params.get('entityID')),
-            this.entityService.getRelationMeta(params.get('entityID')));
+            this.entityService.getEntityMeta(entityID),
+            this.entityService.getRelationMeta(entityID));
         }
       })
     ).subscribe(data => {
