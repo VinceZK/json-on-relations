@@ -30,17 +30,17 @@ export class EntityMeta {
   ROLES: Role[];
 }
 export class Attribute {
-  ATTR_GUID: string;
+  ATTR_GUID?: string;
   RELATION_ID: string;
   ATTR_NAME: string;
-  ATTR_DESC: string;
-  DATA_ELEMENT: string;
+  ATTR_DESC?: string;
+  DATA_ELEMENT?: string;
   DATA_TYPE: number;
-  DATA_LENGTH: number;
-  DECIMAL: number;
-  ORDER: number;
-  PRIMARY_KEY: boolean;
-  AUTO_INCREMENT: boolean;
+  DATA_LENGTH?: number;
+  DECIMAL?: number;
+  ORDER?: number;
+  PRIMARY_KEY?: boolean;
+  AUTO_INCREMENT?: boolean;
 }
 export class Role {
   ROLE_ID: string;

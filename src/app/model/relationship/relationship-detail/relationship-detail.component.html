@@ -27,14 +27,21 @@
     <textarea class="form-control" id="relationship-desc" name="relationship-desc" rows="2"
               formControlName="RELATIONSHIP_DESC" [readonly]="readonly" (change)="onChangeRelationshipDesc()"></textarea>
   </div>
-  <div class="form-group" >
-    <label for="valid_period" class="col-form-label form-control-sm">Valid Period(second):
-      <span class="errorMessage" *ngIf="!relationshipForm.get('VALID_PERIOD').valid">
-        {{relationshipForm.get('VALID_PERIOD').errors['message']}}
+  <div class="row ml-2">
+    <div class="col-2 form-group row" >
+      <label for="timeDependent" class="col-form-label form-control-sm">Time Dependent: </label>
+      <input type="checkbox" class="form-control ml-2" id="timeDependent" name="timeDependent"
+             formControlName="TIME_DEPENDENT" (change)="onChangeTimeDependency()">
+    </div>
+    <div class="col-4 form-group row ml-3" >
+      <label for="valid_period" class="col-form-label form-control-sm">Valid Period(second):
+        <span class="errorMessage" *ngIf="!relationshipForm.get('VALID_PERIOD').valid">
+        {{relationshipForm.get('VALID_PERIOD').errors?.message}}
       </span>
-    </label>
-    <input type="number" class="form-control form-control-sm" id="valid_period" [readonly]="readonly"
-           name="valid_period" formControlName="VALID_PERIOD">
+      </label>
+      <input type="number" class="form-control form-control-sm" id="valid_period" [readonly]="readonly"
+             name="valid_period" formControlName="VALID_PERIOD">
+    </div>
   </div>
 
   <app-attribute-meta [readonly]="readonly" [parentForm]="relationshipForm" [attributes]="attributes"

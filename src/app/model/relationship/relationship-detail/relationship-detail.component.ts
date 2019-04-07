@@ -52,7 +52,7 @@ export class RelationshipDetailComponent implements OnInit {
           const relationship = new RelationshipMeta();
           relationship.RELATIONSHIP_ID = 'rs_';
           relationship.RELATIONSHIP_DESC = '';
-          relationship.VALID_PERIOD = 36000000;
+          relationship.VALID_PERIOD = 0;
           relationship.INVOLVES = [];
           this.isNewMode = true;
           this.readonly = false;
@@ -77,21 +77,27 @@ export class RelationshipDetailComponent implements OnInit {
         this.relationshipMeta = data[0];
         this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
         this._generateRelationshipForm();
+        if (this.readonly) { this.relationshipForm.get('TIME_DEPENDENT').disable(); }
       }
     });
   }
 
   _generateRelationshipForm(): void {
-    this.relationshipForm = this.fb.group({});
-    this.relationshipForm.addControl(
-      'RELATIONSHIP_ID', new FormControl(this.relationshipMeta.RELATIONSHIP_ID, {updateOn: 'blur'}));
-    if (this.isNewMode) {
-      this.relationshipForm.get('RELATIONSHIP_ID').setValidators(this._validateRelationshipID);
-      this.relationshipForm.get('RELATIONSHIP_ID').setAsyncValidators(
-        this.uniqueRelationshipValidator.validate.bind(this.uniqueRelationshipValidator));
+    if (this.relationshipForm) {
+      this.relationshipForm.get('RELATIONSHIP_ID').setValue(this.relationshipMeta.RELATIONSHIP_ID);
+      this.relationshipForm.get('RELATIONSHIP_DESC').setValue(this.relationshipMeta.RELATIONSHIP_DESC);
+      this.relationshipForm.get('TIME_DEPENDENT').setValue(this.relationshipMeta.VALID_PERIOD > 0);
+      this.relationshipForm.get('VALID_PERIOD').setValue(this.relationshipMeta.VALID_PERIOD);
+      this.relationshipForm.removeControl('ATTRIBUTES');
+    } else {
+      this.relationshipForm = this.fb.group({
+        RELATIONSHIP_ID: [this.relationshipMeta.RELATIONSHIP_ID, {updateOn: 'blur'}],
+        RELATIONSHIP_DESC: [this.relationshipMeta.RELATIONSHIP_DESC],
+        TIME_DEPENDENT: [this.relationshipMeta.VALID_PERIOD > 0],
+        VALID_PERIOD: [this.relationshipMeta.VALID_PERIOD]
+      });
     }
-    this.relationshipForm.addControl('RELATIONSHIP_DESC', new FormControl(this.relationshipMeta.RELATIONSHIP_DESC));
-    this.relationshipForm.addControl('VALID_PERIOD', new FormControl(this.relationshipMeta.VALID_PERIOD));
+
     // Compose Involves
     const formArray = [];
     this.relationshipMeta.INVOLVES.forEach( involve => {
@@ -102,7 +108,12 @@ export class RelationshipDetailComponent implements OnInit {
         DIRECTION: [involve.DIRECTION]
       }));
     });
+
     if (this.isNewMode) {
+      this.relationshipForm.get('RELATIONSHIP_ID').setValidators(this._validateRelationshipID);
+      this.relationshipForm.get('RELATIONSHIP_ID').setAsyncValidators(
+        this.uniqueRelationshipValidator.validate.bind(this.uniqueRelationshipValidator));
+      this.relationshipForm.get('TIME_DEPENDENT').enable();
       formArray.push(
         this.fb.group({
           ROLE_ID: [''],
@@ -110,8 +121,12 @@ export class RelationshipDetailComponent implements OnInit {
           CARDINALITY: ['[1..1]'],
           DIRECTION: ['']
         }));
+    } else {
+      this.relationshipForm.get('RELATIONSHIP_ID').clearValidators();
+      this.relationshipForm.get('RELATIONSHIP_ID').clearAsyncValidators();
     }
-    this.relationshipForm.addControl('INVOLVES', new FormArray(formArray));
+
+    this.relationshipForm.setControl('INVOLVES', new FormArray(formArray));
   }
 
   _validateRelationshipID(c: FormControl) {
@@ -129,6 +144,9 @@ export class RelationshipDetailComponent implements OnInit {
 
     if (c.value.toString().length < 4) {
       return {message: 'Relationship ID must have length larger than 3!'};
+    }
+    if (c.value.toString().length > 32) {
+      return {message: 'Relationship ID must have length less than 32!'};
     }
     return null;
   }
@@ -161,6 +179,7 @@ export class RelationshipDetailComponent implements OnInit {
       }
     } else { // In Display Mode -> Change Mode
       this.readonly = false;
+      this.relationshipForm.get('TIME_DEPENDENT').enable();
       this.attrComponent.switchEditDisplay(this.readonly);
       this.involveFormArray.controls.forEach(involveFormGroup => {
         involveFormGroup.get('CARDINALITY').enable();
@@ -178,6 +197,7 @@ export class RelationshipDetailComponent implements OnInit {
 
   _switch2DisplayMode(): void {
     this.readonly = true;
+    this.relationshipForm.get('TIME_DEPENDENT').disable();
     this.attrComponent.switchEditDisplay(this.readonly);
     let lastIndex = this.involveFormArray.length - 1;
     while (lastIndex >= 0 && this.involveFormArray.controls[lastIndex].get('ROLE_ID').value.trim() === '') {
@@ -193,14 +213,73 @@ export class RelationshipDetailComponent implements OnInit {
     this.modelService.updateRelationshipID(this.relationshipForm.get('RELATIONSHIP_ID').value);
   }
 
+  onChangeTimeDependency(): void {
+    const timeDependent = this.relationshipForm.get('TIME_DEPENDENT').value;
+    const validPeriodCtrl = this.relationshipForm.get('VALID_PERIOD');
+    const relationID = this.relationshipForm.get('RELATIONSHIP_ID').value;
+    const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
+    if (timeDependent) {
+      validPeriodCtrl.setValue(28080000); // 3600 * 24 * 365
+      validPeriodCtrl.enable();
+      const validFromFormGroup = this.fb.group({
+        ATTR_GUID: [''],
+        RELATION_ID: [relationID],
+        ATTR_NAME: ['VALID_FROM'],
+        ATTR_DESC: ['Valid from'],
+        DATA_ELEMENT: [''],
+        DATA_TYPE: [{value: 8, disabled: true}],
+        DATA_LENGTH: [null],
+        DECIMAL: [null],
+        PRIMARY_KEY: [false],
+        AUTO_INCREMENT: [false]
+      });
+      validFromFormGroup.markAsDirty();
+      attrFormArray.insert(attrFormArray.length - 1, validFromFormGroup);
+      const validToFormGroup = this.fb.group({
+        ATTR_GUID: [''],
+        RELATION_ID: [relationID],
+        ATTR_NAME: ['VALID_TO'],
+        ATTR_DESC: ['Valid to'],
+        DATA_ELEMENT: [''],
+        DATA_TYPE: [{value: 8, disabled: true}],
+        DATA_LENGTH: [null],
+        DECIMAL: [null],
+        PRIMARY_KEY: [false],
+        AUTO_INCREMENT: [false]
+      });
+      validToFormGroup.markAsDirty();
+      attrFormArray.insert(attrFormArray.length - 1, validToFormGroup);
+    } else {
+      validPeriodCtrl.setValue(0);
+      validPeriodCtrl.disable();
+      const attributeValidFromIndex = attrFormArray.controls.findIndex(
+        attrCtrl => attrCtrl.get('ATTR_NAME').value === 'VALID_FROM');
+      if (attributeValidFromIndex >= 0) { attrFormArray.removeAt(attributeValidFromIndex); }
+      const attributeValidToIndex = attrFormArray.controls.findIndex(
+        attrCtrl => attrCtrl.get('ATTR_NAME').value === 'VALID_TO');
+      if (attributeValidToIndex >= 0) { attrFormArray.removeAt(attributeValidToIndex); }
+      attrFormArray.markAsDirty();
+    }
+
+  }
+
   onChangeRelationshipDesc(): void {
     this.modelService.updateRelationshipDesc(this.relationshipForm.get('RELATIONSHIP_DESC').value);
   }
 
   deleteInvolve(index: number): void {
     if (index !== this.involveFormArray.length - 1) {
+      const currentRoleID = this.involveFormArray.at(index).get('ROLE_ID').value;
       this.involveFormArray.removeAt(index);
       this.involveFormArray.markAsDirty();
+      const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
+      const attributeInstanceGUIDIndex = attrFormArray.controls.findIndex(
+        attrCtrl => attrCtrl.get('ATTR_NAME').value === currentRoleID + '_INSTANCE_GUID');
+      if (attributeInstanceGUIDIndex >= 0) { attrFormArray.removeAt(attributeInstanceGUIDIndex); }
+      const attributeEntityIDIndex = attrFormArray.controls.findIndex(
+        attrCtrl => attrCtrl.get('ATTR_NAME').value === currentRoleID + '_ENTITY_ID');
+      if (attributeEntityIDIndex >= 0) { attrFormArray.removeAt(attributeEntityIDIndex); }
+      attrFormArray.markAsDirty();
     }
   }
 
@@ -230,6 +309,37 @@ export class RelationshipDetailComponent implements OnInit {
         currentInvolveFormGroup.get('ROLE_ID').setErrors({message: data['msgShortText']});
       } else {
         currentInvolveFormGroup.get('ROLE_DESC').setValue(data);
+        const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
+        const relationID = this.relationshipForm.get('RELATIONSHIP_ID').value;
+        const instanceGUIDFormGroup = this.fb.group({
+          ATTR_GUID: [''],
+          RELATION_ID: [relationID],
+          ATTR_NAME: [currentInvolveFormGroup.value.ROLE_ID + '_INSTANCE_GUID'],
+          ATTR_DESC: ['Entity Instance GUID of role ' + currentInvolveFormGroup.value.ROLE_ID],
+          DATA_ELEMENT: [''],
+          DATA_TYPE: [{value: 1, disabled: true}],
+          DATA_LENGTH: [32],
+          DECIMAL: [null],
+          PRIMARY_KEY: [false],
+          AUTO_INCREMENT: [false]
+        });
+        instanceGUIDFormGroup.markAsDirty();
+        attrFormArray.insert(attrFormArray.length - 1, instanceGUIDFormGroup);
+        const entityIDFormGroup = this.fb.group({
+          ATTR_GUID: [''],
+          RELATION_ID: [relationID],
+          ATTR_NAME: [currentInvolveFormGroup.value.ROLE_ID + '_ENTITY_ID'],
+          ATTR_DESC: ['Entity ID of role ' + currentInvolveFormGroup.value.ROLE_ID],
+          DATA_ELEMENT: [''],
+          DATA_TYPE: [{value: 1, disabled: true}],
+          DATA_LENGTH: [32],
+          DECIMAL: [null],
+          PRIMARY_KEY: [false],
+          AUTO_INCREMENT: [false]
+        });
+        entityIDFormGroup.markAsDirty();
+        attrFormArray.insert(attrFormArray.length - 1, entityIDFormGroup);
+        attrFormArray.markAsDirty();
       }
     });
   }
@@ -280,8 +390,9 @@ export class RelationshipDetailComponent implements OnInit {
     this.changedRelationship['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
     this._processChangedInvolves();
 
-    this.entityService.saveRelationship(this.changedRelationship)
-      .subscribe(data => this._postActivityAfterSavingRelationship(data));
+    console.log(this.changedRelationship);
+    // this.entityService.saveRelationship(this.changedRelationship)
+    //   .subscribe(data => this._postActivityAfterSavingRelationship(data));
   }
 
   _processChangedInvolves(): void {

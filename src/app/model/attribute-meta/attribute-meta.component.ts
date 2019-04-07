@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {Attribute} from '../../entity';
 
 @Component({
@@ -32,7 +32,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   ngOnInit() { }
 
   ngOnChanges() {
-    this._generateFormArray();
+    this.generateFormArray();
     this.formArray = this.parentForm.get('ATTRIBUTES') as FormArray;
   }
 
@@ -112,7 +112,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     }
   }
 
-  _generateFormArray(): void {
+  generateFormArray(): void {
     const formArray = [];
     if (this.attributes) {
       this.attributes.forEach( attribute => {
@@ -122,11 +122,11 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
           ATTR_NAME: [attribute.ATTR_NAME],
           ATTR_DESC: [attribute.ATTR_DESC],
           DATA_ELEMENT: [attribute.DATA_ELEMENT],
-          DATA_TYPE: [{value: attribute.DATA_TYPE, disabled: this.readonly}],
+          DATA_TYPE: [{value: attribute.DATA_TYPE, disabled: this.readonly || this.isFieldGray(attribute)}],
           DATA_LENGTH: [attribute.DATA_LENGTH],
           DECIMAL: [attribute.DECIMAL],
-          PRIMARY_KEY: [{value: attribute.PRIMARY_KEY, disabled: this.readonly}],
-          AUTO_INCREMENT: [{value: attribute.AUTO_INCREMENT, disabled: this.readonly}]
+          PRIMARY_KEY: [{value: attribute.PRIMARY_KEY, disabled: this.readonly || this.isFieldGray(attribute)}],
+          AUTO_INCREMENT: [{value: attribute.AUTO_INCREMENT, disabled: this.readonly || this.isFieldGray(attribute)}]
         }));
       });
     }
@@ -150,9 +150,11 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   switchEditDisplay(readonly: boolean) {
     if (!readonly) { // Edit Mode
       this.formArray.controls.forEach(attrFormGroup => {
-        attrFormGroup.get('DATA_TYPE').enable();
-        attrFormGroup.get('PRIMARY_KEY').enable();
-        attrFormGroup.get('AUTO_INCREMENT').enable();
+        if (!this.isFieldGray(attrFormGroup.value)) {
+          attrFormGroup.get('DATA_TYPE').enable();
+          attrFormGroup.get('PRIMARY_KEY').enable();
+          attrFormGroup.get('AUTO_INCREMENT').enable();
+        }
       });
       this.formArray.push(this.fb.group({
         ATTR_GUID: [''],
@@ -178,5 +180,14 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         attrFormGroup.get('AUTO_INCREMENT').disable();
       });
     }
+  }
+
+  isFieldGray(attribute: Attribute): boolean {
+    return this.relationID.substr(0, 3) === 'rs_' &&
+        attribute && attribute.ATTR_NAME &&
+       (attribute.ATTR_NAME === 'VALID_FROM' ||
+        attribute.ATTR_NAME === 'VALID_TO' ||
+        attribute.ATTR_NAME.substr(-14, 14) === '_INSTANCE_GUID' ||
+        attribute.ATTR_NAME.substr(-10, 10) === '_ENTITY_ID');
   }
 }
