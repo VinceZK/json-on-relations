@@ -37,7 +37,7 @@
                    class="form-control form-control-sm">
           </td>
           <td [formGroup]="attrFormGroup">
-            <select formControlName="DATA_TYPE" (change)="onChangeDataType(attrFormGroup.value)" class="form-control form-control-sm">
+            <select formControlName="DATA_TYPE" (change)="onChangeDataType(attrFormGroup)" class="form-control form-control-sm">
               <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
             </select>
           </td>

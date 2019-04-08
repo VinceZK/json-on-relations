@@ -220,6 +220,7 @@ export class RelationshipDetailComponent implements OnInit {
     const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
     if (timeDependent) {
       validPeriodCtrl.setValue(28080000); // 3600 * 24 * 365
+      validPeriodCtrl.markAsDirty();
       validPeriodCtrl.enable();
       const validFromFormGroup = this.fb.group({
         ATTR_GUID: [''],
@@ -252,13 +253,14 @@ export class RelationshipDetailComponent implements OnInit {
     } else {
       validPeriodCtrl.setValue(0);
       validPeriodCtrl.disable();
+      validPeriodCtrl.markAsDirty();
+      console.log(validPeriodCtrl);
       const attributeValidFromIndex = attrFormArray.controls.findIndex(
         attrCtrl => attrCtrl.get('ATTR_NAME').value === 'VALID_FROM');
-      if (attributeValidFromIndex >= 0) { attrFormArray.removeAt(attributeValidFromIndex); }
+      if (attributeValidFromIndex >= 0) { this.attrComponent.deleteAttribute(attributeValidFromIndex); }
       const attributeValidToIndex = attrFormArray.controls.findIndex(
         attrCtrl => attrCtrl.get('ATTR_NAME').value === 'VALID_TO');
-      if (attributeValidToIndex >= 0) { attrFormArray.removeAt(attributeValidToIndex); }
-      attrFormArray.markAsDirty();
+      if (attributeValidToIndex >= 0) { this.attrComponent.deleteAttribute(attributeValidToIndex); }
     }
 
   }
@@ -275,11 +277,10 @@ export class RelationshipDetailComponent implements OnInit {
       const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
       const attributeInstanceGUIDIndex = attrFormArray.controls.findIndex(
         attrCtrl => attrCtrl.get('ATTR_NAME').value === currentRoleID + '_INSTANCE_GUID');
-      if (attributeInstanceGUIDIndex >= 0) { attrFormArray.removeAt(attributeInstanceGUIDIndex); }
+      if (attributeInstanceGUIDIndex >= 0) { this.attrComponent.deleteAttribute(attributeInstanceGUIDIndex); }
       const attributeEntityIDIndex = attrFormArray.controls.findIndex(
         attrCtrl => attrCtrl.get('ATTR_NAME').value === currentRoleID + '_ENTITY_ID');
-      if (attributeEntityIDIndex >= 0) { attrFormArray.removeAt(attributeEntityIDIndex); }
-      attrFormArray.markAsDirty();
+      if (attributeEntityIDIndex >= 0) { this.attrComponent.deleteAttribute(attributeEntityIDIndex); }
     }
   }
 
@@ -388,14 +389,19 @@ export class RelationshipDetailComponent implements OnInit {
     }
 
     this.changedRelationship['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
-    this._processChangedInvolves();
 
-    console.log(this.changedRelationship);
-    // this.entityService.saveRelationship(this.changedRelationship)
-    //   .subscribe(data => this._postActivityAfterSavingRelationship(data));
+    if (this._processChangedInvolves()) {
+      // console.log(this.changedRelationship);
+      this.entityService.saveRelationship(this.changedRelationship)
+        .subscribe(data => this._postActivityAfterSavingRelationship(data));
+    }
   }
 
-  _processChangedInvolves(): void {
+  _processChangedInvolves(): boolean {
+    if (this.involveFormArray.length <= 2) { // An empty line is included
+      this.messageService.reportMessage('MODEL', 'RELATIONSHIP_LACK_INVOLVED_ROLES', 'E');
+      return false;
+    }
     const changedInvolves = [];
     if (this.involveFormArray.dirty) {
       this.changedRelationship['INVOLVES'] = changedInvolves;
@@ -426,6 +432,7 @@ export class RelationshipDetailComponent implements OnInit {
         }
       });
     }
+    return true;
   }
 
   _postActivityAfterSavingRelationship(data: any) {

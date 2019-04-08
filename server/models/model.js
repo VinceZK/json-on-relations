@@ -69,7 +69,8 @@ function saveEntityType(entityType, userID, callback) {
   if (entityType.action === 'update') {
     let updateSQL = "update ENTITY set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (entityType.ENTITY_DESC) updateSQL = updateSQL + ", ENTITY_DESC = " + entityDB.pool.escape(entityType.ENTITY_DESC);
+    if (entityType.ENTITY_DESC !== null)
+      updateSQL = updateSQL + ", ENTITY_DESC = " + entityDB.pool.escape(entityType.ENTITY_DESC);
     updateSQL = updateSQL + " where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID);
     updateSQLs.push(updateSQL);
   } else if (entityType.action === 'add') {
@@ -147,7 +148,7 @@ function getRelationDesc(relationID, callback) {
   })
 }
 
-function  saveRelation(relation, userID, callback) {
+function saveRelation(relation, userID, callback) {
   if (!relation || relation === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
   }
@@ -197,7 +198,8 @@ function _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime) {
   if (relation.action === 'update') {
     let updateSQL = "update RELATION set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) + ", LAST_CHANGE_TIME = "
       + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relation.RELATION_DESC) updateSQL = updateSQL + ", RELATION_DESC = " + entityDB.pool.escape(relation.RELATION_DESC);
+    if (relation.RELATION_DESC !== null)
+      updateSQL = updateSQL + ", RELATION_DESC = " + entityDB.pool.escape(relation.RELATION_DESC);
     updateSQL = updateSQL + " where RELATION_ID = " + entityDB.pool.escape(relation.RELATION_ID);
     updateSQLs.push(updateSQL);
   } else if (relation.action === 'add') {
@@ -405,9 +407,9 @@ function saveRelationship(relationship, userID, callback) {
   if (relationship.action === 'update') {
     let updateSQL = "update RELATIONSHIP set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relationship.RELATIONSHIP_DESC)
+    if (relationship.RELATIONSHIP_DESC !== null)
       updateSQL += ", RELATIONSHIP_DESC = " + entityDB.pool.escape(relationship.RELATIONSHIP_DESC);
-    if (relationship.VALID_PERIOD)
+    if (relationship.VALID_PERIOD !== null)
       updateSQL += ", VALID_PERIOD = " + entityDB.pool.escape(relationship.VALID_PERIOD);
     updateSQL += " where RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID);
     updateSQLs.push(updateSQL);
@@ -546,7 +548,8 @@ function saveRole(role, userID, callback) {
   if (role.action === 'update') {
     let updateSQL = "update ROLE set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (role.ROLE_DESC) updateSQL += ", ROLE_DESC = " + entityDB.pool.escape(role.ROLE_DESC);
+    if (role.ROLE_DESC !== null)
+      updateSQL += ", ROLE_DESC = " + entityDB.pool.escape(role.ROLE_DESC);
     updateSQL += " where ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
     updateSQLs.push(updateSQL);
   } else if (role.action === 'add') {

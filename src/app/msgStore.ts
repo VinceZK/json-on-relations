@@ -110,6 +110,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'RELATIONSHIP_LACK_INVOLVED_ROLES',
+    msgText: {
+      EN: {shortText: 'A relationship must at least have 2 involved roles', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'UNSAVED_NEW',
     msgText: {
       EN: {shortText: 'There is a unsaved new object existing, please save it first, then create another.', longText: ''}

@@ -44,9 +44,9 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     }
   }
 
-  onChangeDataType(attrFormGroup: FormGroup): void {
-    attrFormGroup.controls['DATA_LENGTH'].setValue(null);
-    attrFormGroup.controls['DATA_LENGTH'].markAsDirty();
+  onChangeDataType(attrFormGroup: AbstractControl): void {
+    attrFormGroup.get('DATA_LENGTH').setValue(null);
+    attrFormGroup.get('DATA_LENGTH').markAsDirty();
   }
 
   onChangeAttributeName(index: number): void {
@@ -72,10 +72,10 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     const changedAttributes = [];
     let changedAttribute;
     if (this.formArray.dirty) {
-      this.formArray.controls.forEach(attribute => {
+      this.formArray.controls.forEach((attribute, index) => {
         if (attribute.get('ATTR_NAME').value.trim() === '') { return; }
         if (attribute.dirty) {
-          changedAttribute = {};
+          changedAttribute = { ORDER: index };
           if (attribute.get('ATTR_GUID').value) { // Update Case
             changedAttribute['action'] = 'update';
             changedAttribute['ATTR_GUID'] = attribute.get('ATTR_GUID').value;
