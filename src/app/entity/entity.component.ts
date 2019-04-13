@@ -57,7 +57,7 @@ export class EntityComponent implements OnInit {
         let entityMeta$ = of({});
         let relationMetas$ = of([]);
         let errMessages$ = of([]);
-        console.log(data);
+        // console.log(data);
         if (data['ENTITY_ID']) {
           this.entity = data as Entity;
           entityMeta$ = this.entityService.getEntityMeta(this.entity.ENTITY_ID);
@@ -97,7 +97,6 @@ export class EntityComponent implements OnInit {
       return;
     }
 
-    // console.log(this.changedEntity);
     if (this.entity.INSTANCE_GUID) {
       this.entityService.changeEntityInstance(this.changedEntity).subscribe(data => {
         this._postActivityAfterSaving(data);

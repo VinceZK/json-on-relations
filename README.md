@@ -118,10 +118,9 @@ Content-Type: application/json
    By default, Portal uses credential 'nodejs/nodejs' to connect MySql at port 3306. 
    You can of course change the default settings. Please refer the next step.
    
-3. In Node:
-   ``` 
-   copy "node_modules/json-on-relations/dist" to your project root. 
-   ```
+3. In your NodeJS project:
+   Copy the folder "node_modules/json-on-relations/dist" and its belongings to your project root. 
+ 
    create "server.js" in the project root with following:
    ```javascript 1.8
    const express = require('express');
@@ -176,7 +175,7 @@ Content-Type: application/json
      }
    });
    ```
-   You should also install following packages: express, path, cors, body-parse, and compression.
+   You should also install following involved packages: express, path, cors, body-parse, and compression.
 4. Start the server:
    ```bash
     $ node server.js
@@ -185,10 +184,10 @@ Content-Type: application/json
    + [Modeling](http://localhost:3001/model)
    + [Entity Browser](http://localhost:3001/entity/list)
    
-*If you use Angular for UI development, you can install the package 'npm i jor-angular' for the types.*  
+*If you are using Angular for UI development, you can install the package 'npm i jor-angular' for the types.*  
    
 ## RESTful API
-Following APIs are opened in the default route table.
+Following APIs are opened in the default route table. These examples are also listed in the 'test/test_api.http'. 
 ### Create a person instance
 ```http request
 POST http://localhost:3001/api/entity
@@ -322,7 +321,7 @@ Content-Type: application/json
 }
 ```
 
-### Get pieces of an entity instance through its business ID.
+### Get pieces of an entity instance through its business ID
 Use this API to get pieces of an entity from its business ID.
 In following example, it gets relations "r_user" and "r_email", and the relationship "rs_user_role"
 for the user "DH001".
@@ -340,6 +339,39 @@ Content-Type: application/json
   "piece": {
     "RELATIONS": ["r_user", "r_email"],
     "RELATIONSHIPS": ["rs_user_role"]
+  }
+}
+```
+
+### Get partner information from the relationship
+When you make a request to retrieve the information of an entity, you also want some of its partners' information.
+You don't need to make 2 or more requests, just request the partners' information in the relationships.
+
+Like bellow request, it will return the role and marriage partner information together with the person's own information. 
+You can recursively request all the entities that have relationship networks with each other.  
+```http request
+POST http://localhost:3000/api/entity/instance/piece
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "ID": {
+    "RELATION_ID": "r_user",
+    "USER_ID": "DH001"
+  },
+  "piece": {
+    "RELATIONS": ["r_user", "r_personalization"],
+    "RELATIONSHIPS": [
+      {"RELATIONSHIP_ID": "rs_user_role",
+       "PARTNER_ENTITY_PIECES": [
+        {"ENTITY_ID": "permission",
+         "piece": {"RELATIONS": ["r_role"], "RELATIONSHIPS": ["rs_user_role"]}}]},
+      {"RELATIONSHIP_ID": "rs_marriage",
+       "PARTNER_ENTITY_PIECES": [
+         {"ENTITY_ID": "person",
+           "piece": {"RELATIONS": ["person"]}}]}
+    ]
   }
 }
 ```

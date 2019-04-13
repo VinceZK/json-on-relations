@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
-import {PartnerInstance, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from '../../entity';
+import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from '../../entity';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
 import {FormBuilder, FormGroup} from '@angular/forms';
@@ -19,6 +19,7 @@ export class EntityRelationshipComponent implements OnInit {
   detailValue: RelationshipInstance;
   attributeControls: AttributeBase<any>[];
   relationshipFormGroup: FormGroup;
+  relationshipAttributes: Attribute[] = [];
   readonlyValidFrom: boolean;
   readonlyValidTo: boolean;
   readonlyPartner: boolean;
@@ -47,12 +48,17 @@ export class EntityRelationshipComponent implements OnInit {
 
   ngOnInit() {
     this.currentTime = EntityRelationshipComponent._getFormattedDate();
-    this.attributeControls = this.attributeControlService.toAttributeControl(this.relationshipAttributeMeta.ATTRIBUTES);
     this.detailValue = new RelationshipInstance();
     this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
-      this.relationshipFormGroup.addControl(attribute.ATTR_NAME,
-        this.attributeControlService.convertToFormControl(attribute, this.detailValue));
-    }); // Must be initialized, or the form group is null as the modal will be initialized.
+      if (attribute.ATTR_NAME !== 'VALID_FROM' && attribute.ATTR_NAME !== 'VALID_TO'
+          && attribute.ATTR_NAME.substr(-14, 14) !== '_INSTANCE_GUID'
+          && attribute.ATTR_NAME.substr(-10, 10) !== '_ENTITY_ID') {
+        this.relationshipAttributes.push(attribute);
+        this.relationshipFormGroup.addControl(attribute.ATTR_NAME,
+          this.attributeControlService.convertToFormControl(attribute, this.detailValue));
+      }
+    });
+    this.attributeControls = this.attributeControlService.toAttributeControl(this.relationshipAttributes);
   }
 
   popoverPartnerInstances(event) {
@@ -76,10 +82,8 @@ export class EntityRelationshipComponent implements OnInit {
       partnerInstance.ROLE_ID = involve.ROLE_ID;
       this.detailValue.PARTNER_INSTANCES.push(partnerInstance);
     });
-    this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
-      this.relationshipFormGroup.setControl(attribute.ATTR_NAME,
-        this.attributeControlService.convertToFormControl(attribute, this.detailValue));
-    });
+    this.relationshipAttributes.forEach(attribute =>
+      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
     this.readonlyValidFrom = false;
     this.readonlyValidTo = false;
     this.readonlyPartner = false;
@@ -177,10 +181,8 @@ export class EntityRelationshipComponent implements OnInit {
   _getRelationshipDetailValue(index: number) {
     this.isModalShown = true;
     this.detailValue = this.relationship.values[index];
-    this.relationshipAttributeMeta.ATTRIBUTES.forEach(attribute => {
-      this.relationshipFormGroup.setControl(attribute.ATTR_NAME,
-        this.attributeControlService.convertToFormControl(attribute, this.detailValue));
-    });
+    this.relationshipAttributes.forEach(attribute =>
+      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   _changeRelationship(): void {

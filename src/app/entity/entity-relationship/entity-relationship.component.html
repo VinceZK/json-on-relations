@@ -88,7 +88,7 @@
               <tr *ngFor="let partnerEntity of value.PARTNER_INSTANCES">
                 <td>{{partnerEntity.ENTITY_ID}}</td>
                 <td>{{partnerEntity.ROLE_ID}}</td>
-                <td><a href="#">{{partnerEntity.INSTANCE_GUID}}</a></td>
+                <td><a [routerLink]="['/entity', partnerEntity.INSTANCE_GUID]">{{partnerEntity.INSTANCE_GUID}}</a></td>
               </tr>
             </tbody>
           </table>
@@ -113,7 +113,7 @@
       <div class="modal-body">
         <dk-message></dk-message>
         <form>
-          <div class="form-row">
+          <div class="form-row" *ngIf="detailValue.VALID_FROM && detailValue.VALID_TO">
             <div class="form-group col-6">
               <label for="valid-from" class="col-form-label form-control-sm">Valid From:</label>
               <input type="text" class="form-control form-control-sm" id="valid-from" [readonly]="readonlyValidFrom"

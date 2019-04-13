@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntities(['person', 'permission'], done);
   });
@@ -565,8 +565,6 @@ describe('entity tests', function () {
             INSTANCE_GUID: '1A4EB21F9CE0B3236F61EDBB57BC9738',
             relationships:
               [ { RELATIONSHIP_ID: 'rs_marriage',
-                SELF_ROLE_ID: 'husband' },
-                { RELATIONSHIP_ID: 'rs_marriage',
                   SELF_ROLE_ID: 'wife'} ],
           });
         done();

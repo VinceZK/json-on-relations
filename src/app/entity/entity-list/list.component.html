@@ -21,20 +21,20 @@
 
 <div class="card mb-3 pt-3">
   <div *ngFor="let selection of selections;let i = index" class="pl-4 form-group row">
-    <select name="filterField" class="col-3 form-control form-control-sm mr-3" required [(ngModel)]="selection.fieldName">
+    <select name="filterField" class="col-3 form-control form-control-sm mr-3" required [(ngModel)]="selection.FIELD_NAME">
       <option *ngFor="let attribute of attributes" [value]="attribute.ATTR_NAME">{{attribute.ATTR_NAME}}</option>
     </select>
-    <select name="operator" class="col-1 form-control form-control-sm mr-3" required [(ngModel)]="selection.operator">
+    <select name="operator" class="col-1 form-control form-control-sm mr-3" required [(ngModel)]="selection.OPERATOR">
       <option *ngFor="let operator of operators" [value]="operator.ID">{{operator.LABEL}}</option>
     </select>
-    <input name="low" [(ngModel)]="selection.low" type="text" class="col-2 form-control form-control-sm mr-3">
-    <label *ngIf="selection.operator === 'BT'" class="col-form-label form-control-sm">and</label>
-    <input *ngIf="selection.operator === 'BT'" name="high" [(ngModel)]="selection.high" type="text" class="col-2 form-control form-control-sm mx-3">
+    <input name="low" [(ngModel)]="selection.LOW" type="text" class="col-2 form-control form-control-sm mr-3">
+    <label *ngIf="selection.OPERATOR === 'BT'" class="col-form-label form-control-sm">and</label>
+    <input *ngIf="selection.OPERATOR === 'BT'" name="high" [(ngModel)]="selection.HIGH" type="text" class="col-2 form-control form-control-sm mx-3">
     <button type="button" class="btn btn-link btn-sm ml-2" (click)="deleteSelection(i)">Delete</button>
   </div>
 
   <div class="mb-2">
-    <button type="button" class="btn btn-link btn-sm ml-2" (click)="addSelection()">Add</button>
+    <button *ngIf="attributes && attributes.length > 0" type="button" class="btn btn-link btn-sm ml-2" (click)="addSelection()">Add</button>
     <button type="button" class="btn btn-primary btn-sm float-right mr-4" (click)="search()">Search</button>
   </div>
 </div>

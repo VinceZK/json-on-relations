@@ -84,6 +84,7 @@ export class RelationshipDetailComponent implements OnInit {
 
   _generateRelationshipForm(): void {
     if (this.relationshipForm) {
+      this.relationshipForm.markAsPristine({onlySelf: false});
       this.relationshipForm.get('RELATIONSHIP_ID').setValue(this.relationshipMeta.RELATIONSHIP_ID);
       this.relationshipForm.get('RELATIONSHIP_DESC').setValue(this.relationshipMeta.RELATIONSHIP_DESC);
       this.relationshipForm.get('TIME_DEPENDENT').setValue(this.relationshipMeta.VALID_PERIOD > 0);
@@ -254,7 +255,6 @@ export class RelationshipDetailComponent implements OnInit {
       validPeriodCtrl.setValue(0);
       validPeriodCtrl.disable();
       validPeriodCtrl.markAsDirty();
-      console.log(validPeriodCtrl);
       const attributeValidFromIndex = attrFormArray.controls.findIndex(
         attrCtrl => attrCtrl.get('ATTR_NAME').value === 'VALID_FROM');
       if (attributeValidFromIndex >= 0) { this.attrComponent.deleteAttribute(attributeValidFromIndex); }
@@ -443,6 +443,7 @@ export class RelationshipDetailComponent implements OnInit {
         this.router.navigate(['/model/relationship/' + data[0]['RELATIONSHIP_ID']]);
       } else {
         this.readonly = true;
+        this.relationshipForm.get('TIME_DEPENDENT').disable();
         this.relationshipMeta = data[0];
         this.attributes = data[1].ATTRIBUTES;
         this.changedRelationship = {};

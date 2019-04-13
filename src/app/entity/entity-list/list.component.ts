@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as Handsontable from 'handsontable';
 import {EntityService} from '../../entity.service';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {Attribute, QueryObject, RelationMeta, Selection} from '../../entity';
 import {HotTableRegisterer} from '@handsontable/angular';
 import {Router} from '@angular/router';
@@ -84,7 +84,9 @@ export class ListComponent implements OnInit {
   getAttributes() {
     this.attributes = this.relationMetas.find(relationMeta => relationMeta.RELATION_ID === this.relationID).ATTRIBUTES;
     this.selections = [];
-    this.selections.push({ FIELD_NAME : this.attributes[0].ATTR_NAME, OPERATOR: 'EQ', LOW: '', HIGH: ''});
+    if (this.attributes.length > 0) {
+      this.selections.push({ FIELD_NAME : this.attributes[0].ATTR_NAME, OPERATOR: 'EQ', LOW: '', HIGH: ''});
+    }
   }
 
   addSelection() {
@@ -117,7 +119,7 @@ export class ListComponent implements OnInit {
     this.queryObject.FILTER = this.selections;
     this.entityService.searchEntities(this.queryObject).subscribe(data => {
       this.data = data;
-      if (this.data[0]['INSTANCE_GUID']) {
+      if (this.data[0] && this.data[0]['INSTANCE_GUID']) {
         this.data.forEach(line =>
           line.INSTANCE_GUID = `<a href="javascript:void(0)" role="button">${line.INSTANCE_GUID}</a>`);
       } else {

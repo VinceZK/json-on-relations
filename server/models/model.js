@@ -69,7 +69,7 @@ function saveEntityType(entityType, userID, callback) {
   if (entityType.action === 'update') {
     let updateSQL = "update ENTITY set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (entityType.ENTITY_DESC !== null)
+    if (entityType.ENTITY_DESC !== null && entityType.ENTITY_DESC !== undefined)
       updateSQL = updateSQL + ", ENTITY_DESC = " + entityDB.pool.escape(entityType.ENTITY_DESC);
     updateSQL = updateSQL + " where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID);
     updateSQLs.push(updateSQL);
@@ -198,7 +198,7 @@ function _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime) {
   if (relation.action === 'update') {
     let updateSQL = "update RELATION set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) + ", LAST_CHANGE_TIME = "
       + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relation.RELATION_DESC !== null)
+    if (relation.RELATION_DESC !== null && relation.RELATION_DESC !== undefined)
       updateSQL = updateSQL + ", RELATION_DESC = " + entityDB.pool.escape(relation.RELATION_DESC);
     updateSQL = updateSQL + " where RELATION_ID = " + entityDB.pool.escape(relation.RELATION_ID);
     updateSQLs.push(updateSQL);
@@ -266,6 +266,7 @@ function _syncDBTable(relationID, callback) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     let relation = { RELATION_ID: relationID, ATTRIBUTES: attributes};
     entityDB.syncDBTable(relation, function (err) {
+      // TODO : In case sync to DB failed, the change should be restored back
       if(err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
       else callback(null);
     });
@@ -407,9 +408,9 @@ function saveRelationship(relationship, userID, callback) {
   if (relationship.action === 'update') {
     let updateSQL = "update RELATIONSHIP set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relationship.RELATIONSHIP_DESC !== null)
+    if (relationship.RELATIONSHIP_DESC !== null && relationship.RELATIONSHIP_DESC !== undefined)
       updateSQL += ", RELATIONSHIP_DESC = " + entityDB.pool.escape(relationship.RELATIONSHIP_DESC);
-    if (relationship.VALID_PERIOD !== null)
+    if (relationship.VALID_PERIOD !== null && relationship.VALID_PERIOD !== undefined)
       updateSQL += ", VALID_PERIOD = " + entityDB.pool.escape(relationship.VALID_PERIOD);
     updateSQL += " where RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID);
     updateSQLs.push(updateSQL);
@@ -548,7 +549,7 @@ function saveRole(role, userID, callback) {
   if (role.action === 'update') {
     let updateSQL = "update ROLE set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (role.ROLE_DESC !== null)
+    if (role.ROLE_DESC !== null && role.ROLE_DESC !== undefined)
       updateSQL += ", ROLE_DESC = " + entityDB.pool.escape(role.ROLE_DESC);
     updateSQL += " where ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
     updateSQLs.push(updateSQL);

@@ -45,7 +45,19 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   }
 
   onChangeDataType(attrFormGroup: AbstractControl): void {
-    attrFormGroup.get('DATA_LENGTH').setValue(null);
+    switch (attrFormGroup.get('DATA_TYPE').value) {
+      case '1': // char
+        attrFormGroup.get('DATA_LENGTH').setValue(10);
+        attrFormGroup.get('DECIMAL').setValue(null);
+        break;
+      case '4': // decimal
+        attrFormGroup.get('DATA_LENGTH').setValue(23);
+        attrFormGroup.get('DECIMAL').setValue(2);
+        break;
+      default:
+        attrFormGroup.get('DATA_LENGTH').setValue(null);
+        attrFormGroup.get('DECIMAL').setValue(null);
+    }
     attrFormGroup.get('DATA_LENGTH').markAsDirty();
   }
 
@@ -60,7 +72,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
           ATTR_DESC: [''],
           DATA_ELEMENT: [''],
           DATA_TYPE: [1],
-          DATA_LENGTH: [null],
+          DATA_LENGTH: [10],
           DECIMAL: [null],
           PRIMARY_KEY: [false],
           AUTO_INCREMENT: [false]
@@ -71,11 +83,14 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   processChangedAttributes(): any[] {
     const changedAttributes = [];
     let changedAttribute;
+    let order = 0;
     if (this.formArray.dirty) {
       this.formArray.controls.forEach((attribute, index) => {
+        const currentOrder = attribute.get('ORDER') ? attribute.get('ORDER').value : index;
+        order = order <= currentOrder ? currentOrder + 1 : order + 1;
         if (attribute.get('ATTR_NAME').value.trim() === '') { return; }
         if (attribute.dirty) {
-          changedAttribute = { ORDER: index };
+          changedAttribute = { ORDER: order };
           if (attribute.get('ATTR_GUID').value) { // Update Case
             changedAttribute['action'] = 'update';
             changedAttribute['ATTR_GUID'] = attribute.get('ATTR_GUID').value;
@@ -125,6 +140,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
           DATA_TYPE: [{value: attribute.DATA_TYPE, disabled: this.readonly || this.isFieldGray(attribute)}],
           DATA_LENGTH: [attribute.DATA_LENGTH],
           DECIMAL: [attribute.DECIMAL],
+          ORDER: [attribute.ORDER],
           PRIMARY_KEY: [{value: attribute.PRIMARY_KEY, disabled: this.readonly || this.isFieldGray(attribute)}],
           AUTO_INCREMENT: [{value: attribute.AUTO_INCREMENT, disabled: this.readonly || this.isFieldGray(attribute)}]
         }));
@@ -138,7 +154,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         ATTR_DESC: [''],
         DATA_ELEMENT: [''],
         DATA_TYPE: [1],
-        DATA_LENGTH: [null],
+        DATA_LENGTH: [10],
         DECIMAL: [null],
         PRIMARY_KEY: [false],
         AUTO_INCREMENT: [false]
@@ -163,7 +179,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         ATTR_DESC: [''],
         DATA_ELEMENT: [''],
         DATA_TYPE: [1],
-        DATA_LENGTH: [null],
+        DATA_LENGTH: [10],
         DECIMAL: [null],
         PRIMARY_KEY: [false],
         AUTO_INCREMENT: [false]

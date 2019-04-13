@@ -560,7 +560,6 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
           SELF_ROLE_ID: roleMeta.ROLE_ID,
           values: []
         };
-      instance.relationships.push(relationshipType);
 
       results.forEach(function (row) {
         let relationshipTypeInstance = {
@@ -586,6 +585,9 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
 
         relationshipType.values.push(relationshipTypeInstance);
       });
+
+      if (relationshipType.values.length > 0) // Only the relationship has at least one instance should be output
+        instance.relationships.push(relationshipType);
 
       if (relationship['PARTNER_ENTITY_PIECES']) {
         if (relationshipMeta.INVOLVES.length > 2 && !Array.isArray(relationship['PARTNER_ENTITY_PIECES'])) {
