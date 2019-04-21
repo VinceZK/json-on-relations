@@ -68,5 +68,25 @@ module.exports = {
       if(err) res.json(err);
       else next();
     })
+  },
+
+  softDeleteInstance: function(req, res, next) {
+    entity.softDeleteInstanceByGUID(req.params['instanceGUID'], function (err) {
+      if (err) res.json(err);
+      else next();
+    })
+  },
+
+  restoreInstance: function(req, res) {
+    entity.restoreInstanceByGUID(req.params['instanceGUID'], function (err) {
+      res.json(err);
+    })
+  },
+
+  deleteInstance: function (req, res, next) {
+    entity.hardDeleteByGUID(req.params['instanceGUID'], function (err) {
+      if (err) res.json(err);
+      else next();
+    })
   }
 };

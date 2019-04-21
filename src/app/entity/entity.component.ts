@@ -93,7 +93,7 @@ export class EntityComponent implements OnInit {
     this.messageService.clearMessages();
     if (!this._composeChangedEntity()) {
       this.readonly = true;
-      this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'S');
+      this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'W');
       return;
     }
 
@@ -141,6 +141,7 @@ export class EntityComponent implements OnInit {
       return;
     }
     if (!this.entity.relationships) { this.entity.relationships = []; }
+    // console.log(this.entity.relationships);
     const index = this.entity.relationships.findIndex(
       relationship => relationship.RELATIONSHIP_ID === this.toBeAddRelationship.RELATIONSHIP_ID);
     if (index !== -1) {
@@ -154,7 +155,7 @@ export class EntityComponent implements OnInit {
 
   getRelationshipsMeta(roleID: string): RelationshipMeta[] {
     const roleMeta = this.entityMeta.ROLES.find(role => role.ROLE_ID === roleID);
-    return roleMeta.RELATIONSHIPS;
+    return roleMeta ? roleMeta.RELATIONSHIPS : [];
   }
 
   getRelationshipMeta(relationshipID: string): RelationshipMeta {

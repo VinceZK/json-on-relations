@@ -13,8 +13,8 @@ export class Relationship {
 export class RelationshipInstance {
   action?: string;
   RELATIONSHIP_INSTANCE_GUID: string;
-  VALID_FROM: string;
-  VALID_TO: string;
+  VALID_FROM?: string;
+  VALID_TO?: string;
   PARTNER_INSTANCES: PartnerInstance[];
   [key: string]: any;
 }
@@ -22,25 +22,26 @@ export class PartnerInstance {
   ENTITY_ID: string;
   ROLE_ID: string;
   INSTANCE_GUID: string;
+  [key: string]: any;
 }
 export class EntityMeta {
   ENTITY_ID: string;
-  ENTITY_DESC: string;
+  ENTITY_DESC?: string;
   VERSION_NO: number;
   ROLES: Role[];
 }
 export class Attribute {
-  ATTR_GUID: string;
+  ATTR_GUID?: string;
   RELATION_ID: string;
   ATTR_NAME: string;
-  ATTR_DESC: string;
-  DATA_ELEMENT: string;
+  ATTR_DESC?: string;
+  DATA_ELEMENT?: string;
   DATA_TYPE: number;
-  DATA_LENGTH: number;
-  DECIMAL: number;
-  ORDER: number;
-  PRIMARY_KEY: boolean;
-  AUTO_INCREMENT: boolean;
+  DATA_LENGTH?: number;
+  DECIMAL?: number;
+  ORDER?: number;
+  PRIMARY_KEY?: boolean;
+  AUTO_INCREMENT?: boolean;
 }
 export class Role {
   ROLE_ID: string;
@@ -74,7 +75,7 @@ export class RelationMeta {
   RELATION_DESC?: string;
   VERSION_NO: number;
   ATTRIBUTES: Attribute[];
-  ASSOCIATIONS: Association[];
+  ASSOCIATIONS?: Association[];
 }
 export class Association {
   RIGHT_RELATION_ID: string;
@@ -124,7 +125,7 @@ export class Sort {
 }
 export class EntityType {
   ENTITY_ID: string;
-  ENTITY_DESC: string;
+  ENTITY_DESC?: string;
   VERSION_NO: number;
   CREATE_BY: string;
   CREATE_TIME: string;
@@ -134,7 +135,7 @@ export class EntityType {
 
 export class Relation {
   RELATION_ID: string;
-  RELATION_DESC: string;
+  RELATION_DESC?: string;
   VERSION_NO: number;
   CREATE_BY: string;
   CREATE_TIME: string;
@@ -144,7 +145,7 @@ export class Relation {
 
 export class RelationshipH {
   RELATIONSHIP_ID: string;
-  RELATIONSHIP_DESC: string;
+  RELATIONSHIP_DESC?: string;
   VALID_PERIOD: number;
   VERSION_NO: number;
   CREATE_BY: string;
@@ -154,7 +155,7 @@ export class RelationshipH {
 }
 export class RoleH {
   ROLE_ID: string;
-  ROLE_DESC: string;
+  ROLE_DESC?: string;
   VERSION_NO: number;
   CREATE_BY: string;
   CREATE_TIME: string;
@@ -163,10 +164,10 @@ export class RoleH {
 }
 export class RoleMeta {
   ROLE_ID: string;
-  ROLE_DESC: string;
+  ROLE_DESC?: string;
   CREATE_BY: string;
   CREATE_TIME: string;
   LAST_CHANGE_BY: string;
   LAST_CHANGE_TIME: string;
-  RELATIONS: RoleRelation[];
+  RELATIONS?: RoleRelation[];
 }

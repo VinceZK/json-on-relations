@@ -73,8 +73,10 @@ export class EntityRelationshipComponent implements OnInit {
     this.detailValue = new RelationshipInstance();
     this.detailValue.action = 'add';
     this.detailValue.RELATIONSHIP_INSTANCE_GUID = this._generateFakeUUID();
-    this.detailValue.VALID_FROM = 'now';
-    this.detailValue.VALID_TO = EntityRelationshipComponent._getFormattedDate(this.relationshipMeta.VALID_PERIOD);
+    if (this.relationshipMeta.VALID_PERIOD > 0) {
+      this.detailValue.VALID_FROM = 'now';
+      this.detailValue.VALID_TO = EntityRelationshipComponent._getFormattedDate(this.relationshipMeta.VALID_PERIOD);
+    }
     this.detailValue.PARTNER_INSTANCES = [];
     const involves = this.relationshipMeta.INVOLVES.filter(involve => involve.ROLE_ID !== this.relationship.SELF_ROLE_ID);
     involves.forEach(involve => {
@@ -210,7 +212,7 @@ export class EntityRelationshipComponent implements OnInit {
   }
 
   deleteRelationship(index: number): void {
-    if (this.relationship.values[index].action = 'add') {
+    if (this.relationship.values[index].action === 'add') {
       this.relationship.values.splice(index, 1);
     } else {
       this.relationship.values[index].action = 'delete';

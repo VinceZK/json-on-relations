@@ -4,9 +4,9 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe.only('entity tests', function () {
+describe('entity tests', function () {
   before(function (done) {
-    entity.entityDB.loadEntities(['person', 'permission'], done);
+    entity.entityDB.loadEntities(['person', 'permission', 'category', 'app'], done);
   });
 
   let instance =
@@ -241,7 +241,7 @@ describe.only('entity tests', function () {
 
   });
 
-  describe('relationship tests', function () {
+  describe('Relationship tests(time dependent)', function () {
     let instance3;
     before(function () {
       instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID};
@@ -701,6 +701,119 @@ describe.only('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    })
+  });
+
+  describe('Relationship tests(time independent)', function () {
+    let instance4;
+    let relationshipGUID;
+    before(function () { // Using the category: Demo
+      instance4 = {ENTITY_ID: 'category', INSTANCE_GUID: '3D9D0AE02A1611E9BBE39B9C6748A022'};
+    });
+
+    it('should report an error of RELATIONSHIP_IS_NOT_TIME_DEPENDENT', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'expire', RELATIONSHIP_INSTANCE_GUID: '6A56A3D02A1A11E981F3C33C6FB0A7C1'}]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
+        err.should.containDeep([ {
+          msgCat: 'ENTITY', msgName: 'RELATIONSHIP_IS_NOT_TIME_DEPENDENT', msgType: 'E'} ]);
+        done();
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_IS_NOT_TIME_DEPENDENT', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'extend', RELATIONSHIP_INSTANCE_GUID: '6A56A3D02A1A11E981F3C33C6FB0A7C1'}]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
+        err.should.containDeep([ {
+          msgCat: 'ENTITY', msgName: 'RELATIONSHIP_IS_NOT_TIME_DEPENDENT', msgType: 'E'} ]);
+        done();
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP before inserting', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'add',
+              PARTNER_INSTANCES:[ // App Modeling
+                {ENTITY_ID:'app',ROLE_ID:'portal_app',INSTANCE_GUID:'568822C02A0B11E98FB33576955DB73A' }
+              ]},
+            { action: 'add',
+              PARTNER_INSTANCES:[ // App Modeling
+                {ENTITY_ID:'app',ROLE_ID:'portal_app',INSTANCE_GUID:'568822C02A0B11E98FB33576955DB73A' }
+              ]}
+          ]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
+        err.should.containDeep([ {
+          msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'} ]);
+        done();
+      })
+    });
+
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP after inserting', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'add',
+              PARTNER_INSTANCES:[ // App Bubble
+                {ENTITY_ID:'app',ROLE_ID:'portal_app',INSTANCE_GUID:'ABAB7C202A0B11E98FB33576955DB73A' }
+              ]}
+          ]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
+        err.should.containDeep([ {
+          msgCat: 'ENTITY', msgName: 'RELATIONSHIP_INSTANCE_OVERLAP', msgType: 'E'} ]);
+        done();
+      })
+    });
+
+    it('should add an app to the category successfully', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'add',
+              PARTNER_INSTANCES:[ // App Modeling
+                {ENTITY_ID:'app',ROLE_ID:'portal_app',INSTANCE_GUID:'568822C02A0B11E98FB33576955DB73A' }
+              ]}
+          ]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
+        should(err).eql(null);
+        entity.getInstanceByGUID('568822C02A0B11E98FB33576955DB73A', function (err, result) {
+          const relationship = result['relationships'][0];
+          relationshipGUID = relationship.values.find(
+            value => value.PARTNER_INSTANCES[0].INSTANCE_GUID === '3D9D0AE02A1611E9BBE39B9C6748A022')
+            .RELATIONSHIP_INSTANCE_GUID;
+          done();
+        });
+      })    
+    });
+    
+    it('should delete an app from the category successfully', function (done) {
+      instance4.relationships = [
+        { RELATIONSHIP_ID: 'rs_app_category',
+          values:[
+            { action: 'delete', RELATIONSHIP_INSTANCE_GUID: relationshipGUID}
+          ]
+        }
+      ];
+      entity.changeInstance(instance4, function (err) {
         should(err).eql(null);
         done();
       })

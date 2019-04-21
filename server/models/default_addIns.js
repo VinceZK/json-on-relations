@@ -3,9 +3,11 @@ const entity = require('./entity');
 const AddIn = require('./userAddIn.js');
 const beforeEntityCreation = new AddIn();
 const beforeEntityChanging = new AddIn();
+const beforeEntityDeletion = new AddIn();
 const beforeEntityQuery = new AddIn();
 const afterEntityCreation = new AddIn();
 const afterEntityChanging = new AddIn();
+const afterEntityDeletion = new AddIn();
 const afterEntityReading = new AddIn();
 const beforeMetaReading = new AddIn();
 const beforeModelProcessing = new AddIn();
@@ -33,10 +35,12 @@ function getEntityInstance(req, callback) {
 module.exports = {
   beforeEntityCreation: beforeEntityCreation,
   beforeEntityChanging: beforeEntityChanging,
+  beforeEntityDeletion: beforeEntityDeletion,
   beforeEntityQuery: beforeEntityQuery,
   beforeMetaReading: beforeMetaReading,
   beforeModelProcessing: beforeModelProcessing,
   afterEntityCreation: afterEntityCreation,
   afterEntityChanging: afterEntityChanging,
+  afterEntityDeletion: afterEntityDeletion,
   afterEntityReading: afterEntityReading,
 };

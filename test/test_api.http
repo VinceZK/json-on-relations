@@ -210,7 +210,7 @@ Content-Type: application/json
   }
 }
 
-###
+### Get a blog and its comments
 POST http://localhost:3000/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
@@ -220,6 +220,24 @@ Content-Type: application/json
   "RELATION_ID": "blog",
   "ID": "229"
 }
+
+### Soft delete a user
+PUT http://localhost:3000/api/entity/instance/softDelete/308B94F011A911E9927AC30A42C011EC
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+### Restore a user
+PUT http://localhost:3000/api/entity/instance/restore/308B94F011A911E9927AC30A42C011EC
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+### Delete a user phiscally
+DELETE http://localhost:3000/api/entity/instance/308B94F011A911E9927AC30A42C011EC
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
 
 ### General Query Request
 ### The query is defined as a JSON object with attributes: "relation", "projection", and "filter".

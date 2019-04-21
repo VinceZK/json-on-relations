@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as Handsontable from 'handsontable';
 import {EntityService} from '../../entity.service';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Attribute, QueryObject, RelationMeta, Selection} from '../../entity';
 import {HotTableRegisterer} from '@handsontable/angular';
 import {Router} from '@angular/router';

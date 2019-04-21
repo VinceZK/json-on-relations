@@ -13,6 +13,12 @@ module.exports = {
       else res.json(errors);
     })
   },
+  beforeEntityDeletion: function (req, res, next) {
+    defaultAddIn.beforeEntityDeletion.execute('*', req, function (errors) {
+      if (!errors) next();
+      else res.json(errors);
+    })
+  },
   beforeEntityQuery: function (req, res, next) {
     defaultAddIn.beforeEntityQuery.execute(req.body['RELATION_ID'], req, function (errors) {
       if (!errors) next();
@@ -41,6 +47,11 @@ module.exports = {
     defaultAddIn.afterEntityChanging.execute(req.body['ENTITY_ID'], req, function (errors, results) {
       if (errors) res.json(errors);
       else res.json(results);
+    })
+  },
+  afterEntityDeletion: function (req, res) {
+    defaultAddIn.afterEntityDeletion.execute('*', req, function (errors) {
+      res.json(errors);
     })
   },
   afterEntityReading: function (req, res) {

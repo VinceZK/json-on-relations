@@ -22,6 +22,7 @@ export class PartnerInstance {
   ENTITY_ID: string;
   ROLE_ID: string;
   INSTANCE_GUID: string;
+  [key: string]: any;
 }
 export class EntityMeta {
   ENTITY_ID: string;

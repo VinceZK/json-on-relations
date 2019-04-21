@@ -966,7 +966,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
     const roleMeta = _checkEntityInvolvesRelationship(relationship['RELATIONSHIP_ID'], entityMeta);
     if(!roleMeta)
       return errorMessages.push(
-        message.report('ENTITY', 'RELATIONSHIP_NOT_VALID', 'E', relationship['RELATIONSHIP_ID'], entityMeta.ENTITY_ID));
+        message.report('ENTITY', 'RELATIONSHIP_NOT_VALID', 'E', entityMeta.ENTITY_ID, relationship['RELATIONSHIP_ID']));
     const relationshipMeta = roleMeta.RELATIONSHIPS.find(function (element) {
       return element.RELATIONSHIP_ID === relationship['RELATIONSHIP_ID'];
     });
@@ -1021,15 +1021,18 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
           });
 
           value.RELATIONSHIP_INSTANCE_GUID = guid.genTimeBased();
-          if(!value['VALID_FROM'] || value['VALID_FROM'] === 'now' ||
-            Math.abs(timeUtil.StringToDate(value['VALID_FROM']).DateDiff('s', currentTime)) <= 60) //Tolerance 60 seconds
-            value['VALID_FROM'] = currentTime;
-          if(value['VALID_FROM'] < currentTime)
-            return errorMessages.push(message.report('ENTITY','NEW_RELATIONSHIP_ADD_TO_BEFORE', 'E'));
-          if(!value['VALID_TO'])
-            value['VALID_TO'] = timeUtil.getFutureDateTime(relationshipMeta.VALID_PERIOD, "yyyy-MM-dd HH:mm:ss");
-          if(value['VALID_TO'] < value['VALID_FROM'])
-            return errorMessages.push(message.report('ENTITY','VALID_TO_BEFORE_VALID_FROM', 'E', value['VALID_TO'], value['VALID_FROM']));
+          if (relationshipMeta.VALID_PERIOD > 0){
+            if(!value['VALID_FROM'] || value['VALID_FROM'] === 'now' ||
+              Math.abs(timeUtil.StringToDate(value['VALID_FROM']).DateDiff('s', currentTime)) <= 60) //Tolerance 60 seconds
+              value['VALID_FROM'] = currentTime;
+            if(value['VALID_FROM'] < currentTime)
+              return errorMessages.push(message.report('ENTITY','NEW_RELATIONSHIP_ADD_TO_BEFORE', 'E'));
+            if(!value['VALID_TO'])
+              value['VALID_TO'] = timeUtil.getFutureDateTime(relationshipMeta.VALID_PERIOD, "yyyy-MM-dd HH:mm:ss");
+            if(value['VALID_TO'] < value['VALID_FROM'])
+              return errorMessages.push(
+                message.report('ENTITY','VALID_TO_BEFORE_VALID_FROM', 'E', value['VALID_TO'], value['VALID_FROM']));
+          }
           break;
         default:
           return errorMessages.push(
@@ -1145,6 +1148,10 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
   return SQLs;
 
   function __checkOverlap(values) {
+    if (!values[0].IS_TIME_DEPENDENT && values.length > 1) {
+      return errorMessages.push(
+        message.report('ENTITY','RELATIONSHIP_INSTANCE_OVERLAP','E', values[0].RELATIONSHIP_ID));
+    }
     values.forEach(function (value, index) {
       for (let i = index+1; i<values.length; i++) {
         if (value.VALID_FROM < values[i].VALID_TO && value.VALID_TO > values[i].VALID_FROM)
@@ -1518,13 +1525,15 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
       // Then we should check if the partner entity has the relationship exists in the DB
       selectSQL += " where " + entityDB.pool.escapeId(relationship.PARTNER_ROLE_ID + "_INSTANCE_GUID") +
         " = " + entityDB.pool.escape(relationship.PARTNER_INSTANCE_GUID);
-    } else if (relationship.PARTNER_ROLE_CARDINALITY === '[1..n]' && relationship.SELF_ROLE_CARDINALITY === '[1..1]') {
+    } else if (relationship.PARTNER_ROLE_CARDINALITY === '[1..n]'
+               && relationship.SELF_ROLE_CARDINALITY === '[1..1]') {
       // The partner entity can exist in multiple such type of relationships,
       // however, the entity itself can only exist in one such relationship.
-      // Then we should check if the entity already has such relationship exist in the DB,
+      // Then we should check if the partner entity already has such relationship exist in the DB,
       selectSQL += " where " + entityDB.pool.escapeId(relationship.SELF_ROLE_ID + "_INSTANCE_GUID") +
         " = " + entityDB.pool.escape(selfGUID);
-    } else if (relationship.PARTNER_ROLE_CARDINALITY === '[1..n]' && relationship.SELF_ROLE_CARDINALITY === '[1..n]') {
+    } else if (relationship.PARTNER_ROLE_CARDINALITY === '[1..n]'
+               && relationship.SELF_ROLE_CARDINALITY === '[1..n]') {
       // Both the entity itself and its partner entities can exist in multiple such type of relationships.
       // Then we should check if the pair already exists in the DB.
       selectSQL += " where " + entityDB.pool.escapeId(relationship.SELF_ROLE_ID + "_INSTANCE_GUID") +
@@ -1540,7 +1549,7 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
     if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
 
     if (relationship.action === 'add') {
-      const line = relationship.VALID_FROM ?
+      const line = relationship.IS_TIME_DEPENDENT ?
         results.find(function (result) { return (relationship.VALID_FROM < result.VALID_TO && relationship.VALID_TO > result.VALID_FROM);}) :
         results[0];
 
@@ -1557,7 +1566,7 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
       if((relationship.action === 'expire' || relationship.action === 'extend') && originalValue.VALID_FROM > currentTime)
         return callback([message.report('ENTITY', 'FUTURE_RELATIONSHIP', 'E', originalValue.RELATIONSHIP_INSTANCE_GUID)]);
       if(relationship.IS_TIME_DEPENDENT && relationship.action === 'delete' && originalValue.VALID_FROM <= currentTime)
-        return callback([message.report('ENTITY', 'RELATIONSHIP_DELETION_NOT_ALLOWED', 'E')]);
+        return callback([message.report('ENTITY', 'RELATIONSHIP_DELETION_NOT_ALLOWED', 'E', relationship.RELATIONSHIP_ID)]);
     }
     callback(null);
   });

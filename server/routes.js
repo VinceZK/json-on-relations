@@ -31,6 +31,16 @@ router.post('/api/entity/instance',
 router.post('/api/entity/instance/piece',
   entity.getEntityInstancePieceByID,
   defaultAddIns.afterEntityReading);
+router.delete('/api/entity/instance/:instanceGUID',
+  defaultAddIns.beforeEntityDeletion,
+  entity.softDeleteInstance,
+  entity.deleteInstance,
+  defaultAddIns.afterEntityDeletion);
+router.put('/api/entity/instance/softDelete/:instanceGUID',
+  entity.softDeleteInstance,
+  defaultAddIns.afterEntityDeletion);
+router.put('/api/entity/instance/restore/:instanceGUID',
+  entity.restoreInstance);
 
 // Entity Meta Service
 router.get('/api/entity/EntityIDs',

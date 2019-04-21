@@ -31,8 +31,9 @@
                   title="Display Relationship" class="btn btn-sm" type="button" (click)="showModalForDisplay(i)">
             <span  class="fas fa-search"></span>
           </button>
-          <button *ngIf="!readonly && value.action !== 'delete' && value.action !== 'expire' && currentTime <= value.VALID_TO" title="Change Relationship"
-                  class="btn btn-sm" type="button" (click)="showModalForChange(i)">
+          <button *ngIf="!readonly && ((value.action !== 'delete' && value.action !== 'expire' && currentTime <= value.VALID_TO)
+                         || (value.action !== 'delete' && !value.VALID_FROM))"
+                  title="Change Relationship" class="btn btn-sm" type="button" (click)="showModalForChange(i)">
             <span  class="fas fa-pen"></span>
           </button>
           <button *ngIf="currentTime >= value.VALID_FROM && currentTime < value.VALID_TO" title="Expire"
@@ -43,8 +44,8 @@
                   class="btn btn-sm" type="button" [disabled]="readonly" (click)="showModalForExtend(i)">
             <span class="fas fa-expand-arrows-alt"></span>
           </button>
-          <button *ngIf="value.action === 'add' || (currentTime < value.VALID_FROM && value.action !== 'delete')" title="Delete"
-                  class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationship(i)">
+          <button *ngIf="value.action === 'add' || !value.VALID_FROM || (currentTime < value.VALID_FROM && value.action !== 'delete')"
+                  title="Delete" class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationship(i)">
             <span class="far fa-trash-alt"></span>
           </button>
         </td>

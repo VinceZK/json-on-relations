@@ -33,9 +33,10 @@
       <input type="checkbox" class="form-control ml-2" id="timeDependent" name="timeDependent"
              formControlName="TIME_DEPENDENT" (change)="onChangeTimeDependency()">
     </div>
-    <div class="col-4 form-group row ml-3" >
-      <label for="valid_period" class="col-form-label form-control-sm">Valid Period(second):
-        <span class="errorMessage" *ngIf="!relationshipForm.get('VALID_PERIOD').valid">
+    <div class="col-4 form-group row ml-3"
+         [class.dk-invalid]="relationshipForm.get('VALID_PERIOD').invalid && (relationshipForm.touched || relationshipForm.dirty)">
+      <label for="valid_period" class="col-form-label form-control-sm">Valid Period(seconds):
+        <span class="dk-invalid-feedback" *ngIf="!relationshipForm.get('VALID_PERIOD').valid">
         {{relationshipForm.get('VALID_PERIOD').errors?.message}}
       </span>
       </label>

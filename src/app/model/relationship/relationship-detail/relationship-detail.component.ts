@@ -95,7 +95,7 @@ export class RelationshipDetailComponent implements OnInit {
         RELATIONSHIP_ID: [this.relationshipMeta.RELATIONSHIP_ID, {updateOn: 'blur'}],
         RELATIONSHIP_DESC: [this.relationshipMeta.RELATIONSHIP_DESC],
         TIME_DEPENDENT: [this.relationshipMeta.VALID_PERIOD > 0],
-        VALID_PERIOD: [this.relationshipMeta.VALID_PERIOD]
+        VALID_PERIOD: [this.relationshipMeta.VALID_PERIOD, this._validateValidPeriod]
       });
     }
 
@@ -148,6 +148,13 @@ export class RelationshipDetailComponent implements OnInit {
     }
     if (c.value.toString().length > 32) {
       return {message: 'Relationship ID must have length less than 32!'};
+    }
+    return null;
+  }
+
+  _validateValidPeriod(c: FormControl) {
+    if (c.parent && c.parent.value.TIME_DEPENDENT && c.value <= 0) {
+      return {message: 'must be larger than 0'};
     }
     return null;
   }
