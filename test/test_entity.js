@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntities(['person', 'permission', 'category', 'app'], done);
   });
@@ -78,8 +78,29 @@ describe('entity tests', function () {
       })
     });
 
+    it('should not create an instance for non-exist partner entity', function(done){
+      let instance2 = _.clone(instance);
+      instance2.relationships = [
+        { RELATIONSHIP_ID: 'rs_user_role',
+          values:[
+            {action:'add', SYNCED:0,
+              PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167'}]},
+            {action:'add', SYNCED:0,
+              PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:''}]}
+          ]
+        }];
+      entity.createInstance(instance2, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'ENTITY_INSTANCE_NOT_EXIST',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
     it('should create an instance of person', function (done) {
-      entity.createInstance(instance,function (err, instance) {
+      entity.createInstance(instance, function (err, instance) {
         should(err).eql(null);
         done();
       });

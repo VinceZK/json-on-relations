@@ -171,7 +171,8 @@ function createInstance(instance, callback) {
         _checkForeignKey(relation.relationRow, relation.association, callback);
       }, function (err, results) {
         if(err) return callback(err); // err is an array
-        if(results.length > 0 && results[0]) return callback(results);//The results should already be error messages
+        const errMsgs = _condenseErrorMessages(results);
+        if(errMsgs.length > 0) return callback(errMsgs);//The results should already be error messages
           else return callback(null);
       });
     },
@@ -180,7 +181,8 @@ function createInstance(instance, callback) {
         _checkEntityExist(relationshipInstance, callback)
       }, function (err, results) {
         if(err) return callback(err);
-        if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
+        const errMsgs = _condenseErrorMessages(results);
+        if(errMsgs.length > 0) return callback(errMsgs); //The results should already be error messages
           else return callback(null);
       });
     },
@@ -199,6 +201,12 @@ function createInstance(instance, callback) {
       instance['INSTANCE_GUID'] = instanceGUID;
       callback(null,instance);
     }
+  });
+}
+
+function _condenseErrorMessages(results) {
+  return results.filter(function (ele) {
+    return ele !== null;
   });
 }
 
@@ -705,7 +713,8 @@ function changeInstance(instance, callback) {
           _checkForeignKey(relation.relationRow, relation.association, callback);
         }, function (err, results) {
           if(err) return callback(err); // Already message array
-          if(results.length > 0 && results[0]) return callback(results);//The results should already be error messages
+          const errMsgs = _condenseErrorMessages(results);
+          if(errMsgs.length > 0) return callback(errMsgs);//The results should already be error messages
           else return callback(null);
         });
       },
@@ -714,7 +723,8 @@ function changeInstance(instance, callback) {
           _checkAdd01Relation(relation, instance['INSTANCE_GUID'], callback)
         }, function (err, results) {
           if(err) return callback(err); // Already message array
-          if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
+          const errMsgs = _condenseErrorMessages(results);
+          if(errMsgs.length > 0) return callback(errMsgs); //The results should already be error messages
           else return callback(null);
         })
       },
@@ -723,7 +733,8 @@ function changeInstance(instance, callback) {
           _checkDelete1nRelation(relation, instance['INSTANCE_GUID'], callback)
         }, function (err, results) {
           if(err) return callback(err); // Already message array
-          if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
+          const errMsgs = _condenseErrorMessages(results);
+          if(errMsgs.length > 0) return callback(errMsgs); //The results should already be error messages
           else return callback(null);
         })
       },
@@ -732,7 +743,8 @@ function changeInstance(instance, callback) {
           _checkEntityExist(relationshipInstance, callback)
         }, function (err, results) {
           if(err) return callback(err);
-          if(results.length > 0 && results[0]) return callback(results); //The results should already be error messages
+          const errMsgs = _condenseErrorMessages(results);
+          if(errMsgs.length > 0) return callback(errMsgs); //The results should already be error messages
           else return callback(null);
         });
       },
