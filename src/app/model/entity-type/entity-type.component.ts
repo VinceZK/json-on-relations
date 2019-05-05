@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../../entity.service';
-import {EntityType} from '../../entity';
+import {EntityType} from 'jor-angular';
 import { debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {Subject} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';

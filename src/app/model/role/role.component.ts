@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RoleH} from '../../entity';
+import { RoleH} from 'jor-angular';
 import {Subject} from 'rxjs';
 import {EntityService} from '../../entity.service';
 import {ModelService} from '../model.service';

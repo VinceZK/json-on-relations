@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {Attribute, RelationshipMeta} from '../../../entity';
+import {Attribute, RelationshipMeta} from 'jor-angular';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.component';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';

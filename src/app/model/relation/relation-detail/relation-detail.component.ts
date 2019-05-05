@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {Association, RelationMeta} from '../../../entity';
+import {Association, RelationMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';

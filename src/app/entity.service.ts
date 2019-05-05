@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from './entity';
+import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from 'jor-angular';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
 import {msgStore} from './msgStore';

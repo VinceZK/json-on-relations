@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EntityType, Relation, RelationshipH, RoleH} from '../entity';
+import {EntityType, Relation, RelationshipH, RoleH} from 'jor-angular';
 import {Subject} from 'rxjs';
 
 @Injectable({

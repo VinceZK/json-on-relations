@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {AttributeBase} from './attribute-base';
-import {Attribute} from '../../entity';
+import {Attribute} from 'jor-angular';
 import {AttributeText} from './attribute-text';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 

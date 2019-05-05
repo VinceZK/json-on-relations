@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
-import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from '../entity';
+import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
 import {forkJoin, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from './attribute/attribute-control.service';

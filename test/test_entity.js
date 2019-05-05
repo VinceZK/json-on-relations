@@ -31,7 +31,7 @@ describe.only('entity tests', function () {
            ]
            }]
     };
-
+  let wifeInstanceGUID;
   describe('Entity Creation', function () {
     it('should not create an instance as mandatory relation is missing', function(done){
       let instance2 = _.clone(instance);
@@ -100,15 +100,15 @@ describe.only('entity tests', function () {
     });
 
     it('should create an instance of person', function (done) {
-      entity.createInstance(instance, function (err, instance) {
-        should(err).eql(null);
+      entity.createInstance(instance, function (err) {
+        (err === null).should.true();
         done();
       });
     });
 
     it('should get an instance of person', function (done) {
       entity.getInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH999'}, function (err, instance2) {
-        should(err).eql(null);
+        (err === null).should.true();
         instance2.ENTITY_ID.should.eql(instance.ENTITY_ID);
         instance2.person.should.containDeep([instance.person]);
         instance2.r_user.should.containDeep([instance.r_user]);
@@ -124,12 +124,28 @@ describe.only('entity tests', function () {
     it('should get pieces of an instance', function (done) {
       let piece = {RELATIONS: ['r_user', 'r_email'], RELATIONSHIPS: ['rs_user_role'] };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
-        should(err).eql(null);
+        (err === null).should.true();
         instancePiece.r_user.should.containDeep([instance.r_user]);
         instancePiece.r_email.should.containDeep(instance.r_email);
         instancePiece.relationships.should.containDeep(instance.relationships);
         done();
       })
+    });
+
+    it('should create an instance of a female person', function (done) {
+      let instance2 = { ENTITY_ID: 'person',
+        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama'},
+        r_user: [{USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}],
+        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
+        r_address: [],
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+        r_personalization: {}
+      };
+      entity.createInstance(instance2, function (err) {
+        (err === null).should.true();
+        wifeInstanceGUID = instance2.INSTANCE_GUID;
+        done();
+      });
     });
   });
 
@@ -154,9 +170,9 @@ describe.only('entity tests', function () {
           ]
         };
       entity.changeInstance(instance3, function(err){
-        should(err).eql(null);
+        (err === null).should.true();
         entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, instance2) {
-          should(err).eql(null);
+          (err === null).should.true();
           delete instance3.person.action;
           instance2.person.should.containDeep([instance3.person]);
           delete instance3.r_user.action;
@@ -201,7 +217,7 @@ describe.only('entity tests', function () {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
         r_personalization : {USER_ID: 'DH999', TIMEZONE: ' UTC+8', LANGUAGE: 'ZH'}};
       entity.changeInstance(instance3, function(err){
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
@@ -242,7 +258,7 @@ describe.only('entity tests', function () {
           {action:'delete', EMAIL: 'dh999@hotmail.com', PRIMARY:0},
           {action:'add', EMAIL: 'dh999@hotmail.com', PRIMARY:1}]};
       entity.changeInstance(instance3, function(err){
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
@@ -300,7 +316,7 @@ describe.only('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'update', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1}]
+            { action: 'update', SYNCED: 1}]
         }
       ];
       entity.changeInstance(instance3, function (err) {
@@ -313,7 +329,7 @@ describe.only('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'add', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1}
+            { action: 'add', SYNCED: 1}
           ]
         }
       ];
@@ -327,7 +343,7 @@ describe.only('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'add', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
+            { action: 'add', SYNCED: 0,
               PARTNER_INSTANCES:[
                 {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' },
                 {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'AC560C8786095BB7B4842ABA2F323478' }
@@ -345,7 +361,7 @@ describe.only('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'add', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
+            { action: 'add', SYNCED: 0,
               PARTNER_INSTANCES:[
                 {ENTITY_ID:'permission',ROLE_ID:'system_role1',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
@@ -360,11 +376,11 @@ describe.only('entity tests', function () {
 
     it('should report an error of NEW_RELATIONSHIP_ADD_TO_BEFORE ', function (done) {
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
             { action: 'add', VALID_FROM:'2017-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: wifeInstanceGUID }
               ]}
           ]
         }
@@ -377,11 +393,11 @@ describe.only('entity tests', function () {
 
     it('should report an error of VALID_TO_BEFORE_VALID_FROM ', function (done) {
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
             { action: 'add', VALID_FROM:'2031-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 0,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID: 'person', ROLE_ID: 'wife', INSTANCE_GUID: wifeInstanceGUID }
               ]}
           ]
         }
@@ -394,11 +410,11 @@ describe.only('entity tests', function () {
 
     it('should report an error of ENTITY_INSTANCE_NOT_EXIST', function (done) {
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
-            { action: 'add', VALID_FROM:'2019-12-31 00:00:00', VALID_TO:'2028-12-31 00:00:00', SYNCED: 0,
+            { action: 'add', VALID_TO:'2028-12-31 00:00:00',
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
               ]}
           ]
         }
@@ -423,17 +439,17 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n]', function (done) {
+    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..1]', function (done) {
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
-            { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
+            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: wifeInstanceGUID }
               ]},
-            { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00', SYNCED: 1,
+            { action: 'add', VALID_FROM:'2027-12-31 00:00:00', VALID_TO:'2035-12-31 00:00:00', SYNCED: 1,
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: wifeInstanceGUID }
               ]}
           ]
         }
@@ -444,7 +460,7 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..1]', function (done) {
+    it.skip('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n]', function (done) {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_marriage',
           values:[
@@ -465,7 +481,7 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n] in DB', function (done) {
+    it.skip('should report an error of RELATIONSHIP_INSTANCE_OVERLAP [1..n] in DB', function (done) {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
@@ -487,11 +503,7 @@ describe.only('entity tests', function () {
       instance3.relationships = [
         { RELATIONSHIP_ID: 'rs_user_role',
           values:[
-            { action: 'add', VALID_FROM:'2124-12-31 00:00:00', VALID_TO:'2128-12-31 00:00:00', SYNCED: 1,
-              PARTNER_INSTANCES:[
-                {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' }
-              ]},
-            { action: 'add', VALID_FROM:'2020-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00', SYNCED: 1,
+            { action: 'add', SYNCED: 1,
               PARTNER_INSTANCES:[
                 {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' }
               ]}
@@ -500,19 +512,24 @@ describe.only('entity tests', function () {
         {
           RELATIONSHIP_ID: 'rs_marriage',
           values:[
-            { action: 'add',
+            { action: 'add', REG_PLACE: 'Shanghai', COUNTRY: 'CHINA',
               PARTNER_INSTANCES:[
-               {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1A4EB21F9CE0B3236F61EDBB57BC9738' }
+               {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: wifeInstanceGUID }
+              ]
+            },
+            { action: 'add', VALID_FROM: '2050-12-31 00:00:00', REG_PLACE: 'Dark side of Moon',
+              PARTNER_INSTANCES:[
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' }
               ]
             }
           ]
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        should(err).eql(null);
-        entity.getInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH999'}, function (err, instancex){
-          should(err).eql(null);
-          instance2 = instancex;
+        (err === null).should.true();
+        entity.getInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH999'}, function (err, newInstance){
+          (err === null).should.true();
+          instance2 = newInstance;
           done();
         });
       })
@@ -524,7 +541,7 @@ describe.only('entity tests', function () {
           values:[
             { action: 'add', VALID_FROM:'2025-12-31 00:00:00', VALID_TO:'2030-12-31 00:00:00',
               PARTNER_INSTANCES:[
-                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID:'1A4EB21F9CE0B3236F61EDBB57BC9738' }
+                {ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: wifeInstanceGUID }
               ]}
           ]
         }
@@ -539,29 +556,28 @@ describe.only('entity tests', function () {
      * Current relationships in DB
      * [ { RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'husband',
            values:
-           [{ RELATIONSHIP_INSTANCE_GUID: '4CE4A6D058E111E9AF76BF12C8099888',
+           [{ RELATIONSHIP_INSTANCE_GUID: '485769E06E5311E9A28C5B3C9CFBBB00',
+              PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'wife', INSTANCE_GUID: '4835B1106E5311E9A28C5B3C9CFBBB00' } ],
+              VALID_FROM: '2019-05-04 17:59:18', VALID_TO: '2029-05-04 17:59:18', REG_PLACE: Shanghai, COUNTRY: CHINA },
+            { RELATIONSHIP_INSTANCE_GUID: '485769E06E5311E9A28C5B3C9CFBBB00',
               PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'wife', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ],
-              VALID_FROM: '2019-04-07 11:00:29', VALID_TO: '2029-04-04 11:00:29', REG_PLACE: null, COUNTRY: null } ] },
+              VALID_FROM: '2050-12-31 00:00:00', VALID_TO: '2060-12-28 00:00:00', REG_PLACE: 'Dark side of Moon', COUNTRY: null },
+            ]},
 
          { RELATIONSHIP_ID: 'rs_user_role', SELF_ROLE_ID: 'system_user',
            values:
-           [{ RELATIONSHIP_INSTANCE_GUID: '383AF8109A5011E888D27D8CC56E2EFC',
-              VALID_FROM: '2118-12-31 00:00:00', VALID_TO: '2128-12-31 00:00:00', SYNCED: '1',
+           [{ RELATIONSHIP_INSTANCE_GUID: '4829A3206E5311E9A28C5B3C9CFBBB00', SYNCED: '0',
               PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
-            { RELATIONSHIP_INSTANCE_GUID: '383AF8119A5011E888D27D8CC56E2EFC',
-              VALID_FROM: '2020-12-31 00:00:00', VALID_TO: '2030-12-31 00:00:00', SYNCED: '0',
-              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' } ]},
-            { RELATIONSHIP_INSTANCE_GUID: 'E54922A198B811E8B53245D7B7311FC8',
-              VALID_FROM: '2018-08-05 22:07:32', VALID_TO: '2118-10-20 22:07:32', SYNCED: '0',
-              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167' } ]},
-            { RELATIONSHIP_INSTANCE_GUID: 'E556902098B811E8B53245D7B7311FC8',
-              VALID_FROM: '2018-08-05 22:07:32', VALID_TO: '2118-10-20 22:07:32', SYNCED: '1',
-              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239' }]}]}
+            { RELATIONSHIP_INSTANCE_GUID: '483A93106E5311E9A28C5B3C9CFBBB00', SYNCED: '1',
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F0EF0C4174A883BF639E2EB0C8735239' } ]},
+            { RELATIONSHIP_INSTANCE_GUID: '485742D06E5311E9A28C5B3C9CFBBB00', SYNCED: '1',
+              PARTNER_INSTANCES: [{ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'F914BC7E2BD65D42A0B17FBEAD8E1AF2' } ]}
+            ]}
      ]
      */
     it('should read the instance', function (done) {
       entity.getInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH999'}, function (err, instancex){
-        should(err).eql(null);
+        (err === null).should.true();
         instance2 = instancex;
         done();
       });
@@ -576,14 +592,14 @@ describe.only('entity tests', function () {
               RELATIONSHIPS: ['rs_marriage']
             }}] };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
-        should(err).eql(null);
+        (err === null).should.true();
 
         // instancePiece.relationships[0].values.forEach(value => console.log(value.PARTNER_INSTANCES[0]));
         instancePiece.r_user.should.containDeep(instance2.r_user);
         instancePiece.relationships[0].values[0].PARTNER_INSTANCES[0].should.containDeep(
           { ENTITY_ID: 'person',
             ROLE_ID: 'wife',
-            INSTANCE_GUID: '1A4EB21F9CE0B3236F61EDBB57BC9738',
+            INSTANCE_GUID: wifeInstanceGUID,
             relationships:
               [ { RELATIONSHIP_ID: 'rs_marriage',
                   SELF_ROLE_ID: 'wife'} ],
@@ -615,7 +631,7 @@ describe.only('entity tests', function () {
           ]
       };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
-        should(err).eql(null);
+        (err === null).should.true();
 
         instancePiece.relationships.should.containDeep([
           { RELATIONSHIP_ID: 'rs_marriage',
@@ -629,13 +645,13 @@ describe.only('entity tests', function () {
 
     it('should report an error of RELATIONSHIP_DELETION_NOT_ALLOWED', function (done) {
       let userRoleRelationship = instance2.relationships.find(function (relationship) {
-        return relationship.RELATIONSHIP_ID === 'rs_user_role';
+        return relationship.RELATIONSHIP_ID === 'rs_marriage';
       });
       let currentRelationshipGUID = userRoleRelationship.values.find(function (value) {
-        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === wifeInstanceGUID;
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
             { action: 'delete', RELATIONSHIP_INSTANCE_GUID: currentRelationshipGUID }
           ]
@@ -649,13 +665,13 @@ describe.only('entity tests', function () {
 
     it('should report an error of FUTURE_RELATIONSHIP', function (done) {
       let userRoleRelationship = instance2.relationships.find(function (relationship) {
-        return relationship.RELATIONSHIP_ID === 'rs_user_role';
+        return relationship.RELATIONSHIP_ID === 'rs_marriage';
       });
       let futureRelationshipGUID = userRoleRelationship.values.find(function (value) {
-        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F914BC7E2BD65D42A0B17FBEAD8E1AF2';
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === '430C8BB0E1C611E8877F9D5C9668A7A3';
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
             { action: 'expire', RELATIONSHIP_INSTANCE_GUID: futureRelationshipGUID},
           ]
@@ -669,33 +685,33 @@ describe.only('entity tests', function () {
 
     it('should expire an active relationship', function (done) {
       let userRoleRelationship = instance2.relationships.find(function (relationship) {
-        return relationship.RELATIONSHIP_ID === 'rs_user_role';
+        return relationship.RELATIONSHIP_ID === 'rs_marriage';
       });
       let currentRelationshipGUID = userRoleRelationship.values.find(function (value) {
-        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === wifeInstanceGUID;
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role',
+        { RELATIONSHIP_ID: 'rs_marriage',
           values:[
             { action:'expire', RELATIONSHIP_INSTANCE_GUID: currentRelationshipGUID},
           ]
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
 
     it('should report an error of CHANGE_TO_EXPIRED_RELATIONSHIP', function (done) {
       let userRoleRelationship = instance2.relationships.find(function (relationship) {
-        return relationship.RELATIONSHIP_ID === 'rs_user_role';
+        return relationship.RELATIONSHIP_ID === 'rs_marriage';
       });
       let currentRelationshipGUID = userRoleRelationship.values.find(function (value) {
-        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === 'F0EF0C4174A883BF639E2EB0C8735239';
+        return value.PARTNER_INSTANCES[0].INSTANCE_GUID === wifeInstanceGUID;
       }).RELATIONSHIP_INSTANCE_GUID;
       instance3.relationships = [
-        { RELATIONSHIP_ID: 'rs_user_role', SYNCED:'1',
+        { RELATIONSHIP_ID: 'rs_marriage', REG_PLACE: 'HAIMEN',
           values:[
             { action:'update', RELATIONSHIP_INSTANCE_GUID: currentRelationshipGUID},
           ]
@@ -722,7 +738,7 @@ describe.only('entity tests', function () {
         }
       ];
       entity.changeInstance(instance3, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     })
@@ -815,7 +831,7 @@ describe.only('entity tests', function () {
         }
       ];
       entity.changeInstance(instance4, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         entity.getInstanceByGUID('568822C02A0B11E98FB33576955DB73A', function (err, result) {
           const relationship = result['relationships'][0];
           relationshipGUID = relationship.values.find(
@@ -835,7 +851,7 @@ describe.only('entity tests', function () {
         }
       ];
       entity.changeInstance(instance4, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     })
@@ -887,7 +903,7 @@ describe.only('entity tests', function () {
       })
     });
 
-    it('should overwrite the instance succesfully', function (done) {
+    it('should overwrite the instance successfully', function (done) {
       let overwriteInstance = {
         INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
         person: {GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
@@ -902,10 +918,11 @@ describe.only('entity tests', function () {
         r_user:
           [{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
             DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
-          }]
+          }],
+        r_address: []
       };
       entity.overwriteInstance(overwriteInstance, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, newInstance) {
           newInstance.person.should.containDeep([{GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
             FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E' }]);
@@ -916,33 +933,57 @@ describe.only('entity tests', function () {
             {EMAIL: 'dh999@darkhouse.com', TYPE: null, PRIMARY: 0}]);
           newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
             TITLE: 'Developer', GENDER: 'Male'}]);
-          should(newInstance.r_address === undefined).be.true;
-          should(newInstance.r_personalization === undefined).be.true;
+          (typeof newInstance.r_address).should.be.equal('undefined');
+          (typeof newInstance.r_personalization).should.be.equal('undefined');
           done();
         });
       })
     });
 
+    it('should only overwrite explicated attributes', function (done) {
+      let overwriteInstance = {
+        INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
+        person: { HEIGHT: 183 },
+        r_employee: {USER_ID: 'DH999'},
+        r_email: [{EMAIL: 'dh999@outlook.com'}, {EMAIL: 'dh999@darkhouse.com'}],
+        r_user: {USER_ID: 'DH999'}
+      };
+      entity.overwriteInstance(overwriteInstance, function (err) {
+        (err === null).should.true();
+        entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, newInstance) {
+          newInstance.person.should.containDeep([{GENDER: 'male', HEIGHT: 183, HOBBY: 'Reading, Movie',
+            FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E' }]);
+          newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
+            DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
+          }]);
+          newInstance.r_email.should.containDeep([{EMAIL: 'dh999@outlook.com', TYPE: null, PRIMARY: 1},
+            {EMAIL: 'dh999@darkhouse.com', TYPE: null, PRIMARY: 0}]);
+          newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
+            TITLE: 'Developer', GENDER: 'Male'}]);
+          done();
+        });
+      })
+    });
   });
 
   describe('Entity Deletion', function () {
     it('should soft delete an instance by GUID', function (done) {
       entity.softDeleteInstanceByGUID(instance.INSTANCE_GUID, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
 
     it('should restore an instance', function (done) {
       entity.restoreInstanceByGUID(instance.INSTANCE_GUID, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
 
     it('should soft delete an instance by ID', function (done) {
       entity.softDeleteInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.person.FINGER_PRINT}, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
           r_user : {action:'update', USER_ID: 'DH999', DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang'}};
         entity.changeInstance(instance3, function (err) {
@@ -958,7 +999,7 @@ describe.only('entity tests', function () {
 
     it('should restore an instance by ID', function (done) {
       entity.restoreInstanceByID({RELATION_ID: 'person', FINGER_PRINT: instance.person.FINGER_PRINT}, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
@@ -975,19 +1016,28 @@ describe.only('entity tests', function () {
     });
 
     it('should soft delete an instance by GUID', function (done) {
-      // instance.INSTANCE_GUID = 'CFCCBCF0DAB411E88EFC45AED60FB8CB';
       entity.softDeleteInstanceByGUID(instance.INSTANCE_GUID, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
 
     it('should delete the instance from DB', function (done) {
       entity.hardDeleteByGUID(instance.INSTANCE_GUID, function (err) {
-        should(err).eql(null);
+        (err === null).should.true();
         done();
       })
     });
+
+    it('should delete the female instance from DB', function (done) {
+      entity.softDeleteInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH998'}, function (err) {
+        (err === null).should.true();
+        entity.hardDeleteByID({RELATION_ID: 'r_user', USER_ID: 'DH998'}, function (err) {
+          (err === null).should.true();
+          done();
+        })
+      })
+    })
   });
 
   after('Close the MDB', function (done) {

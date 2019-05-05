@@ -1040,7 +1040,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             if(value['VALID_FROM'] < currentTime)
               return errorMessages.push(message.report('ENTITY','NEW_RELATIONSHIP_ADD_TO_BEFORE', 'E'));
             if(!value['VALID_TO'])
-              value['VALID_TO'] = timeUtil.getFutureDateTime(relationshipMeta.VALID_PERIOD, "yyyy-MM-dd HH:mm:ss");
+              value['VALID_TO'] = timeUtil.getFutureDateTime(relationshipMeta.VALID_PERIOD, "yyyy-MM-dd HH:mm:ss", value['VALID_FROM']);
             if(value['VALID_TO'] < value['VALID_FROM'])
               return errorMessages.push(
                 message.report('ENTITY','VALID_TO_BEFORE_VALID_FROM', 'E', value['VALID_TO'], value['VALID_FROM']));
@@ -1196,7 +1196,7 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, in
 
   let relationMeta = entityDB.getRelationMeta(key);
   if (_.isArray(value)){
-    if(roleRelationMeta.CARDINALITY === '[0..1]' || roleRelationMeta.CARDINALITY === '[1..1]'){
+    if((roleRelationMeta.CARDINALITY === '[0..1]' || roleRelationMeta.CARDINALITY === '[1..1]') && value.length > 1) {
       errorMessages.push(message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', roleRelationMeta.RELATION_ID));
       return errorMessages;
     }
@@ -1212,6 +1212,8 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, in
   else return results;
 
   function __processSingleRelation(value) {
+    if (!value || Object.keys(value).length === 0) return []; // Ignore null or empty relation value
+
     if(value['action'] === 'update' || value['action'] === 'delete'){
       errorMessages.push(message.report('ENTITY', 'UPDATE_DELETE_NOT_ALLOWED', 'E'));
       return [];
@@ -1267,6 +1269,7 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
   else return results;
 
   function __processSingleRelation(value) {
+    if (!value || Object.keys(value).length === 0) return []; // Ignore null or empty relation value
     let results;
     switch (value['action']){
       case 'add':
@@ -1335,7 +1338,6 @@ function _generateInsertSingleRelationSQL(relationMeta, relationRow, instanceGUI
   let insertSQLs = [];
   let insertColumns = "( `INSTANCE_GUID`";
   let insertValues = "( " + entityDB.pool.escape(instanceGUID);
-
   _.each(relationRow, function (value, key) {
     if( key === 'action') {return;}
     let attributeMeta = relationMeta.ATTRIBUTES.find(function (ele) {
