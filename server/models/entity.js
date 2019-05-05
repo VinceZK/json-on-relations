@@ -118,7 +118,6 @@ function createInstance(instance, callback) {
   let relationshipInstances = [];
   let results;
 
-  console.log(instance);
   if(!instance['ENTITY_ID']){
     return callback([message.report('ENTITY', 'ENTITY_ID_MISSING', 'E')]);
   }
