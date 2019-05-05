@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {Relation} from '../../entity';
+import {Relation} from 'jor-angular';
 import {Subject} from 'rxjs';
 import {EntityService} from '../../entity.service';
 import {ActivatedRoute, Router} from '@angular/router';

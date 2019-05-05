@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
 import {AttributeBase} from '../attribute-base';
-import {EntityRelation} from '../../../entity';
+import {EntityRelation} from 'jor-angular';
 
 @Component({
   selector: 'app-attribute-table',

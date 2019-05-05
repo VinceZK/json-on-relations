@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {AttributeBase} from '../attribute/attribute-base';
 import {FormArray, FormGroup} from '@angular/forms';
-import {Attribute, EntityRelation} from '../../entity';
+import {Attribute, EntityRelation} from 'jor-angular';
 import {AttributeControlService} from '../attribute/attribute-control.service';
 
 @Component({

@@ -1,4 +1,3 @@
-// TODO Export these types in packaging
 export class Entity {
   ENTITY_ID: string;
   INSTANCE_GUID: string;
@@ -23,6 +22,10 @@ export class PartnerInstance {
   ROLE_ID: string;
   INSTANCE_GUID: string;
   [key: string]: any;
+}
+export class PartnerRole {
+  ENTITY_ID: string;
+  ROLE_ID: string;
 }
 export class EntityMeta {
   ENTITY_ID: string;

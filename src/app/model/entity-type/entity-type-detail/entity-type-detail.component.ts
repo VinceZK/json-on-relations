@@ -2,7 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {EntityService} from '../../../entity.service';
-import {Attribute, EntityMeta} from '../../../entity';
+import {Attribute, EntityMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../../../msgStore';

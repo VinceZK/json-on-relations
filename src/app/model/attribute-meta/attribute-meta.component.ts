@@ -1,6 +1,6 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {Attribute} from '../../entity';
+import {Attribute} from 'jor-angular';
 
 @Component({
   selector: 'app-attribute-meta',

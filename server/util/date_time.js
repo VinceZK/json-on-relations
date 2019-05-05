@@ -146,10 +146,12 @@ module.exports = {
     /**
      * Get future time by adding number of seconds to the current time.
      * @param seconds
+     * @param formatStr
+     * @param baseDate
      * @returns {*}
      */
-    getFutureDateTime:function(seconds, formatStr){
-        var currentDate = new Date();
+    getFutureDateTime:function(seconds, formatStr, baseDate){
+        var currentDate = new Date(baseDate);
         return currentDate.DateAdd('s',seconds).Format(formatStr);
     },
 

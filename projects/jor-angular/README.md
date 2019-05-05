@@ -1,6 +1,9 @@
 # JsonOnRelations Angular Library
 This package includes shared Angular library components of JsonOnRelations. 
-So far, it only contains the Types included. In future, it will contain reusable components like field controls.
+
+Currently, it contains:
+1. Reusable Types;
+2. UI mapper: which is used to map Angular reactive form to JOR RESTful format.
 
 Refer [JsonOnRelations](https://www.npmjs.com/package/json-on-relations).
 
