@@ -410,7 +410,7 @@ Content-Type: application/json
       "FIELD_NAME": "USER_ID",
       "OPERATOR": "BT",
       "LOW": "DH001",
-      "HIGH": "DH999
+      "HIGH": "DH999"
     },
     {
       "FIELD_NAME": "LANGUAGE",
