@@ -1,7 +1,7 @@
 # JsonOnRelations
 JSON-On-Relations converts a JSON message to SQL. 
 Thus, a lot of relational data manipulations can be achieved by composing a JSON format message. 
-JSON is now the de facto message format for RESTful communication. 
+JSON is now the de-facto message format for RESTful communication. 
 On the other hand, the relational database with SQL is still the only trust-able system to store and use structured data. 
 Putting JSON on relations can simplify the development of enterprise applications(like ERP and CRM). 
 Meanwhile, it can also help to lower the software maintenance effort by standardizing the business entity modeling.
@@ -17,6 +17,9 @@ JSON-On-Relations is not trying to shell SQL with JSON.
 It acts more like a bridge which connects JSON with SQL DBs towards a niche area. 
 The area, always mixed with other web-based applications, 
 should be regarded as a separate one, which is the enterprise Line-of-Business applications.
+
+Here also gives an [example](https://vincezk.github.io/Portal/) 
+on how to build a CRUD App with JSON-On-Relations. 
 
 ## First Glance
 ### Define Your Entity
