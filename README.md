@@ -15,12 +15,15 @@ JSON-On-Relations permits a lot of relational data manipulations to be achieved 
 
 Existing ORM solutions focus too much on the “object” concept. 
 Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. 
-SQL is still proven to be the best abstraction of data manipulation. 
+SQL is still proven to be the best abstraction on data manipulation.
+If the target is to map between objects and relations, then do the best on mapping,
+rather than creating another layer of leaky abstraction.
 Any attempts to rebuild the wheel always end like drawing legs on a snake.
 
-Unlike other protocols(for example: OData or JSON API), 
-JSON-On-Relations is not trying to shell another abstraction on data accessing. 
-It is not like a back box, instead, it tries to make data models more understandable.
+Unlike other protocols, for example,  OData or JSON API, 
+JSON-On-Relations is not trying to introduce a new SQL-like grammar in RESTful style. 
+It is from object perspective to map to relations, and from relation perspective, to model the objects.
+It is not a black box, instead, it tries to make data model more understandable.
 It is both a framework and toolset that facilitates both modeling and consuming.
 It acts more like a bridge which connects enterprise applications to the modern web.
 
