@@ -51,6 +51,7 @@ And the JSON is not just an simple format, but also a message that can be commun
 ![JSON format of a person instance](JSONPersonInstance.png)
 
 If you want to create a new person instance, just post the message like bellow:
+
 ```http request
 POST http://localhost:3001/api/entity
 Accept: */*
@@ -72,6 +73,7 @@ Content-Type: application/json
 ```  
 
 If you want to change the TITLE of an employee(person) from "Developer" to "Architect", then:
+
 ```http request
 PUT http://localhost:3001/api/entity
 Accept: */*
@@ -85,6 +87,7 @@ Content-Type: application/json
 ```  
 
 Want to add a new address? just do it in this way:
+
 ```http request
 PUT http://localhost:3001/api/entity
 Accept: */*
@@ -125,6 +128,7 @@ Content-Type: application/json
    Copy the folder "node_modules/json-on-relations/dist" and its belongings to your project root. 
  
    create "server.js" in the project root with following:
+   
    ```javascript 1.8
    const express = require('express');
    const app = express();
@@ -178,11 +182,14 @@ Content-Type: application/json
      }
    });
    ```
+
    You should also install following involved packages: express, path, cors, body-parse, and compression.
 4. Start the server:
+
    ```bash
     $ node server.js
    ```
+   
 5. Open the links:
    + [Modeling](http://localhost:3001/model)
    + [Entity Browser](http://localhost:3001/entity/list)
@@ -192,6 +199,7 @@ Content-Type: application/json
 ## RESTful API
 Following APIs are opened in the default route table. These examples are also listed in the 'test/test_api.http'. 
 ### Create a person instance
+
 ```http request
 POST http://localhost:3001/api/entity
 Accept: */*
@@ -213,6 +221,7 @@ Content-Type: application/json
     }]
 }
 ```    
+
 ### Change a person instance
 The reserved field "action" is introduced for each relation. Its value could be "update", "add", and "delete".
 
@@ -254,6 +263,7 @@ Content-Type: application/json
     }]
 }
 ```
+
 ### Overwrite a person instance
 The API overwrites an instance as a whole with a given JSON object. 
 Those appeared relations are updated with new values. 
@@ -265,6 +275,7 @@ Besides it may introduce some performance overhead,
 another limitation is that relationships are not supported with "overwrite" mode. 
 This is because a relationship always deals with more than 2 entities,
  thus cannot be overwritten from one single side.
+
 ```http request
 PUT http://localhost:3001/api/entity/overwrite
 Accept: */*
@@ -279,13 +290,16 @@ Content-Type: application/json
   "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"}
 }
 ```
+
 ### Get an entity instance through its UUID
 The return is an entity instance in JSON format. The relationships are also included
+
 ```http request
 GET http://localhost:3001/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
 ```
+
 ### Get pieces of an entity instance through its UUID
 Use this API to decide which relations or relationships you need from an entity instance.
 The given example requests 2 relations: "r_user" and "r_email" from a person entity, 
@@ -293,6 +307,7 @@ together with one relationship "rs_user_role".
 The return is a projection of the entity instance.
 
 The API can save performance if you only need some pieces of the information from a big entity.
+
 ```http request
 POST http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
@@ -304,6 +319,7 @@ Content-Type: application/json
   "RELATIONSHIPS": ["rs_user_role"]
  }
 ```
+
 ### Get an entity instance through one of its business ID
 The business ID always belongs to one of an entity's relations. 
 For example, the attribute USER_ID is one of the person entity's business IDs,
@@ -312,6 +328,7 @@ You need to make sure the business ID can uniquely identify the entity,
 or it will give you the first hit that matches this ID.
 
 The return is a complete entity instance in JSON format.
+
 ```http request
 POST http://localhost:3001/api/entity/instance
 Accept: */*
@@ -328,6 +345,7 @@ Content-Type: application/json
 Use this API to get pieces of an entity from its business ID.
 In following example, it gets relations "r_user" and "r_email", and the relationship "rs_user_role"
 for the user "DH001".
+
 ```http request
 POST http://localhost:3000/api/entity/instance/piece
 Accept: */*
@@ -352,6 +370,7 @@ You don't need to make 2 or more requests, just request the partners' informatio
 
 Like bellow request, it will return the role and marriage partner information together with the person's own information. 
 You can recursively request all the entities that have relationship networks with each other.  
+
 ```http request
 POST http://localhost:3000/api/entity/instance/piece
 Accept: */*
@@ -393,6 +412,7 @@ You can also use fields from the assoicated relations to do the filtering and so
 
 You can also define sort criteria. On which which fields you want to sort the result sets, 
 ascending(asc) or descending(desc). The return is a list of entries that fulfills the query.
+
 ```http request
 POST http://localhost:3001/api/query
 Accept: */*
@@ -464,6 +484,7 @@ However, you can only add your logic in predefined calling points.
 
 In the following example, the function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
 Then, after an entity instance is created, it will be read from the DB and returned to the UI.
+
 ```javascript 1.8
 afterEntityCreation.use('*', getEntityInstance);
 
@@ -477,6 +498,7 @@ function getEntityInstance(req, callback) {
   })
 }
 ```
+
 A User AddIn function has 2 parameters: the first one is the http request object passed by ExpressJS, 
 and the second one is a callback function. You can register an AddIn function under a topic.
 Thus, only the requests that belong to the topic will invoke the AddIn function.
@@ -500,6 +522,7 @@ The second parameter is 'user' which points the user session context passed by P
 The third one is a callback function for the returned value which will be read by the client.
  
 If you register a User Function as following:
+
 ```javascript 1.8
 const userFunction = require('./server/models/userFunction');
 
@@ -507,7 +530,9 @@ userFunction.register('testFunction', function (input, user, callback) {
   callback(null, 'The input is read from req.body: ' + input, 'and the user context is ' + user );
 });
 ```
+
 Then, this function can be RESTfully called:
+
 ```http request
 POST http://localhost:3000/api/function/testFunction
 Accept: */*
