@@ -52,7 +52,7 @@ And the JSON is not just an simple format, but also a message that can be commun
 
 If you want to create a new person instance, just post the message like bellow:
 
-```http request
+```
 POST http://localhost:3001/api/entity
 Accept: */*
 Cache-Control: no-cache
@@ -74,7 +74,7 @@ Content-Type: application/json
 
 If you want to change the TITLE of an employee(person) from "Developer" to "Architect", then:
 
-```http request
+```
 PUT http://localhost:3001/api/entity
 Accept: */*
 Cache-Control: no-cache
@@ -88,7 +88,7 @@ Content-Type: application/json
 
 Want to add a new address? just do it in this way:
 
-```http request
+```
 PUT http://localhost:3001/api/entity
 Accept: */*
 Cache-Control: no-cache
@@ -200,7 +200,7 @@ Content-Type: application/json
 Following APIs are opened in the default route table. These examples are also listed in the 'test/test_api.http'. 
 ### Create a person instance
 
-```http request
+```
 POST http://localhost:3001/api/entity
 Accept: */*
 Cache-Control: no-cache
@@ -231,7 +231,7 @@ The example will do the following changes:
 3) Add a new email address;
 4) Add a new relationship to "system_role".
 
-```http request
+```
 PUT http://localhost:3001/api/entity
 Accept: */*
 Cache-Control: no-cache
@@ -276,7 +276,7 @@ another limitation is that relationships are not supported with "overwrite" mode
 This is because a relationship always deals with more than 2 entities,
  thus cannot be overwritten from one single side.
 
-```http request
+```
 PUT http://localhost:3001/api/entity/overwrite
 Accept: */*
 Cache-Control: no-cache
@@ -294,7 +294,7 @@ Content-Type: application/json
 ### Get an entity instance through its UUID
 The return is an entity instance in JSON format. The relationships are also included
 
-```http request
+```
 GET http://localhost:3001/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
@@ -308,7 +308,7 @@ The return is a projection of the entity instance.
 
 The API can save performance if you only need some pieces of the information from a big entity.
 
-```http request
+```
 POST http://localhost:3001/api/entity/instance/piece/2FBE7490E10F11E8A90957FA46F2CECA
 Accept: */*
 Cache-Control: no-cache
@@ -329,7 +329,7 @@ or it will give you the first hit that matches this ID.
 
 The return is a complete entity instance in JSON format.
 
-```http request
+```
 POST http://localhost:3001/api/entity/instance
 Accept: */*
 Cache-Control: no-cache
@@ -346,7 +346,7 @@ Use this API to get pieces of an entity from its business ID.
 In following example, it gets relations "r_user" and "r_email", and the relationship "rs_user_role"
 for the user "DH001".
 
-```http request
+```
 POST http://localhost:3000/api/entity/instance/piece
 Accept: */*
 Cache-Control: no-cache
@@ -371,7 +371,7 @@ You don't need to make 2 or more requests, just request the partners' informatio
 Like bellow request, it will return the role and marriage partner information together with the person's own information. 
 You can recursively request all the entities that have relationship networks with each other.  
 
-```http request
+```
 POST http://localhost:3000/api/entity/instance/piece
 Accept: */*
 Cache-Control: no-cache
@@ -413,7 +413,7 @@ You can also use fields from the assoicated relations to do the filtering and so
 You can also define sort criteria. On which which fields you want to sort the result sets, 
 ascending(asc) or descending(desc). The return is a list of entries that fulfills the query.
 
-```http request
+```
 POST http://localhost:3001/api/query
 Accept: */*
 Cache-Control: no-cache
@@ -533,7 +533,7 @@ userFunction.register('testFunction', function (input, user, callback) {
 
 Then, this function can be RESTfully called:
 
-```http request
+```
 POST http://localhost:3000/api/function/testFunction
 Accept: */*
 Cache-Control: no-cache
