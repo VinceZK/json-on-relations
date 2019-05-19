@@ -1,22 +1,28 @@
-# JsonOnRelations
-JSON-On-Relations converts a JSON message to SQL. 
-Thus, a lot of relational data manipulations can be achieved by composing a JSON format message. 
-JSON is now the de-facto message format for RESTful communication. 
-On the other hand, the relational database with SQL is still the only trust-able system to store and use structured data. 
-Putting JSON on relations can simplify the development of enterprise applications(like ERP and CRM). 
-Meanwhile, it can also help to lower the software maintenance effort by standardizing the business entity modeling.
+# JSON-On-Relations
+JSON-On-Relations is a RESTful framework for business entity modeling and consuming.
+ 
+Usually, we model and store business entities in relational databases. 
+However, there seems to be not much good frameworks 
+that allow easily modeling and consuming these entities in a RESTful style. 
+Especially, I haven't seen any one in **NodeJS** stack.
+Thus, I hope JSON-On-Relations can fill the gap.
+   
+In general, JSON-On-Relations adapts the REST architecture style on consuming the data from relational databases.
+It uniforms the APIs on entities by representing them in a protocol JSON message. 
+The JSON message complies with Entity Relationship Modeling to permits a strong contract with relational nature. 
+It is not difficult for users to deduce from the JSON representation to SQL representation, and vice-versa.
+JSON-On-Relations permits a lot of relational data manipulations to be achieved by composing a JSON message.
 
 Existing ORM solutions focus too much on the “object” concept. 
 Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. 
 SQL is still proven to be the best abstraction of data manipulation. 
-Any attempts to rebuild the wheel, or to cover another level shell, 
-always end like drawing legs on a snake.
+Any attempts to rebuild the wheel always end like drawing legs on a snake.
 
 Unlike other protocols(for example: OData or JSON API), 
-JSON-On-Relations is not trying to shell SQL with JSON. 
-It acts more like a bridge which connects JSON with SQL DBs towards a niche area. 
-The area, always mixed with other web-based applications, 
-should be regarded as a separate one, which is the enterprise Line-of-Business applications.
+JSON-On-Relations is not trying to shell another abstraction on data accessing. 
+It is not like a back box, instead, it tries to make data models more understandable.
+It is both a framework and toolset that facilitates both modeling and consuming.
+It acts more like a bridge which connects enterprise applications to the modern web.
 
 Here also gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. 
