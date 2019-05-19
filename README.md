@@ -129,7 +129,7 @@ Content-Type: application/json
  
    create "server.js" in the project root with following:
    
-   ```javascript 1.8
+   ```javascript
    const express = require('express');
    const app = express();
 
@@ -485,7 +485,7 @@ However, you can only add your logic in predefined calling points.
 In the following example, the function 'getEntityInstance' is registered to the User AddIn 'afterEntityCreation'.
 Then, after an entity instance is created, it will be read from the DB and returned to the UI.
 
-```javascript 1.8
+```javascript
 afterEntityCreation.use('*', getEntityInstance);
 
 function getEntityInstance(req, callback) {
@@ -523,7 +523,7 @@ The third one is a callback function for the returned value which will be read b
  
 If you register a User Function as following:
 
-```javascript 1.8
+```javascript
 const userFunction = require('./server/models/userFunction');
 
 userFunction.register('testFunction', function (input, user, callback) {
