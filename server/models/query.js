@@ -226,8 +226,10 @@ function run(queryObject, callback) {
             + " between " + entityDB.pool.escape(selectOption.LOW) + ' and ' + entityDB.pool.escape(selectOption.HIGH);
           break;
         case 'CN':
-          filterString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(selectOption.FIELD_NAME)
-            + " like "  + entityDB.pool.escape(selectOption.LOW);
+          if (selectOption.LOW) {
+            filterString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(selectOption.FIELD_NAME)
+              + " like "  + entityDB.pool.escape(selectOption.LOW);
+          }
           break;
         default:
           errorMessages.push(message.report('QUERY', 'INVALID_OPERATOR', 'E', selectOption.OPERATOR))

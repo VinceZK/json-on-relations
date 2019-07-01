@@ -180,7 +180,7 @@ function listEntityID() {
 
 function _getEntityRoles(entity, callback) {
   let selectSQL =
-    "SELECT A.ROLE_ID, B.ROLE_DESC, C.RELATION_ID, C.CARDINALITY" +
+    "SELECT A.ROLE_ID, A.CONDITIONAL_ATTR, A.CONDITIONAL_VALUE, B.ROLE_DESC, C.RELATION_ID, C.CARDINALITY" +
     "  FROM ENTITY_ROLES AS A" +
     "  JOIN ROLE AS B" +
     "    ON A.ROLE_ID = B.ROLE_ID" +
@@ -200,6 +200,8 @@ function _getEntityRoles(entity, callback) {
         let roleInstance = {
             ROLE_ID: role.ROLE_ID,
             ROLE_DESC: role.ROLE_DESC,
+            CONDITIONAL_ATTR: role.CONDITIONAL_ATTR,
+            CONDITIONAL_VALUE: role.CONDITIONAL_VALUE,
             RELATIONS: [],
             RELATIONSHIPS: []
           };

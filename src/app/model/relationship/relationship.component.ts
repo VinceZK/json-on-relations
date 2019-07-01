@@ -15,6 +15,7 @@ import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 })
 export class RelationshipComponent implements OnInit {
   relationshipList: RelationshipH[];
+  isSearchListShown = true;
   private searchTerms = new Subject<string>();
   private theSelectedRelationship: RelationshipH;
 
@@ -68,6 +69,13 @@ export class RelationshipComponent implements OnInit {
         }
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
+  }
+
+  hideSearchList(): void {
+    this.isSearchListShown = false;
+    this.modelService.hideSearchList();
   }
 
   onSelect(relationship: RelationshipH): void {

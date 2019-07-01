@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {RoleMeta} from 'jor-angular';
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
 import {ModelService} from '../../model.service';
@@ -23,6 +23,7 @@ export class RoleDetailComponent implements OnInit {
   roleForm: FormGroup;
   changedRole = {};
   bypassProtection = false;
+  isSearchListShown = true;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -70,6 +71,13 @@ export class RoleDetailComponent implements OnInit {
         this._generateRoleForm();
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
+  }
+
+  showSearchList(): void {
+    this.isSearchListShown = true;
+    this.modelService.showSearchList();
   }
 
   _generateRoleForm(): void {

@@ -25,6 +25,7 @@ export class RelationshipDetailComponent implements OnInit {
   relationshipForm: FormGroup;
   changedRelationship = {};
   bypassProtection = false;
+  isSearchListShown = true;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -80,6 +81,13 @@ export class RelationshipDetailComponent implements OnInit {
         if (this.readonly) { this.relationshipForm.get('TIME_DEPENDENT').disable(); }
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
+  }
+
+  showSearchList(): void {
+    this.isSearchListShown = true;
+    this.modelService.showSearchList();
   }
 
   _generateRelationshipForm(): void {

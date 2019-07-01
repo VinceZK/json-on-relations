@@ -4,14 +4,15 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe.only('entity tests', function () {
+describe('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntities(['person', 'permission', 'category', 'app'], done);
   });
 
   let instance =
     { ENTITY_ID: 'person',
-      person: {HEIGHT: 170, GENDER: 'male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding'},
+      person: {HEIGHT: 170, GENDER: 'male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',
+               TYPE: 'employee', SYSTEM_ACCESS: 'portal'},
       r_user: {USER_ID: 'DH999', USER_NAME:'VINCEZK', DISPLAY_NAME: 'Vincent Zhang'},
       r_email: [{EMAIL: 'dh999@hotmail.com', TYPE: 'private', PRIMARY:1},
                 {EMAIL: 'dh999@gmail.com', TYPE: 'private important', PRIMARY:0}
@@ -33,7 +34,20 @@ describe.only('entity tests', function () {
     };
   let wifeInstanceGUID;
   describe('Entity Creation', function () {
-    it('should not create an instance as mandatory relation is missing', function(done){
+    it('should not create an instance as mandatory relation is missing 1', function(done){
+      let instance2 = _.clone(instance);
+      delete instance2.person;
+      entity.createInstance(instance2, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'MANDATORY_RELATION_MISSING',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should not create an instance as mandatory relation is missing 2', function(done){
       let instance2 = _.clone(instance);
       delete instance2.r_user;
       entity.createInstance(instance2, function(err){
@@ -134,7 +148,8 @@ describe.only('entity tests', function () {
 
     it('should create an instance of a female person', function (done) {
       let instance2 = { ENTITY_ID: 'person',
-        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama'},
+        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+                 TYPE: 'employee', SYSTEM_ACCESS: 'portal'},
         r_user: [{USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}],
         r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
         r_address: [],
@@ -184,6 +199,19 @@ describe.only('entity tests', function () {
           instance2.relationships.should.containDeep(instance3.relationships);
           done();
         });
+      })
+    });
+
+    it('should report an error as the INSTANCE_GUID does not exit', function (done) {
+      let instance3 = {ENTITY_ID:"person",INSTANCE_GUID:"3AD9A9F0840F11E995EFADDBF5879A0E",
+        person:{action:"update",GENDER:"male",HEIGHT:"175"}};
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'ENTITY_INSTANCE_NOT_EXIST',
+          msgType: 'E'
+        }]);
+        done();
       })
     });
 
@@ -631,6 +659,7 @@ describe.only('entity tests', function () {
           ]
       };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
+        console.log(err);
         (err === null).should.true();
 
         instancePiece.relationships.should.containDeep([

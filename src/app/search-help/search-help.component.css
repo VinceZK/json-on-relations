@@ -1,0 +1,12 @@
+.dk-search-help-header {
+  padding: 0.3rem 0.5rem;
+}
+.dk-search-help-footer {
+  padding: 0.3rem 0.5rem;
+}
+.dk-search-table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  border: none;
+}

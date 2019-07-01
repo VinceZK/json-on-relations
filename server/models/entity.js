@@ -94,8 +94,8 @@ function getRelationMetaOfEntity(entityID) {
 /**
  * save the entity JSON object in DB
  * @param instance = JSON object, for example:
- * { ENTITY_ID: 'people',
- *   --attribute1: 'value1', attribute2: 'value2', attribute3: ['s1', 's2', 's3'] ... ,
+ * { ENTITY_ID: 'person',
+ *   person: {INSTANCE_GUID: 'C1D5765AFB9E92F87C936C079837842C'}
  *   relation1: [{action: 'add', a: '1', b: '2'}, {action: 'delete', a: '3', b: '4'}],
  *   relation2: {c: '3', b: '4'}, ... ,
  *   relationships:[
@@ -126,16 +126,20 @@ function createInstance(instance, callback) {
   if(!entityMeta)
     return callback([message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', instance['ENTITY_ID'])]);
 
+  if(!instance[entityMeta.ENTITY_ID]){
+    return callback([message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', entityMeta.ENTITY_ID, entityMeta.ENTITY_ID)]);
+  }
 
   entityMeta.ROLES.forEach(function(role){
-    role.RELATIONS.forEach(function(relation){
-      if((relation.CARDINALITY === '[1..1]' || relation.CARDINALITY === '[1..n]') && !instance[relation.RELATION_ID])
-        errorMessages.push(message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', relation.RELATION_ID, entityMeta.ENTITY_ID))
-    })
+    if(_checkEntityRoleCondition(role, instance[entityMeta.ENTITY_ID])){
+      role.RELATIONS.forEach(function(relation){
+        if((relation.CARDINALITY === '[1..1]' || relation.CARDINALITY === '[1..n]') && !instance[relation.RELATION_ID])
+          errorMessages.push(message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', relation.RELATION_ID, entityMeta.ENTITY_ID))
+      })
+    }
   });
-  if(errorMessages.length > 0) return callback(errorMessages);
 
-  if (!instance[entityMeta.ENTITY_ID]) instance[entityMeta.ENTITY_ID] = {};
+  if(errorMessages.length > 0) return callback(errorMessages);
 
   //Parse the give instance JSON and convert it SQLs
   _.each(instance, function (value, key) {
@@ -150,10 +154,10 @@ function createInstance(instance, callback) {
         break;
       default:
         if (_isRelation(key)) { //Relations
-          results = _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID);
+          results = _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, instance[entityMeta.ENTITY_ID], instanceGUID);
           _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
         } else { //Illegal node
-          errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
+          errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, key));
         }
     }
   });
@@ -210,6 +214,10 @@ function _condenseErrorMessages(results) {
   });
 }
 
+function _checkEntityRoleCondition(role, entityRelation) {
+  return (!role.CONDITIONAL_ATTR || 
+    (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE.split(',').includes(entityRelation[role.CONDITIONAL_ATTR])));
+}
 /**
  * Soft delete an instance by the given business ID
  * @param idAttr
@@ -452,7 +460,7 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
 
     async.parallel([
       function (callback) {
-        __getRelationValue(instance, entityMeta, callback);
+        __getRelationValue(instance, entityMeta, instanceHead, callback);
       },
       function (callback) {
         __getRelationshipValue(instance, entityMeta, callback);
@@ -464,14 +472,14 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
 
   });
 
-  function __getRelationValue(instance, entityMeta, callback) {
+  function __getRelationValue(instance, entityMeta, instanceHead, callback) {
     let relationIDs = piece.RELATIONS || [];
     let errorMessages = [];
     let relations = [];
     relationIDs.forEach(function (relationID) {
-      let relation = _checkEntityHasRelation(relationID, entityMeta);
+      let relation = _checkEntityHasRelation(relationID, entityMeta, instanceHead);
       if (relation) relations.push(relation);
-      else errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', relationID, entityMeta.ENTITY_ID));
+      else errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, relationID));
     });
 
     if (errorMessages.length > 0) return callback(errorMessages);
@@ -696,11 +704,11 @@ function changeInstance(instance, callback) {
           break;
         default:
           if (_isRelation(key)) { //Relations
-            results = _generateChangeRelationSQL(value, key, entityMeta, foreignRelations,
-              instance['INSTANCE_GUID'], add01Relations, delete1nRelations);
+            results = _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, instance['INSTANCE_GUID'],
+              add01Relations, delete1nRelations, instanceHead);
             _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
           } else { //Illegal node
-            errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
+            errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, key));
           }
       }
     });
@@ -828,16 +836,16 @@ function overwriteInstance(instance, callback) {
           errorMessages.push(message.report('ENTITY', 'OVERWRITE_RELATIONSHIPS_NOT_ALLOWED', 'E'));
           break;
         default:
-          if (!_.isArray(value)) instance[key] = [value];
+          if (!Array.isArray(value)) instance[key] = [value];
           if (originalInstance[key]) {
             __compareAndSetAction(key, instance[key], originalInstance[key]);
           } else {
-            if (_checkEntityHasRelation(key)) {
+            if (_checkEntityHasRelation(key, entityMeta, instance[entityMeta.ENTITY_ID])) {
               instance[key].forEach(function (singleRelation) {
                 singleRelation['action'] = 'add';
               })
             } else {
-              errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
+              errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, key));
             }
           }
       }
@@ -938,7 +946,22 @@ function _getEntityInstanceHead(instanceGUID, callback) {
     if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     if(results.length === 0)
       return callback([message.report('ENTITY','ENTITY_INSTANCE_NOT_EXIST','E', instanceGUID)]);
-    callback(null, results[0]);
+
+    let entityInstance = results[0];
+    selectSQL = "select * from " + entityDB.pool.escapeId(entityInstance.ENTITY_ID) +
+                " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
+    entityDB.executeSQL(selectSQL, function (err, results2) {
+      if(err)return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+      if(results2.length === 0)
+        return callback([message.report('ENTITY','ENTITY_INSTANCE_NOT_EXIST','E', instanceGUID)]);
+
+      for (let key in results2[0]) {
+        entityInstance[key] = results2[0][key];
+      }
+
+      callback(null, entityInstance);
+    });
+
   })
 }
 
@@ -1180,22 +1203,23 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
  * @param key: the name of the relation
  * @param entityMeta
  * @param foreignRelations
+ * @param entityRelation
  * @param instanceGUID
  * @returns {*}
  * @private
  */
-function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID){
+function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, entityRelation, instanceGUID){
   let errorMessages = [];
   let results;
 
-  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta);
+  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
   if(!roleRelationMeta){
-    errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
+    errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, key));
     return errorMessages;
   }
 
   let relationMeta = entityDB.getRelationMeta(key);
-  if (_.isArray(value)){
+  if (Array.isArray(value)){
     if((roleRelationMeta.CARDINALITY === '[0..1]' || roleRelationMeta.CARDINALITY === '[1..1]') && value.length > 1) {
       errorMessages.push(message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', roleRelationMeta.RELATION_ID));
       return errorMessages;
@@ -1243,21 +1267,23 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, in
  * @param instanceGUID
  * @param add01Relations: record relations that have cardinality [0..1] and are asked for adding
  * @param delete1nRelations: record relations that have cardinality [1..n] and are asked for deletion
+ * @param entityRelation
  * @returns {*}
  * @private
  */
-function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID, add01Relations, delete1nRelations){
+function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations,
+                                    instanceGUID, add01Relations, delete1nRelations, entityRelation){
   let errorMessages = [];
   let results;
 
-  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta);
+  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
   if(!roleRelationMeta){
-    errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
+    errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', entityMeta.ENTITY_ID, key));
     return errorMessages;
   }
 
   let relationMeta = entityDB.getRelationMeta(key);
-  if (_.isArray(value)){
+  if (Array.isArray(value)){
     results = [];
     value.forEach(function (element) {
       _mergeResults(results, __processSingleRelation(element));
@@ -1305,7 +1331,7 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
     if(roleRelationMeta.CARDINALITY === '[1..1]')
       errorMessages.push(message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', roleRelationMeta.RELATION_ID));
     if(roleRelationMeta.CARDINALITY === '[0..1]'){
-      if(_.contains(add01Relations, roleRelationMeta.RELATION_ID))
+      if(add01Relations.includes(roleRelationMeta.RELATION_ID))
         errorMessages.push(message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', roleRelationMeta.RELATION_ID));
       else add01Relations.push(roleRelationMeta.RELATION_ID);
     }
@@ -1466,15 +1492,19 @@ function _checkEntityInvolvesRelationship(relationshipID, entityMeta) {
   });
 }
 
-function _checkEntityHasRelation(relationID, entityMeta) {
+function _checkEntityHasRelation(relationID, entityMeta, entityRelation) {
   if (relationID === entityMeta.ENTITY_ID) {
     return {RELATION_ID: relationID, CARDINALITY: '[1..1]'};
   }
 
   let role = entityMeta.ROLES.find(function (element) {
-    return element.RELATIONS.find(function (element) {
-      return element.RELATION_ID === relationID;
-    })
+    if(_checkEntityRoleCondition(element, entityRelation)){
+      return element.RELATIONS.find(function (element) {
+        return element.RELATION_ID === relationID;
+      })
+    } else {
+      return null;
+    }
   });
 
   return role?role.RELATIONS.find(function (element) {

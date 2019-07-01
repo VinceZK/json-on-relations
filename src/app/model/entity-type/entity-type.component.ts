@@ -15,6 +15,8 @@ import {msgStore} from '../../msgStore';
 })
 export class EntityTypeComponent implements OnInit {
   entityTypeList: EntityType[];
+  isSearchListShown = true;
+
   private searchTerms = new Subject<string>();
   private theSelectedEntityType: EntityType;
 
@@ -54,6 +56,8 @@ export class EntityTypeComponent implements OnInit {
       }
     });
 
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
+
     this.modelService.dialogAnswer$.subscribe( answer => {
       if (answer === 'OK' && !this.entityTypeList[0].CREATE_TIME) {
         this.entityTypeList.splice(0, 1); // Remove the first one.
@@ -79,6 +83,11 @@ export class EntityTypeComponent implements OnInit {
 
   searchEntityType(term: string): void {
     this.searchTerms.next(term);
+  }
+
+  hideSearchList(): void {
+    this.isSearchListShown = false;
+    this.modelService.hideSearchList();
   }
 
   newEntityType(): void {

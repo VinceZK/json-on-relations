@@ -9,6 +9,9 @@ export class ModelService {
   private dialogAnswer = new Subject<string>();
   dialogAnswer$ = this.dialogAnswer.asObservable();
 
+  private isSearchListShown = new Subject<boolean>();
+  isSearchListShown$ = this.isSearchListShown.asObservable();
+
   private theSelectedEntityType: EntityType;
   private selectedEntityTypeSource = new Subject<EntityType>();
   theSelectedEntityType$ = this.selectedEntityTypeSource.asObservable();
@@ -25,6 +28,13 @@ export class ModelService {
   private selectedRoleSource = new Subject<RoleH>();
   theSelectedRole$ = this.selectedRoleSource.asObservable();
 
+  showSearchList(): void {
+    this.isSearchListShown.next(true);
+  }
+
+  hideSearchList(): void {
+    this.isSearchListShown.next(false);
+  }
   updateEntityID(entityID: string) {
     this.theSelectedEntityType.ENTITY_ID = entityID;
     this.selectedEntityTypeSource.next(this.theSelectedEntityType);

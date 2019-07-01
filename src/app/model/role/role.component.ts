@@ -15,6 +15,7 @@ import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 })
 export class RoleComponent implements OnInit {
   roleList: RoleH[];
+  isSearchListShown = true;
   private searchTerms = new Subject<string>();
   private theSelectedRole: RoleH;
 
@@ -68,6 +69,8 @@ export class RoleComponent implements OnInit {
         }
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
   }
 
   onSelect(role: RoleH): void {
@@ -79,6 +82,11 @@ export class RoleComponent implements OnInit {
 
   searchRole(term: string): void {
     this.searchTerms.next(term);
+  }
+
+  hideSearchList(): void {
+    this.isSearchListShown = false;
+    this.modelService.hideSearchList();
   }
 
   newRole(): void {

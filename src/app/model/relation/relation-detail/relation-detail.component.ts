@@ -28,6 +28,7 @@ export class RelationDetailComponent implements OnInit {
   currentRightRelationMeta: RelationMeta;
   changedRelation = {};
   bypassProtection = false;
+  isSearchListShown = true;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -92,6 +93,13 @@ export class RelationDetailComponent implements OnInit {
         }
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
+  }
+
+  showSearchList(): void {
+    this.isSearchListShown = true;
+    this.modelService.showSearchList();
   }
 
   _generateRelationForm(): void {

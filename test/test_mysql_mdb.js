@@ -28,12 +28,13 @@ describe('mysql connections tests', function () {
    *   [
    *     { ROLE_ID: 'system_user',
    *       ROLE_DESC: 'System user for login',
-   *       RELATIONS: [{RELATION_ID: 'r_address', CARDINALITY: '[0..n]'},
-   *                   {RELATION_ID: 'r_email', CARDINALITY: '[1..n]'},
+   *       CONDITIONAL_ATTR: 'SYSTEM_ACCESS',
+   *       CONDITIONAL_VALUE: 'portal',
+   *       RELATIONS: [{RELATION_ID: 'r_personalization', CARDINALITY: '[0..1]'},
    *                   {RELATION_ID: 'r_user', CARDINALITY: '[1..1]'}],
    *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'rs_user_role',
    *                         RELATIONSHIP_DESC: 'A system user has multiple use roles',
-   *                         VALID_PERIOD: 3162240000,
+   *                         VALID_PERIOD: 0,
    *                         INVOLVES: [RowDataPacket { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
    *                                    RowDataPacket { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
    *     }
@@ -69,18 +70,36 @@ describe('mysql connections tests', function () {
       // console.log(entityDB.getEntityMeta('person').ROLES);
       entityDB.entities.length.should.eql(1);
       entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
-      entityDB.getEntityMeta('person').ROLES.should.containDeep([{ROLE_ID: 'employee'}, {ROLE_ID: 'system_user'}]);
       entityDB.getEntityMeta('person').ROLES.should.containDeep(
-        [{ROLE_ID: 'system_user',
-          ROLE_DESC: 'System user for login',
-          RELATIONS: [{ RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
-            { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
-            { RELATION_ID: 'r_user', CARDINALITY: '[1..1]' }]}]);
-      entityDB.getEntityMeta('person').ROLES.should.containDeep( [{RELATIONSHIPS:
-        [{ RELATIONSHIP_ID: 'rs_user_role',  RELATIONSHIP_DESC: 'A system user has multiple system roles',
-          VALID_PERIOD: 3162240000,
-          INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' },
-                      { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]}]);
+        [ { ROLE_ID: 'system_user',
+            ROLE_DESC: 'System user for login',
+            CONDITIONAL_ATTR: 'SYSTEM_ACCESS',
+            CONDITIONAL_VALUE: 'portal',
+            RELATIONS: [
+              { RELATION_ID: 'r_personalization', CARDINALITY: '[0..1]' },
+              { RELATION_ID: 'r_user', CARDINALITY: '[1..1]' }
+            ],
+            RELATIONSHIPS: [
+              {
+                RELATIONSHIP_ID: 'rs_user_role',
+                RELATIONSHIP_DESC: 'A system user has multiple system roles ',
+                VALID_PERIOD: 0,
+                INVOLVES: [
+                  { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' },
+                  { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' }
+                  ]
+              }
+            ]
+          },
+          { ROLE_ID: 'employee',
+            ROLE_DESC: 'Company Employee',
+            CONDITIONAL_ATTR: 'TYPE',
+            CONDITIONAL_VALUE: 'employee',
+            RELATIONS: [
+              { RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
+              { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
+              { RELATION_ID: 'r_employee', CARDINALITY: '[1..1]' }]},
+        ]);
     });
 
     it('should have the relations', function(){

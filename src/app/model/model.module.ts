@@ -19,6 +19,7 @@ import { DataElementComponent } from './data-element/data-element.component';
 import { DataDomainComponent } from './data-domain/data-domain.component';
 import { DataDomainDetailComponent } from './data-domain/data-domain-detail/data-domain-detail.component';
 import { DataElementDetailComponent } from './data-element/data-element-detail/data-element-detail.component';
+import {SearchHelpComponent} from '../search-help/search-help.component';
 
 @NgModule({
   imports: [
@@ -44,7 +45,8 @@ import { DataElementDetailComponent } from './data-element/data-element-detail/d
     DataElementComponent,
     DataElementDetailComponent,
     DataDomainComponent,
-    DataDomainDetailComponent
+    DataDomainDetailComponent,
+    SearchHelpComponent
   ]
 })
 export class ModelModule { }

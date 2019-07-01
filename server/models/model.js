@@ -88,8 +88,10 @@ function saveEntityType(entityType, userID, callback) {
   };
   _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime);
 
+  let deletedAttributes = [];
+  let changedAttributes = [];
+  let errMessages = [];
   if (entityType.ATTRIBUTES) {
-    let errMessages = [];
     entityType.ATTRIBUTES.forEach(function (attribute) {
       if (!attribute.RELATION_ID){
         attribute.RELATION_ID = entityType.ENTITY_ID;
@@ -99,6 +101,15 @@ function saveEntityType(entityType, userID, callback) {
             message.report('MODEL', 'ATTRIBUTE_NOT_BELONG_TO_RELATION', 'E',
               attribute.ATTR_NAME, attribute.RELATION_ID, entityType.ENTITY_ID));}
       }
+      if (attribute.action === 'delete') {
+        if (!attribute.ATTR_NAME) {
+          errMessages.push(
+            message.report('MODEL', 'MISS_ATTRIBUTE_NAME_WHEN_DELETION', 'E'));
+        }
+        deletedAttributes.push(attribute.ATTR_NAME);
+      } else {
+        if (attribute.ATTR_NAME) changedAttributes.push(attribute.ATTR_NAME);
+      }
       updateSQLs.push(_generateUpdateAttributeSQL(attribute));
     });
     if(errMessages.length > 0 ){
@@ -106,19 +117,55 @@ function saveEntityType(entityType, userID, callback) {
     }
   }
 
+  let entityRelationMeta = entityDB.getRelationMeta(entityType.ENTITY_ID);
   if (entityType.ROLES) {
     entityType.ROLES.forEach(function (role) {
+      if (role.CONDITIONAL_ATTR) {
+        if (deletedAttributes.includes(role.CONDITIONAL_ATTR) && role.action !== 'delete')
+          errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
+            role.CONDITIONAL_ATTR, role.ROLE_ID));
+
+        if (!changedAttributes.includes(role.CONDITIONAL_ATTR)) {
+          if(!entityRelationMeta ||
+             !entityRelationMeta.ATTRIBUTES.find(relationMeta => relationMeta.ATTR_NAME === role.CONDITIONAL_ATTR)) {
+            errMessages.push(message.report('MODEL', 'INVALID_ROLE_CONDITION_ATTRIBUTE', 'E',
+              role.CONDITIONAL_ATTR));
+          }
+        }
+      }
       updateSQLs.push(_generateUpdateRoleSQL(role, entityType.ENTITY_ID));
-    })
+    });
   }
 
-  entityDB.doUpdatesParallel(updateSQLs, function (err) {
-    if (err) {
-      callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    } else {
-      _syncDBTable(relation.RELATION_ID, callback);
-    }
-  })
+  if(errMessages.length > 0 ){
+    return callback(errMessages);
+  }
+
+  entityDB.executeSQL("select * from ENTITY_ROLES where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID),
+    function (err, results) {
+      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+
+      results.forEach( entityRole => {
+        if (entityRole.CONDITIONAL_ATTR && deletedAttributes.includes(entityRole.CONDITIONAL_ATTR)
+            && (!entityType.ROLES || !entityType.ROLES.find( ele => ele.ROLE_ID === entityRole.ROLE_ID))) {
+          errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
+            entityRole.CONDITIONAL_ATTR, entityRole.ROLE_ID));
+        }
+      });
+
+      if(errMessages.length > 0 ){
+        return callback(errMessages);
+      }
+
+      entityDB.doUpdatesParallel(updateSQLs, function (err) {
+        if (err) {
+          callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+        } else {
+          _syncDBTable(relation.RELATION_ID, callback);
+        }
+      })
+  });
+
 }
 
 function listRelation(term, callback) {
@@ -335,15 +382,24 @@ function _generateUpdateAttributeSQL(attribute) {
 function _generateUpdateRoleSQL(role, entityID) {
   let updateSQL;
   switch (role.action) {
+    case 'update':
+      Object.keys(role).forEach(function (key) {
+        if (key === 'action' || key === 'ROLE_ID' || key === 'ENTITY_ID') return;
+        updateSQL = !updateSQL? "update ENTITY_ROLES set " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(role[key])
+          :updateSQL + ", " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(role[key]);
+      });
+      if (updateSQL) updateSQL += " where ENTITY_ID = " + entityDB.pool.escape(role.ENTITY_ID) +
+        " and ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
+      break;
     case 'delete':
       updateSQL = "delete from ENTITY_ROLES where ENTITY_ID = " + entityDB.pool.escape(entityID) +
         " and ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
       break;
     case 'add':
-
     default:
-      updateSQL = "insert into ENTITY_ROLES ( ENTITY_ID, ROLE_ID ) values ( " + entityDB.pool.escape(entityID) + ", "
-        + entityDB.pool.escape(role.ROLE_ID) + " )";
+      updateSQL = "insert into ENTITY_ROLES ( ENTITY_ID, ROLE_ID, CONDITIONAL_ATTR, CONDITIONAL_VALUE ) " +
+        "values ( " + entityDB.pool.escape(entityID) + ", "  + entityDB.pool.escape(role.ROLE_ID) +
+        ", " + entityDB.pool.escape(role.CONDITIONAL_ATTR) + ", " + entityDB.pool.escape(role.CONDITIONAL_VALUE) + " )";
   }
   return updateSQL;
 }

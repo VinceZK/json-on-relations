@@ -450,9 +450,11 @@ export class EntityComponent implements OnInit {
       this._refreshFormGroupValue(this.entity);
       this.formGroup.reset(this.formGroup.value);
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
-    } else {
+    } else if (Array.isArray(data)) {
       // Error messages are always an array
       data.forEach(err => this.messageService.add(err));
+    } else {
+      console.log('Unknown return: ' + data);
     }
   }
 

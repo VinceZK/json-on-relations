@@ -56,7 +56,7 @@ const msgArray = [
   { msgCat: "ENTITY",
     msgName: "MANDATORY_RELATION_MISSING",
     msgText: {
-      EN: {shortText: "Mandatory relation '%s' is missing", longText: "dummy"}
+      EN: {shortText: "Mandatory relation '%s' is missing in Entity '%s", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",

@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const model = require('../server/models/model.js');
 
-describe('model tests', function () {
+describe.only('model tests', function () {
 
   describe('Entity Types', function () {
     let entityType = {
@@ -12,7 +12,7 @@ describe('model tests', function () {
       ENTITY_ID: 'testEntityx',
       ENTITY_DESC: 'description of entity',
       ATTRIBUTES: [
-        { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'testEntityx',
+        { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'testEntityy',
           ATTR_NAME: 'FIELD1', DATA_TYPE: 1, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
           DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0},
         { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'testEntityx',
@@ -20,14 +20,25 @@ describe('model tests', function () {
           DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
       ],
       ROLES: [
-        {action: 'add', ROLE_ID: 'system_role'}
+        {action: 'add', ROLE_ID: 'system_role', CONDITIONAL_ATTR: 'FIELD1', CONDITIONAL_VALUE: 'XXXX'}
       ]
     };
 
+    it('should fail to create a new entity type due to wrong relation', function(done){
+      model.saveEntityType(entityType, 'DH001', function(errs) {
+        errs.should.containDeep(
+          [{ msgCat: 'MODEL',
+             msgName: 'ATTRIBUTE_NOT_BELONG_TO_RELATION',
+             msgType: 'E' }]);
+        done();
+      });
+    });
+
     it('should create a new entity type', function(done){
+      entityType.ATTRIBUTES[0].RELATION_ID = 'testEntityx';
       model.saveEntityType(entityType, 'DH001', function(errs) {
         should(errs).eql(null);
-        done();
+        entityDB.loadEntity(entityType.ENTITY_ID, done);
       });
     });
 
@@ -41,10 +52,88 @@ describe('model tests', function () {
             ATTR_NAME: 'FIELD3', DATA_TYPE: 3, PRIMARY_KEY: 0, ATTR_DESC: null, DATA_ELEMENT: null,
             DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
         ],
-        ROLES: [{action:'add', ROLE_ID: 'system_user'}]
+        ROLES: [
+          {action:'add', ROLE_ID: 'system_user', CONDITIONAL_ATTR: 'FIELD2', CONDITIONAL_VALUE: 'YYYY'},
+          {action:'update', ROLE_ID: 'system_role',  CONDITIONAL_VALUE: 'XXYY'},
+        ]
       };
       model.saveEntityType(entityType, 'DH002', function(errs) {
         should(errs).eql(null);
+        entityDB.loadEntity(entityType.ENTITY_ID, done);
+      });
+    });
+
+    it('should fail to delete an attribute for not providing attribute name', function (done) {
+      entityType = {
+        action: 'update',
+        ENTITY_ID: 'testEntityx',
+        ATTRIBUTES: [
+          { action: 'delete', ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB'}
+        ]
+      };
+      model.saveEntityType(entityType, 'DH003', function(errs) {
+        errs.should.containDeep(
+          [{ msgCat: 'MODEL',
+            msgName: 'MISS_ATTRIBUTE_NAME_WHEN_DELETION',
+            msgType: 'E' }]);
+        done();
+      });
+    });
+
+    it('should fail to delete an attribute as it is used in role condition', function (done) {
+      entityType = {
+        action: 'update',
+        ENTITY_ID: 'testEntityx',
+        ATTRIBUTES: [
+          { action: 'delete', ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', ATTR_NAME: 'FIELD2'}
+        ]
+      };
+      model.saveEntityType(entityType, 'DH003', function(errs) {
+        errs.should.containDeep(
+          [{ msgCat: 'MODEL',
+            msgName: 'ATTRIBUTE_USED_IN_ROLE_CONDITION',
+            msgShortText:
+            'Attribute "FIELD2" is used in condition of role "system_user", thus cannot be deleted',
+            msgType: 'E' }]);
+        done();
+      });
+    });
+
+    it('should fail to delete an attribute as it is about to be used in role condition', function (done) {
+      entityType = {
+        action: 'update',
+        ENTITY_ID: 'testEntityx',
+        ATTRIBUTES: [
+          { action: 'delete', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', ATTR_NAME: 'FIELD3'}
+        ],
+        ROLES: [
+          {action:'update', ROLE_ID: 'system_user', CONDITIONAL_ATTR: 'FIELD3'}
+        ]
+      };
+      model.saveEntityType(entityType, 'DH003', function(errs) {
+        errs.should.containDeep(
+          [{ msgCat: 'MODEL',
+            msgName: 'ATTRIBUTE_USED_IN_ROLE_CONDITION',
+            msgShortText:
+              'Attribute "FIELD3" is used in condition of role "system_user", thus cannot be deleted',
+            msgType: 'E' }]);
+        done();
+      });
+    });
+
+    it('should fail to update the role condition as the field does not exist', function (done) {
+      entityType = {
+        action: 'update',
+        ENTITY_ID: 'testEntityx',
+        ROLES: [
+          {action:'update', ROLE_ID: 'system_user', CONDITIONAL_ATTR: 'FIELD4'}
+        ]
+      };
+      model.saveEntityType(entityType, 'DH003', function(errs) {
+        errs.should.containDeep(
+          [{ msgCat: 'MODEL',
+             msgName: 'INVALID_ROLE_CONDITION_ATTRIBUTE',
+             msgType: 'E' }]);
         done();
       });
     });
@@ -55,13 +144,13 @@ describe('model tests', function () {
         ENTITY_ID: 'testEntityx',
         ENTITY_DESC: 'description of entity',
         ATTRIBUTES: [
-          { action: 'delete', ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB'}
+          { action: 'delete', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', ATTR_NAME: 'FIELD3'}
         ],
-        ROLES: [{action:'delete', ROLE_ID: 'system_role'}]
+        ROLES: [{action:'delete', ROLE_ID: 'system_user'}]
       };
       model.saveEntityType(entityType, 'DH003', function(errs) {
         should(errs).eql(null);
-        done();
+        entityDB.loadEntity(entityType.ENTITY_ID, done);
       });
     });
 
@@ -70,13 +159,16 @@ describe('model tests', function () {
         action: 'update',
         ENTITY_ID: 'testEntityx',
         ATTRIBUTES: [
-          { action: 'update', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A',
-            ATTR_NAME: 'FIELD3', DATA_TYPE: 4, DATA_LENGTH: 23, DECIMAL: 2}
+          { action: 'update', ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB',
+            ATTR_NAME: 'FIELD4', DATA_TYPE: 4, DATA_LENGTH: 23, DECIMAL: 2}
         ],
+        ROLES: [
+          {action:'update', ROLE_ID: 'system_user', CONDITIONAL_ATTR: 'FIELD4', CONDITIONAL_VALUE: 20.01}
+        ]
       };
       model.saveEntityType(entityType, 'DH004', function(errs) {
         should(errs).eql(null);
-        done();
+        entityDB.loadEntity(entityType.ENTITY_ID, done);
       });
     });
 

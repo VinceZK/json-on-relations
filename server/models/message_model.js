@@ -42,6 +42,24 @@ const msgArray = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'ATTRIBUTE_USED_IN_ROLE_CONDITION',
+    msgText: {
+      EN: {shortText: 'Attribute "%s" is used in condition of role "%s", thus cannot be deleted', longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'INVALID_ROLE_CONDITION_ATTRIBUTE',
+    msgText: {
+      EN: {shortText: 'Attribute "%s" is invalid for role condition', longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'MISS_ATTRIBUTE_NAME_WHEN_DELETION',
+    msgText: {
+      EN: {shortText: 'You must give the attribute name when deleting it', longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'RELATIONSHIP_NOT_EXIST',
     msgText: {
       EN: {shortText: "Relationship '%s' doesn't exist in DB", longText: 'dummy'}

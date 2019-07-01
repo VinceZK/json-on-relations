@@ -16,6 +16,7 @@ import {msgStore} from '../../msgStore';
 export class RelationComponent implements OnInit {
 
   relationList: Relation[];
+  isSearchListShown = true;
   private searchTerms = new Subject<string>();
   private theSelectedRelation: Relation;
 
@@ -69,10 +70,17 @@ export class RelationComponent implements OnInit {
         }
       }
     });
+
+    this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
   }
 
   searchRelation(term: string): void {
     this.searchTerms.next(term);
+  }
+
+  hideSearchList(): void {
+    this.isSearchListShown = false;
+    this.modelService.hideSearchList();
   }
 
   onSelect(relation: Relation): void {
