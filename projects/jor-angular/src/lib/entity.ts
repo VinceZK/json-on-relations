@@ -180,26 +180,3 @@ export class RoleMeta {
   LAST_CHANGE_TIME: string;
   RELATIONS?: RoleRelation[];
 }
-
-export class SearchHelp {
-  METHOD: any; // 'JOR', service call function reference, or 'DATA'
-  SERVICE: any; // In case service call, the service context must be given
-  ENTITY_ID?: string;
-  RELATION_ID?: string;
-  BEHAVIOUR: string; // A: Auto-Trigger Search, M: Manual-Trigger Search
-  MULTI?: boolean;  // Allow multiple value selection
-  FIELDS: SearchHelpField[];
-  DATA?: any; // In case METHOD is 'DATA', which means data is already given, no service call is needed.
-}
-
-export class SearchHelpField {
-  RELATION_ID?: string;
-  FIELD_NAME: string;
-  FIELD_DESC?: string;
-  IMPORT: boolean;
-  EXPORT: boolean;
-  LIST_POSITION: number;
-  FILTER_POSITION: number;
-  FILTER_DISP_ONLY?: boolean;
-  DEFAULT_VALUE?: any;
-}

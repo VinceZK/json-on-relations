@@ -2,7 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {EntityService} from '../../../entity.service';
-import {Attribute, EntityMeta, SearchHelp} from 'jor-angular';
+import {Attribute, EntityMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../../../msgStore';
@@ -12,6 +12,7 @@ import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {UniqueEntityTypeValidator} from '../../model-validators';
 import {SearchHelpComponent} from '../../../search-help/search-help.component';
+import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
 
 @Component({
   selector: 'app-entity-type-detail',
@@ -103,12 +104,23 @@ export class EntityTypeDetailComponent implements OnInit {
   onSearchHelp(fieldName: string): void {
     // TODO: Get search help meta from the fieldName.
     const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.METHOD = this.entityService.listRole;
-    searchHelpMeta.SERVICE = this.entityService;
-    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
+    }(this.entityService);
+    // searchHelpMeta.METHOD = [{ROLE_ID: 'system_user', ROLE_DESC: 'System User'},
+    //   {ROLE_ID: 'employee', ROLE_DESC: 'Employee'},
+    // ];
+    searchHelpMeta.BEHAVIOUR = 'M';
+    searchHelpMeta.MULTI = true;
+    searchHelpMeta.FUZZYSEARCH = true;
     searchHelpMeta.FIELDS = [
       {FIELD_NAME: 'ROLE_ID', FIELD_DESC: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 1},
-      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 2}
+      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 2},
+      {FIELD_NAME: 'VERSION_NO', FIELD_DESC: 'Version Number', IMPORT: true, EXPORT: true, LIST_POSITION: 3, FILTER_POSITION: 3},
+      {FIELD_NAME: 'CREATE_BY', FIELD_DESC: 'Create By', IMPORT: true, EXPORT: true, LIST_POSITION: 4, FILTER_POSITION: 4},
+      {FIELD_NAME: 'CREATE_TIME', FIELD_DESC: 'Create Time', IMPORT: true, EXPORT: true, LIST_POSITION: 5, FILTER_POSITION: 5},
+      {FIELD_NAME: 'LAST_CHANGE_BY', FIELD_DESC: 'Change By', IMPORT: true, EXPORT: true, LIST_POSITION: 6, FILTER_POSITION: 6},
+      {FIELD_NAME: 'LAST_CHANGE_TIME', FIELD_DESC: 'Change Time', IMPORT: true, EXPORT: true, LIST_POSITION: 7, FILTER_POSITION: 7}
     ];
     this.searchHelpComponent.openSearchHelpModal(searchHelpMeta);
   }

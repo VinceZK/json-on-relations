@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SearchHelp} from 'jor-angular';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {SearchHelp, SearchHelpMethod} from './search-help.type';
 
 @Component({
   selector: 'app-search-help',
@@ -10,6 +10,8 @@ import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 export class SearchHelpComponent implements OnInit {
   isSearchHelpModalShown = false;
   searchHelpMeta: SearchHelp;
+  fuzzySearchTerm: string;
+  selectedIndex = -1;
   filterFields = [];
   listFields = [];
   filterFieldsFormGroup: FormGroup;
@@ -34,20 +36,34 @@ export class SearchHelpComponent implements OnInit {
 
     this.listFields = this.searchHelpMeta.FIELDS.filter( fieldMeta => fieldMeta.LIST_POSITION );
     this.listFields.sort((a, b) => a.LIST_POSITION - b.LIST_POSITION);
-    this.listData = this.searchHelpMeta.DATA || [];
+
+    if (this.searchHelpMeta.BEHAVIOUR === 'A') { this.search(); }
     this.isSearchHelpModalShown = true;
   }
 
   search() {
-    const searchTerm = this.filterFieldsFormGroup.get('ROLE_ID').value || '';
-    this.searchHelpMeta.METHOD.call(this.searchHelpMeta.SERVICE, searchTerm)
-      .subscribe( data => {
-        data.forEach( item => {
-          const listItem = {SELECTED: ''};
-          this.listFields.forEach( field => listItem[field.FIELD_NAME] = item[field.FIELD_NAME]);
-          this.listData.push(listItem);
-        });
-      });
+    let searchTerm;
+    if (this.searchHelpMeta.FUZZYSEARCH) {
+      searchTerm = this.fuzzySearchTerm || '';
+    } else {
+
+    }
+    this.listData = [];
+    if (typeof this.searchHelpMeta.METHOD === 'function') {
+      const searchHelpMethod = <SearchHelpMethod>this.searchHelpMeta.METHOD;
+      searchHelpMethod(searchTerm).subscribe( data => this._generateSearchList(data));
+    } else if (Array.isArray(this.searchHelpMeta.METHOD )) {
+      this._generateSearchList(this.searchHelpMeta.METHOD);
+    }
+  }
+
+  _generateSearchList(data: object[]): void {
+    console.log(data);
+    data.forEach( item => {
+      const listItem = {SELECTED: ''};
+      this.listFields.forEach( field => listItem[field.FIELD_NAME] = item[field.FIELD_NAME]);
+      this.listData.push(listItem);
+    });
   }
 
   enterSearch($event): void {
@@ -62,5 +78,6 @@ export class SearchHelpComponent implements OnInit {
 
   confirmSelection() {
      console.log(this.listData);
+     console.log(this.selectedIndex);
   }
 }
