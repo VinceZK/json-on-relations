@@ -46,6 +46,9 @@ router.put('/api/entity/instance/restore/:instanceGUID',
 router.get('/api/entity/EntityIDs',
   defaultAddIns.beforeMetaReading,
   entity.listEntityID);
+router.get('/api/entity/EntityIDs/:roleID',
+  defaultAddIns.beforeMetaReading,
+  entity.listEntityIDbyRole);
 router.get('/api/entity/meta/:entityID',
   defaultAddIns.beforeMetaReading,
   entity.getEntityMeta);

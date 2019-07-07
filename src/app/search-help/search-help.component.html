@@ -1,25 +1,25 @@
 <div class="modal fade" id="searchHelp" tabindex="-1" role="dialog"
      [ngClass]="{'show': isSearchHelpModalShown}" [ngStyle]="{'display': displaySearchHelpModal}">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content dk-search-help-content">
       <div class="modal-header dk-search-help-header">
-        <h6 class="modal-title" id="addRelationship">Search Help</h6>
+        <h6 class="modal-title" id="addRelationship">{{searchHelpMeta?.OBJECT_NAME}} ({{listData.length}})</h6>
         <button type="button" class="close" (click)="closeSearchHelpModal()">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
 
       <div class="modal-body">
-        <div class="card mb-2">
-          <div *ngIf="searchHelpMeta && searchHelpMeta.FUZZYSEARCH" class="mt-2 mx-2 row">
-            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="fuzzySearchTerm">
+        <div *ngIf="isFilterShown" class="card mb-2">
+          <div *ngIf="searchHelpMeta && searchHelpMeta.FUZZY_SEARCH" class="mt-2 mx-2 row">
+            <input type="text" class="form-control" placeholder="Search" [(ngModel)]="fuzzySearchTerm" (keyup)="enterSearch($event)">
           </div>
           <div class="mt-2 mx-2 row" [formGroup]="filterFieldsFormGroup">
             <div *ngFor="let filterField of filterFields" class="col-6 form-group row">
-              <label for="{{filterField.FIELD_NAME}}" class="col-4 col-form-label col-form-label-sm">
+              <label for="{{filterField.FIELD_NAME}}" class="col-6 col-form-label col-form-label-sm text-right">
                 {{filterField.FIELD_DESC}}:</label>
               <input id="{{filterField.FIELD_NAME}}" name="{{filterField.FIELD_NAME}}" formControlName="{{filterField.FIELD_NAME}}"
-                     type="text" class="col-6 form-control form-control-sm" (keyup)="enterSearch($event)">
+                     type="text" class="col-6 form-control form-control-sm" [readonly]="filterField.FILTER_DISP_ONLY" (keyup)="enterSearch($event)">
             </div>
           </div>
 
@@ -30,10 +30,15 @@
           </div>
         </div>
 
-        <table class="table table-bordered table-sm dk-search-table">
+        <button *ngIf="!isFilterShown" type="button" class="btn btn-link float-right" (click)="showFilter()">Show Filter</button>
+        <button *ngIf="isFilterShown" type="button" class="btn btn-link float-right" (click)="hideFilter()">Hide Filter</button>
+
+        <table class="table table-bordered table-sm table-hover dk-search-table">
           <thead class="thead-light">
           <tr>
-            <th scope="col"></th>
+            <th scope="col">
+              <input *ngIf="searchHelpMeta?.MULTI" type="checkbox" [(ngModel)]="isSelectAllChecked" (click)="selectAll()">
+            </th>
             <th *ngFor="let listField of listFields">{{listField.FIELD_DESC}}</th>
           </tr>
           </thead>
@@ -41,7 +46,7 @@
           <tbody>
           <tr *ngFor="let item of listData; let i = index">
             <td>
-              <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedItem" [value]="i" [(ngModel)]="selectedIndex">
+              <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedItem" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
               <input *ngIf="searchHelpMeta.MULTI" type="checkbox" [(ngModel)]="item.SELECTED">
             </td>
             <td *ngFor="let listField of listFields">{{item[listField.FIELD_NAME]}}</td>
@@ -52,7 +57,7 @@
 
       <div class="modal-footer dk-search-help-footer">
         <button type="button" class="btn btn-sm btn-secondary" (click)="closeSearchHelpModal()">Cancel</button>
-        <button type="button" class="btn btn-sm btn-primary" (click)="confirmSelection()">Confirm</button>
+        <button type="button" class="btn btn-sm btn-primary" (click)="confirmSelection()" [disabled]="searchHelpMeta?.READ_ONLY">Confirm</button>
       </div>
     </div>
   </div>

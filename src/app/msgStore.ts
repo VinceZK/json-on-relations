@@ -92,6 +92,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'ROLE_SAVED',
+    msgText: {
+      EN: {shortText: 'Role "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'RELATION_ID_MISSING',
     msgText: {
       EN: {shortText: 'Relation ID is missing', longText: ''}

@@ -98,7 +98,10 @@ export class EntityRelation {
   RELATION_DESC?: string;
   CARDINALITY: string;
   ROLE_ID: string;
+  CONDITIONAL_ATTR: string;
+  CONDITIONAL_VALUE: string;
   EMPTY: boolean;
+  DISABLED: boolean;
   ATTRIBUTES: Attribute[];
 }
 

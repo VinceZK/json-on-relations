@@ -11,6 +11,8 @@ import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.compon
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {UniqueRelationValidator} from '../../model-validators';
+import {SearchHelpComponent} from '../../../search-help/search-help.component';
+import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
 
 @Component({
   selector: 'app-relation-detail',
@@ -32,6 +34,8 @@ export class RelationDetailComponent implements OnInit {
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
+  @ViewChild(SearchHelpComponent)
+  private searchHelpComponent: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -100,6 +104,27 @@ export class RelationDetailComponent implements OnInit {
   showSearchList(): void {
     this.isSearchListShown = true;
     this.modelService.showSearchList();
+  }
+
+  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
+    const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Relation';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listRelation(searchTerm);
+    }(this.entityService);
+    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
+    searchHelpMeta.FIELDS = [
+      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'RELATION_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+    ];
+    searchHelpMeta.READ_ONLY = this.readonly || this.oldRightRelation(control) && control.valid;
+
+    const afterExportFn = function (context: any, ruleIdx: number) {
+      return () => context.onChangeRightRelationID(ruleIdx, true);
+    }(this, rowID).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
   }
 
   _generateRelationForm(): void {
@@ -274,7 +299,7 @@ export class RelationDetailComponent implements OnInit {
     }
   }
 
-  onChangeRightRelationID(index: number): void {
+  onChangeRightRelationID(index: number, isExportedFromSH?: boolean): void {
     const currentAssocFormGroup = this.associationFormArray.controls[index];
 
     if (currentAssocFormGroup.get('RIGHT_RELATION_ID').value === this.relationMeta.RELATION_ID) {
@@ -301,12 +326,14 @@ export class RelationDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRelationDesc(currentAssocFormGroup.value.RIGHT_RELATION_ID)
-      .subscribe(data => {
-        if (data['msgCat']) {
-          currentAssocFormGroup.get('RIGHT_RELATION_ID').setErrors({message: data['msgShortText']});
-        }
-    });
+    if (isExportedFromSH) {
+      this.entityService.getRelationDesc(currentAssocFormGroup.value.RIGHT_RELATION_ID)
+        .subscribe(data => {
+          if (data['msgCat']) {
+            currentAssocFormGroup.get('RIGHT_RELATION_ID').setErrors({message: data['msgShortText']});
+          }
+        });
+    }
   }
 
   onChangeLeftField(index: number): void {

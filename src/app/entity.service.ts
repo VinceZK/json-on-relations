@@ -22,9 +22,14 @@ export class EntityService {
     this.messageService.setMessageStore(msgStore, 'EN');
   }
 
-  listEntityID(): Observable<EntityMeta | {}> {
-    return this.http.get<EntityMeta>(this.originalHost + `/api/entity/EntityIDs`).pipe(
+  listEntityID(): Observable<string[] | {}> {
+    return this.http.get<any>(this.originalHost + `/api/entity/EntityIDs`).pipe(
       catchError(this.handleError<any>('listEntityID')));
+  }
+
+  listEntityIDbyRole(roleID: string): Observable<EntityMeta | {}> {
+    return this.http.get<any>(this.originalHost + `/api/entity/EntityIDs/${roleID}`).pipe(
+      catchError(this.handleError<any>('listEntityIDbyRole')));
   }
 
   getEntityMeta(entityID: string): Observable<EntityMeta | {}> {

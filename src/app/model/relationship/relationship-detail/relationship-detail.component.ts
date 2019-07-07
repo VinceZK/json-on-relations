@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {Attribute, RelationshipMeta} from 'jor-angular';
-import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.component';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
@@ -11,6 +11,8 @@ import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {forkJoin, Observable, of} from 'rxjs';
 import {UniqueRelationshipValidator} from '../../model-validators';
+import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
+import {SearchHelpComponent} from '../../../search-help/search-help.component';
 
 @Component({
   selector: 'app-relationship-detail',
@@ -29,6 +31,8 @@ export class RelationshipDetailComponent implements OnInit {
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
+  @ViewChild(SearchHelpComponent)
+  private searchHelpComponent: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -88,6 +92,27 @@ export class RelationshipDetailComponent implements OnInit {
   showSearchList(): void {
     this.isSearchListShown = true;
     this.modelService.showSearchList();
+  }
+
+  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
+    const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Role';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
+    }(this.entityService);
+    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
+    searchHelpMeta.FIELDS = [
+      {FIELD_NAME: 'ROLE_ID', FIELD_DESC: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+    ];
+    searchHelpMeta.READ_ONLY = this.readonly || this.oldInvolve(control) && control.valid;
+
+    const afterExportFn = function (context: any, ruleIdx: number) {
+      return () => context.onChangeRoleID(ruleIdx, true);
+    }(this, rowID).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
   }
 
   _generateRelationshipForm(): void {
@@ -360,7 +385,7 @@ export class RelationshipDetailComponent implements OnInit {
     });
   }
 
-  oldInvolve(formGroup: FormGroup): boolean {
+  oldInvolve(formGroup: AbstractControl): boolean {
     return this.relationshipMeta.INVOLVES.findIndex( role => role.ROLE_ID === formGroup.get('ROLE_ID').value ) !== -1;
   }
 

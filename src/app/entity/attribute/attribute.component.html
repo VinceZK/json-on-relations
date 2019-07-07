@@ -3,7 +3,8 @@
     <input *ngSwitchCase="'text'" [formControlName]="attributeControl.name" [id]="attributeControl.key"
            [type]="attributeControl['type']" [readonly]="isReadonly" class="form-control form-control-sm">
 
-    <select *ngSwitchCase="'dropdown'" [formControlName]="attributeControl.name" [id]="attributeControl.key">
+    <select *ngSwitchCase="'dropdown'" [formControlName]="attributeControl.name" [id]="attributeControl.key"
+            [disabled]="isReadonly">
       <option *ngFor="let opt of attributeControl['options']" [value]="opt.key">{{opt.value}}</option>
     </select>
   </div>

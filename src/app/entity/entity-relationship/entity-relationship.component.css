@@ -17,3 +17,8 @@
 .popoverW {
   max-width: none;
 }
+.dk-guid{
+  width: 21rem;
+  min-width: 21rem;
+  max-width: 21rem;
+}

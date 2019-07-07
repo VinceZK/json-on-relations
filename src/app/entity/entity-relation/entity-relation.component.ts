@@ -1,8 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {AttributeBase} from '../attribute/attribute-base';
-import {FormArray, FormGroup} from '@angular/forms';
+import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
 import {Attribute, EntityRelation} from 'jor-angular';
 import {AttributeControlService} from '../attribute/attribute-control.service';
+import {Role} from '../../../../projects/jor-angular/src/lib/entity';
 
 @Component({
   selector: 'app-entity-relation',
@@ -11,15 +12,23 @@ import {AttributeControlService} from '../attribute/attribute-control.service';
 })
 export class EntityRelationComponent implements OnInit {
   attributeControls: AttributeBase<any>[];
+  relationAttributes: Attribute[];
 
   constructor(private attributeControlService: AttributeControlService) {}
 
-  @Input() relationAttributes: Attribute[];
   @Input() entityRelation: EntityRelation;
-  @Input() formGroup: any;
+  @Input() entityRelations: EntityRelation[];
+  @Input() formGroup: AbstractControl;
   @Input() parentFormGroup: FormGroup;
   @Input() readonly: boolean;
+
+  get isEntityRelation(): boolean {
+    return this.entityRelation.RELATION_ID.substr(0, 2) !== 'r_' &&
+    this.entityRelation.RELATION_ID.substr(0, 3) !== 'rs_';
+  }
+
   ngOnInit() {
+    this.relationAttributes = this.entityRelation.ATTRIBUTES;
     this.attributeControls = this.attributeControlService.toAttributeControl(this.relationAttributes);
   }
 
@@ -42,5 +51,15 @@ export class EntityRelationComponent implements OnInit {
   deleteRelationInstance(): void {
     this.parentFormGroup.setControl(this.entityRelation.RELATION_ID, new FormGroup({}));
     this.entityRelation.EMPTY = true;
+  }
+
+  refreshRoleStatus(): void {
+    if (this.formGroup.pristine) { return; }
+    this.entityRelations.forEach(entityRelation => {
+      if (entityRelation.CONDITIONAL_ATTR && entityRelation.CONDITIONAL_VALUE) {
+        const conditionalValues = entityRelation.CONDITIONAL_VALUE.split(`,`);
+        entityRelation.DISABLED = !conditionalValues.includes(this.formGroup.get(entityRelation.CONDITIONAL_ATTR).value);
+      }
+    });
   }
 }

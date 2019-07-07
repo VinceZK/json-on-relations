@@ -6,6 +6,10 @@ module.exports = {
     res.json(entityDB.listEntityID())
   },
 
+  listEntityIDbyRole: function (req, res) {
+    res.json(entityDB.listEntityIDbyRole(req.params['roleID']))
+  },
+
   getEntityMeta: function (req, res) {
     res.json(entity.getEntityMeta(req.params['entityID']))
   },

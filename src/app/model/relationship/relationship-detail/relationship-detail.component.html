@@ -84,7 +84,8 @@
                 {{involveFormGroup.get('ROLE_ID').errors?.message}}
               </div>
               <div class="input-group-append">
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="button-addon2">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="button-addon2"
+                        (click)="onSearchHelp('ROLE_ID', involveFormGroup, i)">
                   <span class="fas fa-search"></span>
                 </button>
               </div>
@@ -108,3 +109,5 @@
     </div>
   </div>
 </form>
+
+<app-search-help></app-search-help>

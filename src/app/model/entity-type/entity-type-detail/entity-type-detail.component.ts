@@ -28,7 +28,6 @@ export class EntityTypeDetailComponent implements OnInit {
   changedEntityType = {};
   bypassProtection = false;
   isSearchListShown = true;
-  searchField: any;
 
   @ViewChild(AttributeMetaComponent)
   private attrComponent: AttributeMetaComponent;
@@ -101,28 +100,26 @@ export class EntityTypeDetailComponent implements OnInit {
     this.modelService.showSearchList();
   }
 
-  onSearchHelp(fieldName: string): void {
+  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
     // TODO: Get search help meta from the fieldName.
     const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Role';
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
       return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
     }(this.entityService);
-    // searchHelpMeta.METHOD = [{ROLE_ID: 'system_user', ROLE_DESC: 'System User'},
-    //   {ROLE_ID: 'employee', ROLE_DESC: 'Employee'},
-    // ];
-    searchHelpMeta.BEHAVIOUR = 'M';
-    searchHelpMeta.MULTI = true;
-    searchHelpMeta.FUZZYSEARCH = true;
+    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ROLE_ID', FIELD_DESC: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 1},
-      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 2},
-      {FIELD_NAME: 'VERSION_NO', FIELD_DESC: 'Version Number', IMPORT: true, EXPORT: true, LIST_POSITION: 3, FILTER_POSITION: 3},
-      {FIELD_NAME: 'CREATE_BY', FIELD_DESC: 'Create By', IMPORT: true, EXPORT: true, LIST_POSITION: 4, FILTER_POSITION: 4},
-      {FIELD_NAME: 'CREATE_TIME', FIELD_DESC: 'Create Time', IMPORT: true, EXPORT: true, LIST_POSITION: 5, FILTER_POSITION: 5},
-      {FIELD_NAME: 'LAST_CHANGE_BY', FIELD_DESC: 'Change By', IMPORT: true, EXPORT: true, LIST_POSITION: 6, FILTER_POSITION: 6},
-      {FIELD_NAME: 'LAST_CHANGE_TIME', FIELD_DESC: 'Change Time', IMPORT: true, EXPORT: true, LIST_POSITION: 7, FILTER_POSITION: 7}
+      {FIELD_NAME: 'ROLE_ID', FIELD_DESC: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta);
+    searchHelpMeta.READ_ONLY = this.readonly || this.oldRole(control) && control.valid;
+
+    const afterExportFn = function (context: any, ruleIdx: number) {
+      return () => context.onChangeRoleID(ruleIdx, true);
+    }(this, rowID).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
   }
 
   _generateEntityTypeForm(): void {
@@ -243,7 +240,7 @@ export class EntityTypeDetailComponent implements OnInit {
     }
   }
 
-  onChangeRoleID(index: number): void {
+  onChangeRoleID(index: number, isExportedFromSH?: boolean): void {
     const currentRoleFormGroup = this.roleFormArray.controls[index];
     if (this.roleFormArray.controls.findIndex((roleCtrl, i) =>
       i !== index && roleCtrl.get('ROLE_ID').value === currentRoleFormGroup.get('ROLE_ID').value
@@ -264,13 +261,15 @@ export class EntityTypeDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRoleDesc(currentRoleFormGroup.value.ROLE_ID).subscribe(data => {
-      if (data['msgCat']) {
-        currentRoleFormGroup.get('ROLE_ID').setErrors({message: data['msgShortText']});
-      } else {
-        currentRoleFormGroup.get('ROLE_DESC').setValue(data);
-      }
-    });
+    if (!isExportedFromSH) {
+      this.entityService.getRoleDesc(currentRoleFormGroup.value.ROLE_ID).subscribe(data => {
+        if (data['msgCat']) {
+          currentRoleFormGroup.get('ROLE_ID').setErrors({message: data['msgShortText']});
+        } else {
+          currentRoleFormGroup.get('ROLE_DESC').setValue(data);
+        }
+      });
+    }
   }
 
   oldRole(formGroup: AbstractControl): boolean {

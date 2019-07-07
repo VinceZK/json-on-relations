@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
+import {Component, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
@@ -6,6 +6,8 @@ import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 import {AttributeBase} from '../attribute/attribute-base';
 import {AttributeControlService} from '../attribute/attribute-control.service';
+import {EntityService} from '../../entity.service';
+import {SearchHelpComponent} from '../../search-help/search-help.component';
 
 @Component({
   selector: 'app-entity-relationship',
@@ -24,10 +26,12 @@ export class EntityRelationshipComponent implements OnInit {
   readonlyValidTo: boolean;
   readonlyPartner: boolean;
   readonlyAttribute: boolean;
+  entityIDsByRole = {};
   fakeUUIDs = [];
 
   constructor(private fb: FormBuilder,
               private messageService: MessageService,
+              private entityService: EntityService,
               private attributeControlService: AttributeControlService) {
     this.messageService.setMessageStore(msgStore, 'EN');
     this.relationshipFormGroup = this.fb.group({});
@@ -39,6 +43,9 @@ export class EntityRelationshipComponent implements OnInit {
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
   @ViewChildren('p') popovers !: QueryList<NgbPopover>;
+  @ViewChild(SearchHelpComponent)
+  private searchHelpComponent: SearchHelpComponent;
+
   private static _getFormattedDate(offset?: number): string {
     const d = offset ? new Date(new Date().getTime() + offset * 1000 ) : new Date();
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-'
@@ -84,12 +91,22 @@ export class EntityRelationshipComponent implements OnInit {
       partnerInstance.ROLE_ID = involve.ROLE_ID;
       this.detailValue.PARTNER_INSTANCES.push(partnerInstance);
     });
+    this.detailValue.PARTNER_INSTANCES.forEach(
+      partnerInstance => {
+        if (!this.entityIDsByRole[partnerInstance.ROLE_ID]) {
+          this.entityIDsByRole[partnerInstance.ROLE_ID] = this.entityService.listEntityIDbyRole(partnerInstance.ROLE_ID);
+        }
+      });
     this.relationshipAttributes.forEach(attribute =>
       this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
     this.readonlyValidFrom = false;
     this.readonlyValidTo = false;
     this.readonlyPartner = false;
     this.readonlyAttribute = false;
+  }
+
+  onSearchHelp(entityID: string, exportObject: object): void {
+    this.searchHelpComponent.openSearchHelpModalByEntity(entityID, exportObject, this.readonlyPartner);
   }
 
   _generateFakeUUID(): string {
@@ -123,6 +140,19 @@ export class EntityRelationshipComponent implements OnInit {
     this.readonlyValidTo = false;
     this.readonlyPartner = true;
     this.readonlyAttribute = true;
+  }
+
+  _getRelationshipDetailValue(index: number) {
+    this.isModalShown = true;
+    this.detailValue = this.relationship.values[index];
+    this.detailValue.PARTNER_INSTANCES.forEach(
+      partnerInstance => {
+        if (!this.entityIDsByRole[partnerInstance.ROLE_ID]) {
+          this.entityIDsByRole[partnerInstance.ROLE_ID] = this.entityService.listEntityIDbyRole(partnerInstance.ROLE_ID);
+        }
+      });
+    this.relationshipAttributes.forEach(attribute =>
+      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   confirm(): void {
@@ -178,13 +208,6 @@ export class EntityRelationshipComponent implements OnInit {
     if (!this.relationship.values) {this.relationship.values = []; }
     this.relationship.values.push(this.detailValue);
     this.formGroup.markAsDirty();
-  }
-
-  _getRelationshipDetailValue(index: number) {
-    this.isModalShown = true;
-    this.detailValue = this.relationship.values[index];
-    this.relationshipAttributes.forEach(attribute =>
-      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   _changeRelationship(): void {

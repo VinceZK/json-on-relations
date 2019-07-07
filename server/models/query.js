@@ -227,8 +227,14 @@ function run(queryObject, callback) {
           break;
         case 'CN':
           if (selectOption.LOW) {
+            let wildcardValue = selectOption.LOW;
+            if (wildcardValue.includes('*')) {
+              wildcardValue = wildcardValue.replace(/\*/gi, '%');
+            } else if (!wildcardValue.includes('%')) {
+              wildcardValue = `%` + wildcardValue + `%`;
+            }
             filterString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(selectOption.FIELD_NAME)
-              + " like "  + entityDB.pool.escape(selectOption.LOW);
+              + " like "  + entityDB.pool.escape(wildcardValue);
           }
           break;
         default:

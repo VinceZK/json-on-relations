@@ -40,6 +40,7 @@ module.exports = {
   loadEntities: loadEntities,
   loadRelation: getRelation,
   listEntityID: listEntityID,
+  listEntityIDbyRole: listEntityIDbyRole,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
   checkDBConsistency: checkDBConsistency,
@@ -176,6 +177,15 @@ function listEntityID() {
   return _.map(this.entities, function (entity) {
     return entity.ENTITY_ID;
   })
+}
+
+function listEntityIDbyRole(roleID) {
+  const entityIDs = [];
+  this.entities.forEach( entity => {
+    const idx = entity.ROLES.findIndex( role => role.ROLE_ID === roleID );
+    if (idx > -1) entityIDs.push(entity.ENTITY_ID);
+  });
+  return entityIDs;
 }
 
 function _getEntityRoles(entity, callback) {

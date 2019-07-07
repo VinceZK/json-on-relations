@@ -8,6 +8,7 @@ import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
+import {Role} from '../../../projects/jor-angular/src/lib/entity';
 
 @Component({
   selector: 'app-entity',
@@ -408,24 +409,27 @@ export class EntityComponent implements OnInit {
 
   _getEntityRelations(): EntityRelation[] {
     const entityRelations: EntityRelation[] = [];
-    const entity = this.entity;
 
     let entityRelation = new EntityRelation;
     entityRelation.ROLE_ID = this.entity.ENTITY_ID;
     entityRelation.RELATION_ID = this.entity.ENTITY_ID;
     entityRelation.CARDINALITY = '[1..1]';
-    entityRelation.EMPTY = !entity[this.entity.ENTITY_ID];
+    entityRelation.EMPTY = !this.entity[this.entity.ENTITY_ID];
+    entityRelation.DISABLED = false;
     entityRelation.ATTRIBUTES = this.entityAttributes;
     entityRelations.push(entityRelation);
 
     const relationMetas = this.relationMetas;
-    this.entityMeta.ROLES.forEach(function (role) {
-      role.RELATIONS.forEach(function (relation) {
+    this.entityMeta.ROLES.forEach(role => {
+      role.RELATIONS.forEach(relation => {
         entityRelation = new EntityRelation;
         entityRelation.ROLE_ID = role.ROLE_ID;
+        entityRelation.CONDITIONAL_ATTR = role.CONDITIONAL_ATTR;
+        entityRelation.CONDITIONAL_VALUE = role.CONDITIONAL_VALUE;
         entityRelation.RELATION_ID = relation.RELATION_ID;
         entityRelation.CARDINALITY = relation.CARDINALITY;
-        entityRelation.EMPTY = !entity[relation.RELATION_ID];
+        entityRelation.EMPTY = !this.entity[relation.RELATION_ID];
+        entityRelation.DISABLED = this._isRelationDisabled(role);
         entityRelation.ATTRIBUTES = relationMetas.find(ele => {
           return ele.RELATION_ID === relation.RELATION_ID;
         }).ATTRIBUTES;
@@ -435,6 +439,14 @@ export class EntityComponent implements OnInit {
     return entityRelations;
   }
 
+  _isRelationDisabled(role: Role): boolean {
+    if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
+      const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
+      return !conditionalValues.includes(this.entity[this.entity.ENTITY_ID][role.CONDITIONAL_ATTR]);
+    } else {
+      return false;
+    }
+  }
   _convertToFormArray(attributes: Attribute[], instance: any) {
     const formArray = [];
     instance.forEach( line => {

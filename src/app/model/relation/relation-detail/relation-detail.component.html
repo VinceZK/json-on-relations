@@ -68,7 +68,8 @@
                 {{associationFormGroup.get('RIGHT_RELATION_ID').errors?.message}}
               </div>
               <div class="input-group-append">
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="button-addon2">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="button-addon2"
+                        (click)="onSearchHelp('RELATION_ID', associationFormGroup, i)">
                   <span class="fas fa-search"></span>
                 </button>
               </div>
@@ -151,4 +152,5 @@
   </div>
 </form>
 
+<app-search-help></app-search-help>
 

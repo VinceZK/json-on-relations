@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {RoleMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
@@ -10,6 +10,8 @@ import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
 import {UniqueRoleValidator} from '../../model-validators';
+import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
+import {SearchHelpComponent} from '../../../search-help/search-help.component';
 
 @Component({
   selector: 'app-role-detail',
@@ -24,6 +26,9 @@ export class RoleDetailComponent implements OnInit {
   changedRole = {};
   bypassProtection = false;
   isSearchListShown = true;
+
+  @ViewChild(SearchHelpComponent)
+  private searchHelpComponent: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -78,6 +83,27 @@ export class RoleDetailComponent implements OnInit {
   showSearchList(): void {
     this.isSearchListShown = true;
     this.modelService.showSearchList();
+  }
+
+  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
+    const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Relation';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listRelation(searchTerm);
+    }(this.entityService);
+    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
+    searchHelpMeta.FIELDS = [
+      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'RELATION_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+    ];
+    searchHelpMeta.READ_ONLY = this.readonly || this.oldRelation(control) && control.valid;
+
+    const afterExportFn = function (context: any, ruleIdx: number) {
+      return () => context.onChangeRelationID(ruleIdx, true);
+    }(this, rowID).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
   }
 
   _generateRoleForm(): void {
@@ -189,7 +215,7 @@ export class RoleDetailComponent implements OnInit {
     }
   }
 
-  onChangeRelationID(index: number): void {
+  onChangeRelationID(index: number, isExportedFromSH?: boolean): void {
     const currentRelationFormGroup = this.relationFormArray.controls[index];
     if (this.relationFormArray.controls.findIndex((relationCtrl, i) =>
       i !== index && relationCtrl.get('RELATION_ID').value === currentRelationFormGroup.get('RELATION_ID').value
@@ -209,13 +235,15 @@ export class RoleDetailComponent implements OnInit {
       );
     }
 
-    this.entityService.getRelationDesc(currentRelationFormGroup.value.RELATION_ID).subscribe(data => {
-      if (data['msgCat']) {
-        currentRelationFormGroup.get('RELATION_ID').setErrors({message: data['msgShortText']});
-      } else {
-        currentRelationFormGroup.get('RELATION_DESC').setValue(data);
-      }
-    });
+    if (isExportedFromSH) {
+      this.entityService.getRelationDesc(currentRelationFormGroup.value.RELATION_ID).subscribe(data => {
+        if (data['msgCat']) {
+          currentRelationFormGroup.get('RELATION_ID').setErrors({message: data['msgShortText']});
+        } else {
+          currentRelationFormGroup.get('RELATION_DESC').setValue(data);
+        }
+      });
+    }
   }
 
   oldRelation(formGroup: AbstractControl): boolean {

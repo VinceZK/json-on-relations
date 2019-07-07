@@ -1,12 +1,18 @@
 .dk-search-help-header {
   padding: 0.3rem 0.5rem;
+  background-color: #e9ecef;
 }
 .dk-search-help-footer {
-  padding: 0.3rem 0.5rem;
+  padding: 0.5rem 0.5rem;
 }
 .dk-search-table {
   display: block;
-  overflow-x: auto;
+  overflow: scroll;
+  max-height: 40rem;
   white-space: nowrap;
   border: none;
+}
+.dk-search-help-content {
+  border: 1px solid rgba(0,0,0,.4);
+  box-shadow: 8px 5px 5px rgba(0,0,0,.2);
 }

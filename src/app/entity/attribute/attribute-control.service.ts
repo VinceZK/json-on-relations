@@ -20,6 +20,7 @@ export class AttributeControlService {
         key: attribute.ATTR_GUID,
         name: attribute.ATTR_NAME,
         label: attribute.ATTR_NAME,
+        relationID: attribute.RELATION_ID,
         primaryKey: attribute.PRIMARY_KEY,
         autoIncrement: attribute.AUTO_INCREMENT
       }));

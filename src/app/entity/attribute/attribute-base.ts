@@ -2,6 +2,7 @@ export class AttributeBase<T> {
   key: string;
   name: string;
   label: string;
+  relationId: string;
   primaryKey: boolean;
   unique: boolean;
   autoIncrement: boolean;
@@ -11,6 +12,7 @@ export class AttributeBase<T> {
     key?: string,
     name?: string,
     label?: string,
+    relationId?: string,
     primaryKey?: boolean,
     unique?: boolean,
     autoIncrement?: boolean,
@@ -19,6 +21,7 @@ export class AttributeBase<T> {
     this.key = options.key || '';
     this.name = options.name || '';
     this.label = options.label || '';
+    this.relationId = options.relationId || '';
     this.primaryKey = options.primaryKey;
     this.unique = options.unique;
     this.autoIncrement = options.autoIncrement;
