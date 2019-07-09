@@ -3,7 +3,6 @@ import {AttributeBase} from '../attribute/attribute-base';
 import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
 import {Attribute, EntityRelation} from 'jor-angular';
 import {AttributeControlService} from '../attribute/attribute-control.service';
-import {Role} from '../../../../projects/jor-angular/src/lib/entity';
 
 @Component({
   selector: 'app-entity-relation',

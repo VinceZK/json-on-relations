@@ -156,7 +156,7 @@ export class SearchHelpComponent implements OnInit {
     // TODO: Currently, only single selection is supported. Multiple selection in later time
     if (this.searchHelpMeta.READ_ONLY) {return; }
     this.listFields.forEach( listField => {
-      if (this.exportControl.constructor && this.exportControl.constructor.name === 'FormGroup') {
+      if (this.exportControl instanceof FormGroup) {
         const exportControl = <AbstractControl>this.exportControl;
         const exportFieldControl = exportControl.get(listField.FIELD_NAME);
         if (listField.EXPORT && exportFieldControl) {

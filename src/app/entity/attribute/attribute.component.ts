@@ -8,15 +8,15 @@ import {FormGroup} from '@angular/forms';
   styleUrls: ['./attribute.component.css']
 })
 export class AttributeComponent implements OnInit {
+  @Input() attributeControl: AttributeBase<any>;
+  @Input() formGroup: FormGroup;
+  @Input() readonly: boolean;
 
   constructor() { }
 
   ngOnInit() {
   }
 
-  @Input() attributeControl: AttributeBase<any>;
-  @Input() formGroup: FormGroup;
-  @Input() readonly: boolean;
   get isValid() { return this.formGroup.controls[this.attributeControl.name].valid; }
   get isReadonly() { return this.readonly || this.attributeControl.autoIncrement; }
 }

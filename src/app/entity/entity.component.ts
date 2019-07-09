@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
-import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
+import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta,
+  Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
 import {forkJoin, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from './attribute/attribute-control.service';
@@ -83,7 +84,24 @@ export class EntityComponent implements OnInit {
 
   get displayRelationshipModal() {return this.isRelationshipModalShown ? 'block' : 'none'; }
   get displayEntityJSONModal() {return this.isEntityJSONModalShown ? 'block' : 'none'; }
-  get entityAttributes() { return this.relationMetas.find(
+  get enabledEntityRoles() {return this.entityMeta.ROLES.filter( role => {
+    if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
+      const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
+      return conditionalValues.includes(this.formGroup.get(this.entityMeta.ENTITY_ID).value[role.CONDITIONAL_ATTR]);
+    } else {
+      return true;
+    }});
+  }
+  get enabledEntityRelationships() {return this.entity.relationships.filter( relationship => {
+    const role = this.entityMeta.ROLES.find( roleMeta => roleMeta.ROLE_ID === relationship.SELF_ROLE_ID);
+    if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
+      const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
+      return conditionalValues.includes(this.formGroup.get(this.entityMeta.ENTITY_ID).value[role.CONDITIONAL_ATTR]);
+    } else {
+      return true;
+    }});
+  }
+  get entityAttributes() {return this.relationMetas.find(
     relationMeta => relationMeta.RELATION_ID === this.entity.ENTITY_ID).ATTRIBUTES; }
 
   toggleEditDisplay(): void {
@@ -212,7 +230,7 @@ export class EntityComponent implements OnInit {
       if (!this.entity.INSTANCE_GUID) { // Create a new entity
         relationship.values.forEach( value => {
           if (value.action === 'add' || value.action === 'update' || value.action === 'extend') {
-            const copyValue = { ...value } as RelationshipInstance;
+            const copyValue = { ...value } as RelationshipInstance; // Deep clone value
             copyValue.action = 'add';
             changedRelationship.values.push(copyValue);
           }
@@ -442,7 +460,8 @@ export class EntityComponent implements OnInit {
   _isRelationDisabled(role: Role): boolean {
     if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
       const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
-      return !conditionalValues.includes(this.entity[this.entity.ENTITY_ID][role.CONDITIONAL_ATTR]);
+      return !this.entity[this.entity.ENTITY_ID] ||
+        !conditionalValues.includes(this.entity[this.entity.ENTITY_ID][0][role.CONDITIONAL_ATTR]);
     } else {
       return false;
     }
