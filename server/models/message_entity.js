@@ -44,7 +44,7 @@ const msgArray = [
   { msgCat: "ENTITY",
     msgName: "RELATION_NOT_VALID",
     msgText: {
-      EN: {shortText: "Entity '%s' doesn't have relation: '%s'", longText: "dummy"}
+      EN: {shortText: "Relation '%s' is invalid for the instance of entity '%s'", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",
@@ -74,7 +74,7 @@ const msgArray = [
   { msgCat: "ENTITY",
     msgName: "RELATIONSHIP_NOT_VALID",
     msgText: {
-      EN: {shortText: "Entity '%s' doesn't involve in relationship '%s'", longText: "dummy"}
+      EN: {shortText: "Relationship '%s' is not valid for the instance of entity '%s'", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",

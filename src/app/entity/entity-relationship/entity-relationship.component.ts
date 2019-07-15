@@ -27,7 +27,6 @@ export class EntityRelationshipComponent implements OnInit {
   readonlyPartner: boolean;
   readonlyAttribute: boolean;
   entityIDsByRole = {};
-  fakeUUIDs = [];
 
   constructor(private fb: FormBuilder,
               private messageService: MessageService,
@@ -79,7 +78,7 @@ export class EntityRelationshipComponent implements OnInit {
     this.isModalShown = true;
     this.detailValue = new RelationshipInstance();
     this.detailValue.action = 'add';
-    this.detailValue.RELATIONSHIP_INSTANCE_GUID = this._generateFakeUUID();
+    this.detailValue.RELATIONSHIP_INSTANCE_GUID = this.entityService.generateFakeRelationshipUUID();
     if (this.relationshipMeta.VALID_PERIOD > 0) {
       this.detailValue.VALID_FROM = 'now';
       this.detailValue.VALID_TO = EntityRelationshipComponent._getFormattedDate(this.relationshipMeta.VALID_PERIOD);
@@ -107,13 +106,6 @@ export class EntityRelationshipComponent implements OnInit {
 
   onSearchHelp(entityID: string, exportObject: object): void {
     this.searchHelpComponent.openSearchHelpModalByEntity(entityID, exportObject, this.readonlyPartner);
-  }
-
-  _generateFakeUUID(): string {
-    const nextPosition = this.fakeUUIDs.length + 1;
-    const fakeUUID = 'NewRelationship_' + nextPosition;
-    this.fakeUUIDs.push(fakeUUID);
-    return fakeUUID;
   }
 
   showModalForDisplay(index: number): void {

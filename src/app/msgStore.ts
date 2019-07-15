@@ -25,6 +25,12 @@ export const msgStore = [
       EN: {shortText: 'Entity instance is saved', longText: ''}
     }
   },
+  { msgCat: 'ENTITY',
+    msgName: 'ENTITY_DELETED',
+    msgText: {
+      EN: {shortText: 'Entity instance is deleted', longText: ''}
+    }
+  },
   { msgCat: 'RELATIONSHIP',
     msgName: 'PARTNER_ENTITY_ID_MISSING',
     msgText: {

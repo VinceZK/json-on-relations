@@ -16,6 +16,7 @@ const httpOptions = {
 })
 export class EntityService {
   private originalHost = environment.originalHost;
+  private fakeUUIDs = [];
 
   constructor(private http: HttpClient,
               private messageService: MessageService) {
@@ -65,6 +66,11 @@ export class EntityService {
   changeEntityInstance(instance: Entity): Observable<any> {
     return this.http.put<any>(this.originalHost + `/api/entity`, instance, httpOptions).pipe(
       catchError(this.handleError<any>('changeEntityInstance')));
+  }
+
+  deleteEntityInstance(instanceGUID: string): Observable<any> {
+    return this.http.delete<any>(this.originalHost + `/api/entity/instance/${instanceGUID}`).pipe(
+      catchError(this.handleError<any>('deleteEntityInstance')));
   }
 
   listEntityType(term: string): Observable<EntityType[]> {
@@ -135,6 +141,13 @@ export class EntityService {
   saveRole(role: any): Observable<any> {
     return this.http.post<any>(this.originalHost + `/api/model/role`, role, httpOptions).pipe(
       catchError(this.handleError<any>('saveRole')));
+  }
+
+  generateFakeRelationshipUUID(): string {
+    const nextPosition = this.fakeUUIDs.length + 1;
+    const fakeUUID = 'NewRelationship_' + nextPosition;
+    this.fakeUUIDs.push(fakeUUID);
+    return fakeUUID;
   }
 
   private handleError<T> (operation = 'operation', result?: T) {

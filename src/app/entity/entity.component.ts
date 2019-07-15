@@ -27,6 +27,7 @@ export class EntityComponent implements OnInit {
   isRelationshipModalShown = false;
   isEntityJSONModalShown = false;
   toBeAddRelationship: Relationship;
+  showDeletionConfirmation = false;
 
   constructor(private fb: FormBuilder,
               private route: ActivatedRoute,
@@ -49,6 +50,14 @@ export class EntityComponent implements OnInit {
           this.entity = new Entity();
           this.entity.ENTITY_ID = params.get('entityID');
           this.entity.relationships = [];
+          return of(this.entity);
+        } else if (instanceGUID === 'copy') {
+          this.readonly = false;
+          if (!this.entity) {
+            this.entity = new Entity();
+            this.entity.ENTITY_ID = params.get('entityID');
+            this.entity.relationships = [];
+          }
           return of(this.entity);
         } else {
           this.readonly = true;
@@ -75,7 +84,6 @@ export class EntityComponent implements OnInit {
         } else {
           this.entityMeta = <EntityMeta>data[0];
           this.relationMetas = <RelationMeta[]>data[1];
-          this.formGroup = this.fb.group({});
           this._createFormFromMeta();
         }
     });
@@ -103,6 +111,7 @@ export class EntityComponent implements OnInit {
   }
   get entityAttributes() {return this.relationMetas.find(
     relationMeta => relationMeta.RELATION_ID === this.entity.ENTITY_ID).ATTRIBUTES; }
+  get displayDeletionConfirmation() {return this.showDeletionConfirmation ? 'block' : 'none'; }
 
   toggleEditDisplay(): void {
     this.readonly = !this.readonly;
@@ -130,6 +139,61 @@ export class EntityComponent implements OnInit {
 
   newEntity(): void {
     this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID}]);
+  }
+
+  copyEntity(): void {
+    delete this.entity.INSTANCE_GUID;
+    this.relationMetas.forEach( relationMeta => {
+      if (relationMeta.RELATION_ID.substr(0, 2) !== 'r_') { return; }
+      this.entity[relationMeta.RELATION_ID].forEach( relationValue => {
+        relationMeta.ATTRIBUTES.forEach( attribute => {
+          if (attribute.PRIMARY_KEY || attribute.AUTO_INCREMENT) {
+            relationValue[attribute.ATTR_NAME] = '';
+          }
+        });
+      });
+    });
+
+    let index;
+    do { // Delete relationships that have partner cardinality equals [1..1]
+      index = this.entity.relationships.findIndex( relationship => {
+        const relationshipMeta = this.getRelationshipMeta(relationship.RELATIONSHIP_ID);
+        const idx = relationshipMeta.INVOLVES.findIndex(
+          involve => involve.CARDINALITY === '[1..1]' && involve.ROLE_ID !== relationship.SELF_ROLE_ID );
+        return idx > -1;
+      });
+      if (index > -1) { this.entity.relationships.splice(index, 1); }
+    } while ( index > -1);
+
+    this.entity.relationships.forEach( relationship => {
+      relationship.values.forEach( value => {
+        value.action = 'add';
+        value.RELATIONSHIP_INSTANCE_GUID = this.entityService.generateFakeRelationshipUUID();
+      });
+    });
+
+    this.router.navigate(['/entity/copy', {entityID: this.entityMeta.ENTITY_ID}]);
+  }
+
+  deleteEntity(): void {
+    this.showDeletionConfirmation = true;
+  }
+
+  cancelDeletion(): void {
+    this.showDeletionConfirmation = false;
+  }
+
+  confirmDeletion(): void {
+    this.entityService.deleteEntityInstance(this.entity.INSTANCE_GUID).subscribe( errorMsg => {
+      this.showDeletionConfirmation = false;
+      if (errorMsg) {
+        const messages = <Message[]>errorMsg;
+        messages.forEach( msg => this.messageService.add(msg));
+      } else {
+        this.messageService.reportMessage('ENTITY', 'ENTITY_DELETED', 'S');
+        this.router.navigate(['/entity/list']);
+      }
+    });
   }
 
   openAddRelationshipModal(): void {
@@ -197,7 +261,7 @@ export class EntityComponent implements OnInit {
   }
 
   _composeChangedEntity(): boolean {
-    if (this.formGroup.dirty === false) {
+    if (this.formGroup.dirty === false && this.entity.INSTANCE_GUID) {
       return false; // Nothing is changed
     }
 
@@ -384,7 +448,9 @@ export class EntityComponent implements OnInit {
   }
 
   _createFormFromMeta() {
+    this.formGroup = this.fb.group({});
     this.entityRelations = this._getEntityRelations();
+    const markAsDirty = !this.entity.INSTANCE_GUID;
     this.entityRelations.forEach(relation => {
       switch (relation.CARDINALITY) {
         case '[0..1]':
@@ -393,7 +459,7 @@ export class EntityComponent implements OnInit {
             this.formGroup.addControl(relation.RELATION_ID, new FormGroup({}));
           } else {
             this.formGroup.addControl(relation.RELATION_ID,
-              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0]));
+              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0], markAsDirty));
           }
           break;
         case '[1..1]':
@@ -402,7 +468,7 @@ export class EntityComponent implements OnInit {
             relation.EMPTY = false;
           }
           this.formGroup.addControl(relation.RELATION_ID,
-              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0]));
+              this.attributeControlService.convertToFormGroup(relation.ATTRIBUTES, this.entity[relation.RELATION_ID][0], markAsDirty));
           break;
         case '[0..n]':
           if (relation.EMPTY) {
@@ -422,6 +488,8 @@ export class EntityComponent implements OnInit {
             this._convertToFormArray(relation.ATTRIBUTES, this.entity[relation.RELATION_ID]));
           break;
       }
+      // In copy cases, all the relations must be marked as dirty
+      if (markAsDirty) { this.formGroup.get(relation.RELATION_ID).markAsDirty(); }
     });
   }
 
@@ -466,10 +534,14 @@ export class EntityComponent implements OnInit {
       return false;
     }
   }
+
   _convertToFormArray(attributes: Attribute[], instance: any) {
+    const markAsDirty = !this.entity.INSTANCE_GUID;
     const formArray = [];
     instance.forEach( line => {
-      formArray.push(this.attributeControlService.convertToFormGroup(attributes, line));
+      const lineFormGroup = this.attributeControlService.convertToFormGroup(attributes, line, markAsDirty);
+      if (markAsDirty) { lineFormGroup.markAsDirty(); }
+      formArray.push(lineFormGroup);
     });
     return new FormArray(formArray);
   }
@@ -480,6 +552,7 @@ export class EntityComponent implements OnInit {
       this.entity = data;
       this._refreshFormGroupValue(this.entity);
       this.formGroup.reset(this.formGroup.value);
+      window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID}`);
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
     } else if (Array.isArray(data)) {
       // Error messages are always an array

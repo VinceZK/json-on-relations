@@ -34,10 +34,11 @@ export class AttributeControlService {
       new FormControl(instance[attribute.ATTR_NAME] || '');
   }
 
-  convertToFormGroup(attributes: Attribute[], instance: any) {
+  convertToFormGroup(attributes: Attribute[], instance: any, isDirty?: boolean) {
     const group = {};
     attributes.forEach(attribute => {
       group[attribute.ATTR_NAME] = this.convertToFormControl(attribute, instance);
+      if (instance[attribute.ATTR_NAME] && isDirty) { group[attribute.ATTR_NAME].markAsDirty(); }
     });
     return new FormGroup(group);
   }

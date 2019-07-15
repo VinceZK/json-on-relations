@@ -1,24 +1,27 @@
 <nav class="navbar fixed-top navbar-light bg-light">
-  <div *ngIf="entityMeta">
-    <span class="font-weight-bold mb-0 mr-0">{{entity.ENTITY_ID}}</span>:
-    <span class="mb-0 ml-2">{{entity.INSTANCE_GUID}}</span>
+  <div>
+    <span class="font-weight-bold mb-0 mr-0">{{entity?.ENTITY_ID}}</span>:
+    <span class="mb-0 ml-2">{{entity?.INSTANCE_GUID}}</span>
   </div>
 
   <div class="flex-row-reverse">
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="openEntityJSONModal()">
+    <button class="btn btn-sm btn-outline-info mr-2" type="button" (click)="openEntityJSONModal()">
       <span class="fab fa-js"> Display in JSON </span>
     </button>
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="deleteEntity()">
+      <span class="fas fa-trash-alt"> Delete</span>
+    </button>
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="copyEntity()">
       <span class="fas fa-copy"> Copy</span>
     </button>
-    <button class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="newEntity()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="newEntity()">
       <span class="fas fa-file"> New</span>
     </button>
-    <button class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
       <span *ngIf="!readonly" class="fas fa-glasses"> Display</span>
       <span *ngIf="readonly" class="fas fa-edit"> Edit</span>
     </button>
-    <button class="btn btn-sm btn-outline-primary" type="button" (click)="saveEntity()">
+    <button class="btn btn-sm btn-outline-primary" type="button" (click)="saveEntity()" [disabled]="readonly">
       <span class="fas fa-save"> Save</span>
     </button>
   </div>
@@ -88,12 +91,12 @@
     </div>
 
 
-    <div class="modal fade dk-modal-open" [ngClass]="{'show': isEntityJSONModalShown}" [ngStyle]="{'display': displayEntityJSONModal}"
+    <div class="modal fade dk-modal-open" [class.show]="isEntityJSONModalShown" [ngStyle]="{'display': displayEntityJSONModal}"
          id="entityMetaModal" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="entityMeta">Entity in JSON</h5>
+            <h5 class="modal-title" id="entityInJSON">Entity in JSON</h5>
             <button type="button" class="close" (click)="closeEntityJSONModal()">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -108,6 +111,27 @@
       </div>
     </div>
 
+  </div>
+
+  <div class="modal fade dk-modal-open" [class.show]="showDeletionConfirmation"
+       [ngStyle]="{'display': displayDeletionConfirmation}" id="deletionConfirmation" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeletion">Confirm Deletion</h5>
+          <button type="button" class="close" (click)="cancelDeletion()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure to delete the entity instance?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="cancel" class="btn btn-secondary" (click)="cancelDeletion()">Cancel</button>
+          <button type="button" id="confirm" class="btn btn-primary" (click)="confirmDeletion()">Confirm</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>

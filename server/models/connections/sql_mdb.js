@@ -99,8 +99,8 @@ function loadEntities(entities, done) {
  *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'rs_user_role',
  *                         RELATIONSHIP_DESC: 'A system user has multiple use roles',
  *                         VALID_PERIOD: 3162240000,
- *                         INVOLVES: [RowDataPacket { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
- *                                    RowDataPacket { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
+ *                         INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
+ *                                     { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
  *     }
  *   ]
  * }

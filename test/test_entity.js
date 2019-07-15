@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   before(function (done) {
     entity.entityDB.loadEntities(['person', 'permission', 'category', 'app'], done);
   });
@@ -146,10 +146,10 @@ describe('entity tests', function () {
       })
     });
 
-    it('should create an instance of a female person', function (done) {
+    it('should fail to create an instance with relation of a disabled role', function (done) {
       let instance2 = { ENTITY_ID: 'person',
         person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
-                 TYPE: 'employee', SYSTEM_ACCESS: 'portal'},
+          TYPE: 'employee'},
         r_user: [{USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}],
         r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
         r_address: [],
@@ -157,10 +157,83 @@ describe('entity tests', function () {
         r_personalization: {}
       };
       entity.createInstance(instance2, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_VALID',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
+    it('should fail to create an instance with relationship of a disabled role', function (done) {
+      let instance2 = { ENTITY_ID: 'person',
+        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+          TYPE: 'employee'},
+        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
+        r_address: [],
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+        relationships:[
+          { RELATIONSHIP_ID: 'rs_user_role',
+            values:[
+              {action:'add', SYNCED:0,
+                PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:'5F50DE92743683E1ED7F964E5B9F6167'}]}
+            ]
+          }]
+      };
+      entity.createInstance(instance2, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATIONSHIP_NOT_VALID',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
+    it('should create an instance of a female person', function (done) {
+      let instance2 = { ENTITY_ID: 'person',
+        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+                 TYPE: 'employee'},
+        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
+        r_address: [],
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+      };
+      entity.createInstance(instance2, function (err) {
         (err === null).should.true();
         wifeInstanceGUID = instance2.INSTANCE_GUID;
         done();
       });
+    });
+
+    it('should get an instance of the female person', function (done) {
+      entity.getInstanceByGUID(wifeInstanceGUID, function (err, instance2) {
+        (err === null).should.true();
+        instance2.person.should.containDeep([
+          {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F',
+            HOBBY:'Drama', TYPE: 'employee'}]);
+        (instance2.r_user === undefined).should.true();
+        (instance2.r_personalization === undefined).should.true();
+        instance2.r_email.should.containDeep(
+          [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}]);
+        (instance2.r_address === undefined).should.true();
+        instance2.r_employee.should.containDeep([
+          {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'}]);
+        done();
+      })
+    });
+
+    it('should get pieces of the female person', function (done) {
+      let piece = {RELATIONS: ['r_user', 'r_email'], RELATIONSHIPS: ['rs_user_role'] };
+      entity.getInstancePieceByID({RELATION_ID: 'r_employee', USER_ID: 'DH998'}, piece,
+        function (err) {
+          err.should.containDeep([{
+            msgCat: 'ENTITY',
+            msgName: 'RELATION_NOT_VALID',
+            msgType: 'E'
+          }]);
+          done();
+      })
     });
   });
 
@@ -228,19 +301,6 @@ describe('entity tests', function () {
       })
     });
 
-    it('should report an error as r_user is [1..1] relation', function (done) {
-      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
-        r_user : {USER_ID: 'DH998', DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang'}};
-      entity.changeInstance(instance3, function(err){
-        err.should.containDeep([{
-          msgCat: 'ENTITY',
-          msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
-          msgType: 'E'
-        }]);
-        done();
-      })
-    });
-
     it('should add user personalization successfully', function (done) {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
         r_personalization : {USER_ID: 'DH999', TIMEZONE: ' UTC+8', LANGUAGE: 'ZH'}};
@@ -291,7 +351,7 @@ describe('entity tests', function () {
       })
     });
 
-    it('should failed to delete r_user as it is [1..1]', function (done) {
+    it('should fail to delete r_user as it is [1..1]', function (done) {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
         r_user : {action: 'delete',USER_ID: 'DH999'}};
       entity.changeInstance(instance3, function(err){
@@ -304,6 +364,88 @@ describe('entity tests', function () {
       })
     });
 
+    it('should disable the relations & relationships of role employee', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        person : {action: 'update', SYSTEM_ACCESS: ''}};
+      entity.changeInstance(instance3, function(err){
+        (err === null).should.true();
+        entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, instance2) {
+          (err === null).should.true();
+          (instance2.r_user === undefined).should.true();
+          (instance2.r_personalization === undefined).should.true();
+          instance2.relationships.length.should.eql(0);
+          instance3.person.SYSTEM_ACCESS = 'portal';
+          entity.changeInstance(instance3, function (err) {
+            (err === null).should.true();
+            done();
+          });
+        });
+      });
+    });
+
+    it('should fail to change a person with invalid relation', function (done) {
+      let instance3 = {
+        ENTITY_ID: 'person', INSTANCE_GUID: wifeInstanceGUID,
+        r_user : {USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}
+      };
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_VALID',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
+    it('should fail to change a person with invalid relationship', function (done) {
+      let instance3 = {
+        ENTITY_ID: 'person', INSTANCE_GUID: wifeInstanceGUID,
+        relationships: [
+          { RELATIONSHIP_ID: 'rs_user_role',
+            values:[
+              { action: 'add', SYNCED: 0,
+                PARTNER_INSTANCES:[
+                  {ENTITY_ID:'permission',ROLE_ID:'system_role',INSTANCE_GUID:'7B36CB959C06B2CAEB89C93EDFB30510' }
+                ]}
+            ]
+          }
+        ]
+      };
+      entity.changeInstance(instance3, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATIONSHIP_NOT_VALID',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
+    it('should change the female person successfully', function (done) {
+      let instance3 = {
+        ENTITY_ID: 'person', INSTANCE_GUID: wifeInstanceGUID,
+        person: {action: 'update', SYSTEM_ACCESS: 'portal'},
+        r_user: {USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}
+      };
+      entity.changeInstance(instance3, function (err) {
+        (err === null).should.true();
+        done();
+      });
+    });
+
+    it('should report an error as r_user is [1..1] relation', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_user : {USER_ID: 'DH998', DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang'}};
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
   });
 
   describe('Relationship tests(time dependent)', function () {
@@ -659,7 +801,6 @@ describe('entity tests', function () {
           ]
       };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
-        console.log(err);
         (err === null).should.true();
 
         instancePiece.relationships.should.containDeep([
@@ -936,7 +1077,7 @@ describe('entity tests', function () {
       let overwriteInstance = {
         INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
         person: {GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
-          FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E' },
+          FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E'},
         r_employee:
           [{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
             TITLE: 'Developer', GENDER: 'Male'
@@ -954,7 +1095,7 @@ describe('entity tests', function () {
         (err === null).should.true();
         entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, newInstance) {
           newInstance.person.should.containDeep([{GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
-            FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E' }]);
+            FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', TYPE: 'employee', SYSTEM_ACCESS: 'portal' }]);
           newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
             DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
           }]);
@@ -972,7 +1113,7 @@ describe('entity tests', function () {
     it('should only overwrite explicated attributes', function (done) {
       let overwriteInstance = {
         INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
-        person: { HEIGHT: 183 },
+        person: { HEIGHT: 183},
         r_employee: {USER_ID: 'DH999'},
         r_email: [{EMAIL: 'dh999@outlook.com'}, {EMAIL: 'dh999@darkhouse.com'}],
         r_user: {USER_ID: 'DH999'}
@@ -1059,9 +1200,9 @@ describe('entity tests', function () {
     });
 
     it('should delete the female instance from DB', function (done) {
-      entity.softDeleteInstanceByID({RELATION_ID: 'r_user', USER_ID: 'DH998'}, function (err) {
+      entity.softDeleteInstanceByID({RELATION_ID: 'r_employee', USER_ID: 'DH998'}, function (err) {
         (err === null).should.true();
-        entity.hardDeleteByID({RELATION_ID: 'r_user', USER_ID: 'DH998'}, function (err) {
+        entity.hardDeleteByID({RELATION_ID: 'r_employee', USER_ID: 'DH998'}, function (err) {
           (err === null).should.true();
           done();
         })
