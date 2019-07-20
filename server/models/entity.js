@@ -492,14 +492,14 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
       if(err) return callback(err); //Already message instance
 
       _deleteDisabledRoleStuff(instance, entityMeta);
-      if (!piece[instance.ENTITY_ID]) delete instance[instance.ENTITY_ID];
+      if (!piece.RELATIONS.includes(instance.ENTITY_ID)) delete instance[instance.ENTITY_ID];
       callback(null, instance);
     })
 
   });
 
   function __getRelationValue(instance, entityMeta, instanceHead, callback) {
-    let relationIDs = piece.RELATIONS || [];
+    let relationIDs = piece.RELATIONS? [ ...piece.RELATIONS] : [];
     relationIDs.push(entityMeta.ENTITY_ID); // Get entity main relation to filter out disabled role relations and relationships
     relationIDs = relationIDs.filter( function( relationID, index, inputArray ) {
       return inputArray.indexOf(relationID) === index;
