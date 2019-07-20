@@ -1,12 +1,12 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {SearchHelp, SearchHelpMethod} from './search-help.type';
-import {QueryObject, RelationMeta} from '../../../projects/jor-angular/src/lib/entity';
+import {QueryObject, RelationMeta} from '../entity';
 import {EntityService} from '../entity.service';
 import {Observable} from 'rxjs';
+import {SearchHelp, SearchHelpMethod} from './search-help';
 
 @Component({
-  selector: 'app-search-help',
+  selector: 'dk-app-search-help',
   templateUrl: './search-help.component.html',
   styleUrls: ['./search-help.component.css']
 })

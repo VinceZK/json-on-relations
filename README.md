@@ -32,10 +32,12 @@ on how to build a CRUD App with JSON-On-Relations.
 
 ## First Glance
 ### Define Your Entity
-Entity "person" is defined with 4 attributes and 4 roles.  
+Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if his gender is male, 
+or a wife if his gender is female.
 ![Entity: person](EntityPerson.png)
 
-A person can be an employee, thus it has the role "employee". Role "employee" has a relation "r_employee".
+When the TYPE of a person is "employee", then his has the role "employee". 
+Role "employee" has relations, like "r_address", "r_email", and "r_employee"".
 ![Role: employee](RoleEmployee.png)
 
 A relation corresponds to a DB table which represents a collection of attributes. 
@@ -43,12 +45,12 @@ Besides, you can also define associations among relations.
 ![Relation: r_employee](RelationEmployee.png)
 
 Entities can have relationships with each others. Each relationship is performed by certain roles. 
-For example, relationship "marriage" is performed by 2 roles: "husband" and "wife". 
+For example, relationship "marriage" is performed by the 2 roles: "husband" and "wife". 
 Once the 2 roles are respectively assigned to 2 people, they can then potentially have the marriage relationship.  
 ![Relationship: rs_marriage](RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
-Once you have the data modelling done, you can immediately create a person instance.  
+Once you have your entity modelling done, you can immediately create an entity instance.  
 ![A person instance](PersonInstance.png)
 
 You can also search instances of an entity type based on all its relations. 
@@ -56,7 +58,7 @@ You can also search instances of an entity type based on all its relations.
 
 ### Compose Your Message
 Each entity instance can be represented as a JSON file. 
-And the JSON is not just an simple format, but also a message that can be communicated with the server end. 
+And the JSON is not just an simple data format, but also a message that can be communicated with the server end. 
 ![JSON format of a person instance](JSONPersonInstance.png)
 
 If you want to create a new person instance, just post the message like bellow:
@@ -68,7 +70,7 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 { "ENTITY_ID": "person",
-  "person": {"HEIGHT": "170", "GENDER": "male", "FINGER_PRINT": "CA67DE15727C72961EB4B6B59B76743E", "HOBBY":"Reading, Movie, Coding"},
+  "person": {"HEIGHT": "170", "GENDER": "male", "FINGER_PRINT": "CA67DE15727C72961EB4B6B59B76743E", "HOBBY":"Reading, Movie, Coding", "TYPE": "employee"},
   "r_employee": {"USER_ID": "DH001", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID": "Development", "TITLE": "Developer", "GENDER":"Male"},
   "r_address": [
      {"COUNTRY": "China", "CITY":"Shanghai", "POSTCODE": "999999",
@@ -216,7 +218,7 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 { "ENTITY_ID": "person",
-  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding"},
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding", "TYPE": "employee", "SYSTEM_ACCESS": "portal"},
   "r_user": {"USER_ID": "DH999", "USER_NAME":"John", "DISPLAY_NAME": "John Wu"},
   "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
   "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"},

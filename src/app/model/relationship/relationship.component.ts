@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RelationshipH} from 'jor-angular';
 import {Subject} from 'rxjs';
-import {EntityService} from '../../entity.service';
+import {EntityService} from 'jor-angular';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
 import {ActivatedRoute, Router} from '@angular/router';

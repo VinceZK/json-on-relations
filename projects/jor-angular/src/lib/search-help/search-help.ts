@@ -1,5 +1,3 @@
-import {Observable} from 'rxjs';
-
 export class SearchHelp {
   OBJECT_NAME: string; // Business object name, for example, employee
   METHOD: SearchHelpMethod | object[]; // Either the search help method, or an array of plain object.
@@ -24,4 +22,7 @@ export class SearchHelpField {
   DEFAULT_VALUE?: any;
 }
 
+import {Observable} from 'rxjs';
 export type SearchHelpMethod = (searchTerm: any) => Observable<object[]>;
+
+

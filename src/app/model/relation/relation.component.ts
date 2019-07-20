@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Relation} from 'jor-angular';
 import {Subject} from 'rxjs';
-import {EntityService} from '../../entity.service';
+import {EntityService} from 'jor-angular';
 import {ActivatedRoute, Router} from '@angular/router';
 import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {ModelService} from '../model.service';

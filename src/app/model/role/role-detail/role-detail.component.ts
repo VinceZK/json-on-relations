@@ -5,13 +5,13 @@ import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
-import {EntityService} from '../../../entity.service';
+import {EntityService} from 'jor-angular';
 import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
 import {UniqueRoleValidator} from '../../model-validators';
-import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
-import {SearchHelpComponent} from '../../../search-help/search-help.component';
+import {SearchHelp, SearchHelpMethod} from 'jor-angular';
+import {SearchHelpComponent} from 'jor-angular';
 
 @Component({
   selector: 'app-role-detail',

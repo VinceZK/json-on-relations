@@ -14,7 +14,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HotTableModule} from '@handsontable/angular';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {EntityRoutingModule} from './entity-routing.module';
-import {SearchHelpComponent} from '../search-help/search-help.component';
+import {JorAngularModule} from 'jor-angular';
 
 @NgModule({
   imports: [
@@ -25,7 +25,8 @@ import {SearchHelpComponent} from '../search-help/search-help.component';
     ReactiveFormsModule,
     MessageModule,
     HotTableModule.forRoot(),
-    NgbModule
+    NgbModule,
+    JorAngularModule
   ],
   declarations: [
     EntityComponent,
@@ -35,8 +36,7 @@ import {SearchHelpComponent} from '../search-help/search-help.component';
     EntityRelationshipComponent,
     AttributeFormComponent,
     AttributeTableComponent,
-    ListComponent,
-    SearchHelpComponent
+    ListComponent
   ],
   providers: [
   ]

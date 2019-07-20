@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from 'jor-angular';
+import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from './entity';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
-import {msgStore} from './msgStore';
-import {environment} from '../environments/environment';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -15,12 +13,25 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class EntityService {
-  private originalHost = environment.originalHost;
+  private originalHost: string;
   private fakeUUIDs = [];
 
   constructor(private http: HttpClient,
               private messageService: MessageService) {
-    this.messageService.setMessageStore(msgStore, 'EN');
+    this.messageService.setMessageStore([
+      { msgCat: 'EXCEPTION', msgName: 'GENERIC',
+        msgText: { EN: {shortText: 'Exception Occurs in Operation: %s', longText: '%s2'}}},
+      { msgCat: 'EXCEPTION', msgName: 'SESSION_EXPIRED',
+        msgText: { EN: {shortText: 'Your session is expired',
+            longText: 'Your session is expired, please <a href="/logon">re-logon</a>'}}}], 'EN');
+  }
+
+  setOriginalHost(host: string) {
+    this.originalHost = host;
+  }
+
+  setMessageStore(msgStore: any, language: string) {
+    this.messageService.setMessageStore(msgStore, language);
   }
 
   listEntityID(): Observable<string[] | {}> {

@@ -3,7 +3,7 @@ import {Association, RelationMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {Message, MessageService} from 'ui-message-angular';
-import {EntityService} from '../../../entity.service';
+import {EntityService} from 'jor-angular';
 import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
@@ -11,8 +11,8 @@ import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.compon
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {UniqueRelationValidator} from '../../model-validators';
-import {SearchHelpComponent} from '../../../search-help/search-help.component';
-import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
+import {SearchHelpComponent} from 'jor-angular';
+import {SearchHelp, SearchHelpMethod} from 'jor-angular';
 
 @Component({
   selector: 'app-relation-detail',

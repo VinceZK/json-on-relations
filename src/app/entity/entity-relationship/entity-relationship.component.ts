@@ -6,8 +6,8 @@ import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 import {AttributeBase} from '../attribute/attribute-base';
 import {AttributeControlService} from '../attribute/attribute-control.service';
-import {EntityService} from '../../entity.service';
-import {SearchHelpComponent} from '../../search-help/search-help.component';
+import {EntityService} from 'jor-angular';
+import {SearchHelpComponent} from 'jor-angular';
 
 @Component({
   selector: 'app-entity-relationship',

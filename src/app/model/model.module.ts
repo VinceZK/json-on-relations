@@ -19,7 +19,7 @@ import { DataElementComponent } from './data-element/data-element.component';
 import { DataDomainComponent } from './data-domain/data-domain.component';
 import { DataDomainDetailComponent } from './data-domain/data-domain-detail/data-domain-detail.component';
 import { DataElementDetailComponent } from './data-element/data-element-detail/data-element-detail.component';
-import {SearchHelpComponent} from '../search-help/search-help.component';
+import {JorAngularModule} from 'jor-angular';
 
 @NgModule({
   imports: [
@@ -29,7 +29,8 @@ import {SearchHelpComponent} from '../search-help/search-help.component';
     ReactiveFormsModule,
     ModelRoutingModule,
     MessageModule,
-    NgbModule
+    NgbModule,
+    JorAngularModule
   ],
   declarations: [
     ModelComponent,
@@ -45,8 +46,7 @@ import {SearchHelpComponent} from '../search-help/search-help.component';
     DataElementComponent,
     DataElementDetailComponent,
     DataDomainComponent,
-    DataDomainDetailComponent,
-    SearchHelpComponent
+    DataDomainDetailComponent
   ]
 })
 export class ModelModule { }

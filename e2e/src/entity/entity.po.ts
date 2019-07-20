@@ -165,7 +165,7 @@ export class EntityPo {
     addRelationshipInstanceModal.element(by.name('partner_entity_id'))
       .element(by.css('option[value="' + partnerEntity + '"]')).click();
     addRelationshipInstanceModal.element(by.css('button[name="searchInstanceGUID"]')).click();
-    const searchHelpModal = element(by.css('div[id="' + relationship + '"] ~ app-search-help'));
+    const searchHelpModal = element(by.css('div[id="' + relationship + '"] ~ dk-app-search-help'));
     searchHelpModal.element(by.css('button[id="search"]')).click();
     searchHelpModal.element(by.css('tbody>tr>td>input')).click();
     searchHelpModal.element(by.buttonText('Confirm')).click();

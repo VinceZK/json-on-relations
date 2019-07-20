@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import {RouteReuseStrategy} from '@angular/router';
 import {CustomReuseStrategy} from './custom.reuse.strategy';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {JorAngularModule} from 'jor-angular';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
     HttpClientModule,
     AppRoutingModule,
     NgbModule.forRoot(),
-    BrowserModule
+    BrowserModule,
+    JorAngularModule
   ],
   providers: [
     {provide: RouteReuseStrategy, useClass: CustomReuseStrategy}

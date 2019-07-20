@@ -1,7 +1,7 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
-import {EntityService} from '../../../entity.service';
+import {EntityService} from 'jor-angular';
 import {Attribute, EntityMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
@@ -11,8 +11,8 @@ import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.compon
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {UniqueEntityTypeValidator} from '../../model-validators';
-import {SearchHelpComponent} from '../../../search-help/search-help.component';
-import {SearchHelp, SearchHelpMethod} from '../../../search-help/search-help.type';
+import {SearchHelpComponent} from 'jor-angular';
+import {SearchHelpMethod, SearchHelp} from 'jor-angular';
 
 @Component({
   selector: 'app-entity-type-detail',
@@ -101,7 +101,6 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
-    // TODO: Get search help meta from the fieldName.
     const searchHelpMeta = new SearchHelp();
     searchHelpMeta.OBJECT_NAME = 'Role';
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {

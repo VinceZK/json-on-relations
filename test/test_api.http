@@ -11,7 +11,7 @@ Cache-Control: no-cache
 Content-Type: application/json
 
 { "ENTITY_ID": "person",
-  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding"},
+  "person": {"HEIGHT": "180", "GENDER": "male", "HOBBY":"Reading, Movie, Coding", "TYPE": "employee", "SYSTEM_ACCESS": "portal"},
   "r_user": {"USER_ID": "DH999", "USER_NAME":"John", "DISPLAY_NAME": "John Wu"},
   "r_email": [{"EMAIL": "dh999@hotmail.com", "TYPE": "private", "PRIMARY":1}],
   "r_employee": {"USER_ID": "DH999", "COMPANY_ID":"Darkhouse", "DEPARTMENT_ID":"Development","TITLE":"Developer"},

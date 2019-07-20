@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {EntityService} from '../entity.service';
+import {EntityService} from 'jor-angular';
 import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta,
   Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
 import {forkJoin, Observable, of} from 'rxjs';

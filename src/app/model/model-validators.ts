@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {AbstractControl, AsyncValidator, ValidationErrors} from '@angular/forms';
-import {EntityService} from '../entity.service';
+import {EntityService} from 'jor-angular';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import {ModelService} from './model.service';
