@@ -5,7 +5,7 @@ import {EntityTypeComponent} from './entity-type/entity-type.component';
 import {EntityTypeDetailComponent} from './entity-type/entity-type-detail/entity-type-detail.component';
 import {RelationComponent} from './relation/relation.component';
 import {RelationDetailComponent} from './relation/relation-detail/relation-detail.component';
-import {WorkProtectionGuard} from './work-protection.guard';
+import {WorkProtectionGuard} from '../work-protection.guard';
 import {RelationshipComponent} from './relationship/relationship.component';
 import {RelationshipDetailComponent} from './relationship/relationship-detail/relationship-detail.component';
 import {RoleComponent} from './role/role.component';

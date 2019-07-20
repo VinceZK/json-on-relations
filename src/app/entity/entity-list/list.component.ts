@@ -31,7 +31,8 @@ export class ListComponent implements OnInit {
     {ID: 'GE', LABEL: '>='},
     {ID: 'LT', LABEL: '<'},
     {ID: 'LE', LABEL: '<='},
-    {ID: 'BT', LABEL: 'Between'}
+    {ID: 'BT', LABEL: 'between'},
+    {ID: 'CN', LABEL: 'contains'},
   ];
   selections: Selection[] = [];
   settingsObj: Handsontable.GridSettings;
@@ -103,10 +104,11 @@ export class ListComponent implements OnInit {
   }
 
   newEntity(): void {
-    this.router.navigate(['/entity/new', {entityID: this.entityID}]);
+    this.router.navigate(['/entity/new', {entityID: this.entityID, action: 'new'}]);
   }
 
   search() {
+    this.messageService.clearMessages();
     this.queryObject.ENTITY_ID = this.entityID;
     this.queryObject.RELATION_ID = this.relationID;
     this.queryObject.PROJECTION = [];

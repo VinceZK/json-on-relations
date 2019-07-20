@@ -13,11 +13,11 @@
   <tbody [formArrayName]="entityRelation.RELATION_ID">
     <tr *ngFor="let formGroup of formArray.controls; let i = index">
       <td class="actions">
-        <button class="btn btn-sm" type="button" (click)="openDetailModal(i)">
+        <button class="btn btn-sm" type="button" (click)="openDetailModal(i)" title="Detail">
           <span *ngIf="readonly" class="fas fa-search"></span>
           <span *ngIf="!readonly" class="fas fa-pen"></span>
         </button>
-        <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)">
+        <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)" title="Delete">
           <span class="far fa-trash-alt"></span>
         </button>
       </td>

@@ -5,23 +5,29 @@
   </div>
 
   <div class="flex-row-reverse">
-    <button class="btn btn-sm btn-outline-info mr-2" type="button" (click)="openEntityJSONModal()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-info mr-2" type="button"
+            (click)="openEntityJSONModal()" title="Display in JSON">
       <span class="fab fa-js"> Display in JSON </span>
     </button>
-    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="deleteEntity()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button"
+            (click)="deleteEntity()" title="Delete Entity" [disabled]="!readonly">
       <span class="fas fa-trash-alt"> Delete</span>
     </button>
-    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="copyEntity()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button"
+            (click)="copyEntity()" title="Copy Entity" [disabled]="!readonly">
       <span class="fas fa-copy"> Copy</span>
     </button>
-    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button" (click)="newEntity()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-secondary mr-2" type="button"
+            (click)="newEntity()" title="New Entity" [disabled]="!readonly">
       <span class="fas fa-file"> New</span>
     </button>
-    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-primary mr-2" type="button" (click)="toggleEditDisplay()">
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-primary mr-2" type="button"
+            (click)="toggleEditDisplay()" title="Switch Display Edit Mode">
       <span *ngIf="!readonly" class="fas fa-glasses"> Display</span>
       <span *ngIf="readonly" class="fas fa-edit"> Edit</span>
     </button>
-    <button class="btn btn-sm btn-outline-primary" type="button" (click)="saveEntity()" [disabled]="readonly">
+    <button class="btn btn-sm btn-outline-primary" type="button"
+            (click)="saveEntity()" [disabled]="readonly" title="Save Entity">
       <span class="fas fa-save"> Save</span>
     </button>
   </div>

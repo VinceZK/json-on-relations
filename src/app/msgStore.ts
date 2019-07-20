@@ -20,15 +20,21 @@ export const msgStore = [
     }
   },
   { msgCat: 'ENTITY',
+    msgName: 'HAS_ERRORS',
+    msgText: {
+      EN: {shortText: 'The form has errors, please check!', longText: ''}
+    }
+  },
+  { msgCat: 'ENTITY',
     msgName: 'ENTITY_SAVED',
     msgText: {
-      EN: {shortText: 'Entity instance is saved', longText: ''}
+      EN: {shortText: 'Entity instance is saved!', longText: ''}
     }
   },
   { msgCat: 'ENTITY',
     msgName: 'ENTITY_DELETED',
     msgText: {
-      EN: {shortText: 'Entity instance is deleted', longText: ''}
+      EN: {shortText: 'Entity instance is deleted!', longText: ''}
     }
   },
   { msgCat: 'RELATIONSHIP',

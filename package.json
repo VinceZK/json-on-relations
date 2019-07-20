@@ -12,8 +12,9 @@
     "build_publish": "npm run ngbuild && npm run publish",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e",
-    "prod": "node server.js"
+    "e2e": "ng e2e --dev-server-target= --webdriverUpdate=false",
+    "prod": "node server.js",
+    "webdriver-update": "webdriver-manager update"
   },
   "private": false,
   "dependencies": {

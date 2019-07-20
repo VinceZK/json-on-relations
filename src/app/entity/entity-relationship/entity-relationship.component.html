@@ -1,10 +1,10 @@
-<div class="card mt-2">
+<div class="card mt-2" [id]="relationship.RELATIONSHIP_ID">
   <div class="card-header">
     <span class="fab fa-connectdevelop"></span> Relationship: <strong>{{relationship.RELATIONSHIP_ID}}</strong>,
     Involved Role: <strong>{{relationship.SELF_ROLE_ID}}</strong>
 
     <div class="float-right">
-      <button class="btn btn-sm btn-outline-secondary ml-2" type="button"
+      <button class="btn btn-sm btn-outline-secondary ml-2" type="button" [name]="relationship.RELATIONSHIP_ID"
               [disabled]="readonly" (click)="showModalAdd()">
         <span class="fas fa-plus"></span>
       </button>
@@ -155,7 +155,7 @@
                   <input class="form-control form-control-sm" type="text" name="partner_instance_guid"
                          required [(ngModel)]="partnerInstance.INSTANCE_GUID" [readonly]="readonlyPartner">
                   <div class="input-group-append">
-                    <button class="btn btn-outline-secondary btn-sm" type="button" id="button-addon2"
+                    <button class="btn btn-outline-secondary btn-sm" type="button" name="searchInstanceGUID"
                             (click)="onSearchHelp(partnerInstance.ENTITY_ID, partnerInstance)">
                       <span class="fas fa-search"></span>
                     </button>

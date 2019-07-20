@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {EntityService} from '../entity.service';
 import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta,
   Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
-import {forkJoin, of} from 'rxjs';
+import {forkJoin, Observable, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {AttributeControlService} from './attribute/attribute-control.service';
 import {Message, MessageService} from 'ui-message-angular';
@@ -10,6 +10,7 @@ import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {Role} from '../../../projects/jor-angular/src/lib/entity';
+import {DialogService} from '../dialog.service';
 
 @Component({
   selector: 'app-entity',
@@ -34,6 +35,7 @@ export class EntityComponent implements OnInit {
               private router: Router,
               private attributeControlService: AttributeControlService,
               private messageService: MessageService,
+              private dialogService: DialogService,
               private entityService: EntityService) {
     this.formGroup = this.fb.group({});
     this.messageService.setMessageStore(msgStore, 'EN');
@@ -43,15 +45,15 @@ export class EntityComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.pipe(
       switchMap((params: ParamMap) => {
-        const instanceGUID = params.get('instanceGUID');
+        const action = params.get('action');
         this.entityMeta = null;
-        if (instanceGUID === 'new') {
+        if (action === 'new') {
           this.readonly = false;
           this.entity = new Entity();
           this.entity.ENTITY_ID = params.get('entityID');
           this.entity.relationships = [];
           return of(this.entity);
-        } else if (instanceGUID === 'copy') {
+        } else if (action === 'copy') {
           this.readonly = false;
           if (!this.entity) {
             this.entity = new Entity();
@@ -59,9 +61,12 @@ export class EntityComponent implements OnInit {
             this.entity.relationships = [];
           }
           return of(this.entity);
+        } else if (action === 'change') {
+          this.readonly = false;
+          return this.entityService.getEntityInstance(params.get('instanceGUID'));
         } else {
           this.readonly = true;
-          return this.entityService.getEntityInstance(instanceGUID);
+          return this.entityService.getEntityInstance(params.get('instanceGUID'));
         }
       }),
       switchMap(data => {
@@ -86,6 +91,7 @@ export class EntityComponent implements OnInit {
           this.relationMetas = <RelationMeta[]>data[1];
           this._createFormFromMeta();
         }
+        this.messageService.clearMessages();
     });
 
   }
@@ -114,14 +120,37 @@ export class EntityComponent implements OnInit {
   get displayDeletionConfirmation() {return this.showDeletionConfirmation ? 'block' : 'none'; }
 
   toggleEditDisplay(): void {
-    this.readonly = !this.readonly;
+    if (this.readonly ) {
+      this._switch2EditMode();
+    } else {
+      if (this.formGroup.dirty) {
+        this.dialogService.confirm('Discard changes?').subscribe(confirm => {
+          if (confirm) {
+            // this.entity.INSTANCE_GUID should always be there, as in new or copy mode, switching button is disabled.
+            this.router.navigate(['entity', this.entity.INSTANCE_GUID, {action: 'display'}]);
+          }
+        });
+      } else {
+        this._switch2DisplayMode();
+      }
+    }
+    this.messageService.clearMessages();
+  }
+
+  _switch2EditMode(): void {
+    this.readonly = false;
+    window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=change`);
+  }
+
+  _switch2DisplayMode(): void {
+    this.readonly = true;
+    this.formGroup.markAsPristine();
+    window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=display`);
   }
 
   saveEntity(): void {
     this.messageService.clearMessages();
     if (!this._composeChangedEntity()) {
-      this.readonly = true;
-      this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'W');
       return;
     }
 
@@ -138,13 +167,13 @@ export class EntityComponent implements OnInit {
   }
 
   newEntity(): void {
-    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID}]);
+    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'new'}]);
   }
 
   copyEntity(): void {
     delete this.entity.INSTANCE_GUID;
     this.relationMetas.forEach( relationMeta => {
-      if (relationMeta.RELATION_ID.substr(0, 2) !== 'r_') { return; }
+      if (relationMeta.RELATION_ID.substr(0, 2) !== 'r_' || !this.entity[relationMeta.RELATION_ID]) { return; }
       this.entity[relationMeta.RELATION_ID].forEach( relationValue => {
         relationMeta.ATTRIBUTES.forEach( attribute => {
           if (attribute.PRIMARY_KEY || attribute.AUTO_INCREMENT) {
@@ -172,7 +201,7 @@ export class EntityComponent implements OnInit {
       });
     });
 
-    this.router.navigate(['/entity/copy', {entityID: this.entityMeta.ENTITY_ID}]);
+    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'copy'}]);
   }
 
   deleteEntity(): void {
@@ -224,7 +253,6 @@ export class EntityComponent implements OnInit {
       return;
     }
     if (!this.entity.relationships) { this.entity.relationships = []; }
-    // console.log(this.entity.relationships);
     const index = this.entity.relationships.findIndex(
       relationship => relationship.RELATIONSHIP_ID === this.toBeAddRelationship.RELATIONSHIP_ID);
     if (index !== -1) {
@@ -262,7 +290,13 @@ export class EntityComponent implements OnInit {
 
   _composeChangedEntity(): boolean {
     if (this.formGroup.dirty === false && this.entity.INSTANCE_GUID) {
+      this.messageService.reportMessage('ENTITY', 'NO_CHANGE', 'W');
       return false; // Nothing is changed
+    }
+
+    if (!this.formGroup.valid) {
+      this.messageService.reportMessage('ENTITY', 'HAS_ERRORS', 'E');
+      return false;
     }
 
     this.changedEntity = new Entity();
@@ -575,6 +609,14 @@ export class EntityComponent implements OnInit {
       }
     });
     this.formGroup.setValue(formGroupValues);
+  }
+
+  canDeactivate(): Observable<boolean> | boolean {
+    if (this.formGroup && this.formGroup.dirty) {
+      return this.dialogService.confirm('Discard changes?');
+    } else {
+      return true;
+    }
   }
 
 }
