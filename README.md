@@ -36,7 +36,7 @@ Entity "person" is defined with 6 attributes and 4 roles. A person could be a hu
 or a wife if his gender is female.
 ![Entity: person](EntityPerson.png)
 
-When the TYPE of a person is "employee", then his has the role "employee". 
+When the TYPE of a person is "employee", then he has the role "employee". 
 Role "employee" has relations, like "r_address", "r_email", and "r_employee"".
 ![Role: employee](RoleEmployee.png)
 
