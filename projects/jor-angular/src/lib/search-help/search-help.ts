@@ -16,6 +16,7 @@ export class SearchHelpField {
   FIELD_DESC?: string;
   IMPORT: boolean;
   EXPORT: boolean;
+  IE_FIELD_NAME?: string; // Import or Export field name.
   LIST_POSITION: number;
   FILTER_POSITION: number;
   FILTER_DISP_ONLY?: boolean;

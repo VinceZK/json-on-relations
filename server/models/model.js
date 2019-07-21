@@ -388,7 +388,7 @@ function _generateUpdateRoleSQL(role, entityID) {
         updateSQL = !updateSQL? "update ENTITY_ROLES set " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(role[key])
           :updateSQL + ", " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(role[key]);
       });
-      if (updateSQL) updateSQL += " where ENTITY_ID = " + entityDB.pool.escape(role.ENTITY_ID) +
+      if (updateSQL) updateSQL += " where ENTITY_ID = " + entityDB.pool.escape(entityID) +
         " and ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
       break;
     case 'delete':

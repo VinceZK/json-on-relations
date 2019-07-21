@@ -105,7 +105,7 @@ export class EntityRelationshipComponent implements OnInit {
   }
 
   onSearchHelp(entityID: string, exportObject: object): void {
-    this.searchHelpComponent.openSearchHelpModalByEntity(entityID, exportObject, this.readonlyPartner);
+    this.searchHelpComponent.openSearchHelpModalByEntity(entityID, entityID, exportObject, this.readonlyPartner);
   }
 
   showModalForDisplay(index: number): void {

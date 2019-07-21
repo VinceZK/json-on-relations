@@ -41,8 +41,10 @@ export class SearchHelpComponent implements OnInit {
     this.filterFields = this.searchHelpMeta.FIELDS.filter( fieldMeta => fieldMeta.FILTER_POSITION );
     this.filterFields.sort((a, b) => a.FILTER_POSITION - b.FILTER_POSITION);
     this.filterFields.forEach( fieldMeta => {
-      if (fieldMeta.IMPORT && exportControl.get(fieldMeta.FIELD_NAME)) {
-        fieldMeta.DEFAULT_VALUE = exportControl.get(fieldMeta.FIELD_NAME).value; }
+      if (fieldMeta.IMPORT) {
+        const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
+        if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(fieldMeta.FIELD_NAME).value;  }
+      }
       this.filterFieldsFormGroup.addControl(fieldMeta.FIELD_NAME, this.fb.control(fieldMeta.DEFAULT_VALUE));
     });
 
@@ -58,7 +60,7 @@ export class SearchHelpComponent implements OnInit {
     this.isSearchHelpModalShown = true;
   }
 
-  openSearchHelpModalByEntity(entityID: string, exportControl: any, readonly: boolean, afterExportFn?: any) {
+  openSearchHelpModalByEntity(entityID: string, relationID: string, exportControl: any, readonly: boolean, afterExportFn?: any) {
     const searchHelpMeta = new SearchHelp();
     searchHelpMeta.OBJECT_NAME = entityID;
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
@@ -70,16 +72,16 @@ export class SearchHelpComponent implements OnInit {
     searchHelpMeta.FIELDS = [];
     searchHelpMeta.READ_ONLY = readonly;
     searchHelpMeta.ENTITY_ID = entityID;
-    searchHelpMeta.RELATION_ID = entityID;
-    this.entityService.getRelationMeta(entityID)
+    searchHelpMeta.RELATION_ID = relationID;
+    this.entityService.getRelationMeta(relationID)
       .subscribe(data => {
         const relationMeta = <RelationMeta>data;
         relationMeta.ATTRIBUTES.forEach( attribute =>
           searchHelpMeta.FIELDS.push({
             FIELD_NAME: attribute.ATTR_NAME,
             FIELD_DESC: attribute.ATTR_DESC,
-            IMPORT: false,
-            EXPORT: false,
+            IMPORT: attribute.PRIMARY_KEY,
+            EXPORT: attribute.PRIMARY_KEY,
             LIST_POSITION: attribute.ORDER,
             FILTER_POSITION: attribute.ORDER
           }));
@@ -158,7 +160,8 @@ export class SearchHelpComponent implements OnInit {
     this.listFields.forEach( listField => {
       if (this.exportControl instanceof FormGroup) {
         const exportControl = <AbstractControl>this.exportControl;
-        const exportFieldControl = exportControl.get(listField.FIELD_NAME);
+        const ieFieldName = listField.IE_FIELD_NAME || listField.FIELD_NAME;
+        const exportFieldControl = exportControl.get(ieFieldName);
         if (listField.EXPORT && exportFieldControl) {
           exportFieldControl.setValue(this.listData[this.selectedIndex][listField.FIELD_NAME]);
           exportFieldControl.markAsDirty();

@@ -1,6 +1,6 @@
 {
   "name": "json-on-relations",
-  "version": "2.1.3",
+  "version": "2.1.5",
   "description": "A data model that leverages the merits of both JSON and Relations",
   "main": "index.js",
   "scripts": {

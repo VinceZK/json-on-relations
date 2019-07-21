@@ -186,6 +186,8 @@ export class RoleDetailComponent implements OnInit {
         })
       );
     }
+
+    this.messageService.clearMessages();
   }
 
   _switch2DisplayMode(): void {
@@ -235,7 +237,7 @@ export class RoleDetailComponent implements OnInit {
       );
     }
 
-    if (isExportedFromSH) {
+    if (!isExportedFromSH) {
       this.entityService.getRelationDesc(currentRelationFormGroup.value.RELATION_ID).subscribe(data => {
         if (data['msgCat']) {
           currentRelationFormGroup.get('RELATION_ID').setErrors({message: data['msgShortText']});

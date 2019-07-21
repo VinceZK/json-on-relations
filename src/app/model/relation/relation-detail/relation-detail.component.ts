@@ -116,7 +116,7 @@ export class RelationDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, IE_FIELD_NAME: fieldName, LIST_POSITION: 1, FILTER_POSITION: 0},
       {FIELD_NAME: 'RELATION_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly || this.oldRightRelation(control) && control.valid;
@@ -233,6 +233,8 @@ export class RelationDetailComponent implements OnInit {
         }));
       this.attrComponent.switchEditDisplay(this.readonly);
     }
+
+    this.messageService.clearMessages();
   }
 
   _switch2DisplayMode(): void {
@@ -326,7 +328,7 @@ export class RelationDetailComponent implements OnInit {
       );
     }
 
-    if (isExportedFromSH) {
+    if (!isExportedFromSH) {
       this.entityService.getRelationDesc(currentAssocFormGroup.value.RIGHT_RELATION_ID)
         .subscribe(data => {
           if (data['msgCat']) {

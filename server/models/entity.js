@@ -492,7 +492,7 @@ function getInstancePieceByGUID(instanceGUID, piece, callback) {
       if(err) return callback(err); //Already message instance
 
       _deleteDisabledRoleStuff(instance, entityMeta);
-      if (!piece.RELATIONS.includes(instance.ENTITY_ID)) delete instance[instance.ENTITY_ID];
+      if (piece.RELATIONS && !piece.RELATIONS.includes(instance.ENTITY_ID)) delete instance[instance.ENTITY_ID];
       callback(null, instance);
     })
 

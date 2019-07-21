@@ -234,6 +234,8 @@ export class RelationshipDetailComponent implements OnInit {
         })
       );
     }
+
+    this.messageService.clearMessages();
   }
 
   _switch2DisplayMode(): void {
