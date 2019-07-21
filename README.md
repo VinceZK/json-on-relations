@@ -4,14 +4,14 @@ JSON-On-Relations is a RESTful framework for business entity modeling and consum
 Usually, we model and store business entities in relational databases. 
 However, there seems to be not much good frameworks 
 that allow easily modeling and consuming these entities in a RESTful style. 
-Especially, I haven't seen any one in **NodeJS** stack.
+Especially, I haven't seen any one on the **NodeJS** stack.
 Thus, I hope JSON-On-Relations can fill the gap.
    
-In general, JSON-On-Relations adapts the REST architecture style on consuming the data from relational databases.
-It uniforms the APIs on entities by representing them in a protocol JSON message. 
-The JSON message complies with Entity Relationship Modeling to permits a strong contract with relational nature. 
-It is not difficult for users to deduce from the JSON representation to SQL representation, and vice-versa.
-JSON-On-Relations permits a lot of relational data manipulations to be achieved by composing a JSON message.
+JSON-On-Relations follows the RESTful style on consuming the data in relational databases.
+It uniforms the APIs by representing them in a protocol JSON format, which complies with Entity Relationship Modeling paradigm.
+Therefore, it guarantees a strong contract with the relational nature. 
+So that it is not difficult for users to deduce from the JSON representation to SQL representation, and vice-versa.
+JSON-On-Relations allows a lot of relational data manipulations to be achieved by composing a JSON message.
 
 Existing ORM solutions focus too much on the “object” concept. 
 Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. 
@@ -25,7 +25,7 @@ JSON-On-Relations is not trying to introduce a new SQL-like grammar in RESTful s
 It is from object perspective to map to relations, and from relation perspective, to model the objects.
 It is not a black box, instead, it tries to make data model more understandable.
 It is both a framework and toolset that facilitates both modeling and consuming.
-It acts more like a bridge which connects enterprise applications to the modern web.
+It acts more like a bridge which connects enterprise applications to the modern web technologies.
 
 Here also gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. 
