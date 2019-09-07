@@ -134,6 +134,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'DATA_ELEMENT_SAVED',
+    msgText: {
+      EN: {shortText: 'Data element "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'UNSAVED_NEW',
     msgText: {
       EN: {shortText: 'There is a unsaved new object existing, please save it first, then create another.', longText: ''}

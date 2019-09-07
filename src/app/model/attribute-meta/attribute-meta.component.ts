@@ -1,6 +1,7 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {Attribute} from 'jor-angular';
+import {ModelService} from '../model.service';
 
 @Component({
   selector: 'app-attribute-meta',
@@ -8,20 +9,13 @@ import {Attribute} from 'jor-angular';
   styleUrls: ['./attribute-meta.component.css']
 })
 export class AttributeMetaComponent implements OnInit, OnChanges {
-  dataTypes = [
-    {key: 1, value: 'Char'},
-    {key: 2, value: 'Integer'},
-    {key: 3, value: 'Boolean'},
-    {key: 4, value: 'Decimal'},
-    {key: 5, value: 'String'},
-    {key: 6, value: 'Binary'},
-    {key: 7, value: 'Date'},
-    {key: 8, value: 'Timestamp'}
-  ];
+  dataTypes = [];
   formArray: FormArray;
   deletedAttributes = [];
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder, private modelService: ModelService) {
+    this.dataTypes = modelService.dataTypes;
+  }
 
   @Input() parentForm: FormGroup;
   @Input() attributes: Attribute[];
@@ -29,7 +23,8 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   @Input() relationID: string;
   @Input() isNewMode: boolean;
 
-  ngOnInit() { }
+  ngOnInit() {
+  }
 
   ngOnChanges() {
     this.generateFormArray();

@@ -9,6 +9,31 @@ import {ModelService} from './model.service';
 @Injectable({
   providedIn: 'root'
 })
+export class UniqueDataElementValidator implements AsyncValidator {
+  constructor(private entityService: EntityService,
+              private modelService: ModelService) {}
+
+  validate(
+    ctrl: AbstractControl
+  ): Promise<ValidationErrors | null> | Observable<ValidationErrors | null> {
+    return this.entityService.getDataElementDesc(ctrl.value).pipe(
+      map(data => {
+        if (data['msgName'] && data['msgName'] === 'DATA_ELEMENT_NOT_EXIST') {
+          this.modelService.updateDataElementID(ctrl.value);
+          return null;
+        } else {
+          return { message: '"' + ctrl.value + '" already exists' };
+        }
+      }),
+      catchError(() => null)
+    );
+  }
+}
+
+// noinspection JSAnnotator
+@Injectable({
+  providedIn: 'root'
+})
 export class UniqueRoleValidator implements AsyncValidator {
   constructor(private entityService: EntityService,
               private modelService: ModelService) {}

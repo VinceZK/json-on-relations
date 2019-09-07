@@ -1,11 +1,22 @@
 import { Injectable } from '@angular/core';
-import {EntityType, Relation, RelationshipH, RoleH} from 'jor-angular';
+import {EntityType, Relation, RelationshipH, RoleH, DataDomainH, DataElementH} from 'jor-angular';
 import {Subject} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ModelService {
+  dataTypes = [
+    {key: 1, value: 'Char'},
+    {key: 2, value: 'Integer'},
+    {key: 3, value: 'Boolean'},
+    {key: 4, value: 'Decimal'},
+    {key: 5, value: 'String'},
+    {key: 6, value: 'Binary'},
+    {key: 7, value: 'Date'},
+    {key: 8, value: 'Timestamp'}
+  ];
+
   private dialogAnswer = new Subject<string>();
   dialogAnswer$ = this.dialogAnswer.asObservable();
 
@@ -27,6 +38,14 @@ export class ModelService {
   private theSelectedRole: RoleH;
   private selectedRoleSource = new Subject<RoleH>();
   theSelectedRole$ = this.selectedRoleSource.asObservable();
+
+  private theSelectedDataElement: DataElementH;
+  private selectedDataElementSource = new Subject<DataElementH>();
+  theSelectedDataElement$ = this.selectedDataElementSource.asObservable();
+
+  private theSelectedDataDomain: DataDomainH;
+  private selectedDataDomainSource = new Subject<DataDomainH>();
+  theSelectedDataDomain$ = this.selectedDataDomainSource.asObservable();
 
   showSearchList(): void {
     this.isSearchListShown.next(true);
@@ -89,6 +108,34 @@ export class ModelService {
 
   setSelectedRole(role: RoleH): void {
     this.theSelectedRole = role;
+  }
+
+  updateDataElementID(elementID: string) {
+    this.theSelectedDataElement.ELEMENT_ID = elementID;
+    this.selectedDataElementSource.next(this.theSelectedDataElement);
+  }
+
+  updateDataElementDesc(elementDesc: string) {
+    this.theSelectedDataElement.ELEMENT_DESC = elementDesc;
+    this.selectedDataElementSource.next(this.theSelectedDataElement);
+  }
+
+  setSelectedDataElement(element: DataElementH): void {
+    this.theSelectedDataElement = element;
+  }
+
+  updateDataDomainID(domainID: string) {
+    this.theSelectedDataDomain.DOMAIN_ID = domainID;
+    this.selectedDataDomainSource.next(this.theSelectedDataDomain);
+  }
+
+  updateDataDomainDesc(domainDesc: string) {
+    this.theSelectedDataElement.ELEMENT_DESC = domainDesc;
+    this.selectedDataDomainSource.next(this.theSelectedDataDomain);
+  }
+
+  setSelectedDataDomain(domain: DataDomainH): void {
+    this.theSelectedDataDomain = domain;
   }
 
   sendDialogAnswer(answer: string): void {

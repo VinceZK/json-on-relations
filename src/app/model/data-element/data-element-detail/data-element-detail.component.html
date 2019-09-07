@@ -1,3 +1,129 @@
-<p>
-  data-element-detail works!
-</p>
+<div class="btn-toolbar mb-2"  role="toolbar"
+     [ngClass]="{'justify-content-end': isSearchListShown, 'justify-content-between': !isSearchListShown}" >
+  <button *ngIf="!isSearchListShown" class="btn" type="button" title="Show List" (click)="showSearchList()">
+    <span class="fas fa-arrow-right"></span>
+  </button>
+
+  <div class="btn-group" role="group">
+    <button class="btn" type="button" title="Edit/Display" (click)="switchEditDisplay()">
+      <span *ngIf="readonly" class="fas fa-edit"></span>
+      <span *ngIf="!readonly" class="fas fa-glasses"></span>
+    </button>
+    <button class="btn" type="button" title="Save" (click)="save()">
+      <span class="fas fa-save"></span>
+    </button>
+  </div>
+</div>
+
+<dk-message></dk-message>
+<form *ngIf="dataElementMeta" [formGroup]="dataElementForm">
+  <div class="form-group"
+       [class.dk-invalid]="dataElementForm.get('ELEMENT_ID').invalid && (dataElementForm.touched || dataElementForm.dirty)">
+    <label for="dataElement" class="col-form-label form-control-sm">Data Element:
+      <span class="dk-invalid-feedback">
+        {{dataElementForm.get('ELEMENT_ID').errors?.message}}
+      </span>
+    </label>
+    <input type="text" class="form-control form-control-sm" id="dataElement" [readonly]="readonly || !isNewMode"
+           (change)="onChangeDataElementID()" name="dataElement" formControlName="ELEMENT_ID">
+  </div>
+  <div class="form-group">
+    <label for="dataElement-desc" class="col-form-label form-control-sm">Data Element Description:</label>
+    <textarea class="form-control" id="dataElement-desc" name="dataElement-desc" rows="2"
+              formControlName="ELEMENT_DESC" [readonly]="readonly" (change)="onChangeDataElementDesc()"></textarea>
+  </div>
+
+
+  <div class="card mt-2">
+    <div class="card-header">Data Type</div>
+    <div class="card-body">
+      <div class="ml-2 mb-3 row"
+           [class.dk-invalid]="dataElementForm.get('DOMAIN_ID').invalid && (dataElementForm.touched || dataElementForm.dirty)">
+        <div class="col-sm-4 col-lg-2 custom-control custom-radio">
+          <input type="radio" class="custom-control-input" id="use-domain" name="USE_DOMAIN"
+                 [value]="1" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
+          <label class="custom-control-label" for="use-domain">Data Domain</label>
+        </div>
+        <input type="text" class="col-sm-4 col-lg-4 form-control form-control-sm" id="data-domain"
+               [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
+        <span class="dk-invalid-feedback">{{dataElementForm.get('DOMAIN_ID').errors?.required? 'A Data Domain is required': null}}</span>
+      </div>
+
+      <div class="ml-2 mb-2 row">
+        <div class="col-sm-4 col-lg-2 custom-control custom-radio">
+          <input type="radio" class="custom-control-input" id="use-data-type" name="USE_DOMAIN"
+                 [value]="0" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
+          <label class="custom-control-label" for="use-data-type">Elementary Type</label>
+        </div>
+
+        <select formControlName="DATA_TYPE" (change)="onChangeDataType(dataElementForm)"
+                class="col-sm-8 col-lg-4 form-control form-control-sm">
+          <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
+        </select>
+      </div>
+
+      <div class="ml-0 row">
+        <div class="col-sm-4 col-lg-2"></div>
+        <div class="form-group col-sm-4 col-lg-2"
+             [class.dk-invalid]="dataElementForm.get('DATA_LENGTH').invalid && (dataElementForm.touched || dataElementForm.dirty)">
+          <label class="col-form-label col-form-label-sm" for="data-length">Length:
+            <span class="dk-invalid-feedback">{{dataElementForm.get('DATA_LENGTH').errors?.message}}</span>
+          </label>
+          <input type="number" formControlName="DATA_LENGTH" id="data-length" name="data-length" class="form-control form-control-sm"
+                 [readonly]="readonly" >
+        </div>
+
+        <div class="form-group col-sm-4 col-lg-2"
+             [class.dk-invalid]="dataElementForm.get('DECIMAL').invalid && (dataElementForm.touched || dataElementForm.dirty)">
+          <label class="col-form-label col-form-label-sm" for="decimal-place">Decimal Place:
+            <span class="dk-invalid-feedback">{{dataElementForm.get('DECIMAL').errors?.message}}</span>
+          </label>
+          <input type="number" formControlName="DECIMAL" id="decimal-place" name="decimal-place"
+                 class="form-control form-control-sm" [readonly]="readonly">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Texts</div>
+    <div class="card-body">
+      <div class="form-group row">
+        <label class="col-form-label col-form-label-sm col-md-2" for="label-text">Label Text</label>
+        <input type="text" formControlName="LABEL_TEXT" id="label-text" name="label-text"
+               class="form-control form-control-sm col-md-6" [readonly]="readonly">
+      </div>
+
+      <div class="form-group row">
+        <label class="col-form-label col-form-label-sm col-md-2" for="list-header-text">List Header Text</label>
+        <input type="text" formControlName="LIST_HEADER_TEXT" id="list-header-text" name="list-header-text"
+               class="form-control form-control-sm col-md-6" [readonly]="readonly">
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Additional Attribute</div>
+    <div class="card-body">
+      <div class="form-group row">
+        <label class="col-form-label col-form-label-sm col-md-2" for="search-help">Search Help</label>
+        <input type="text" formControlName="SEARCH_HELP_ID" id="search-help" name="search-help"
+               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+      </div>
+
+      <div class="form-group row">
+        <label class="col-form-label col-form-label-sm col-md-2" for="sh-export-field">Export Field</label>
+        <input type="text" formControlName="SEARCH_HELP_EXPORT_FIELD" id="sh-export-field" name="sh-export-field"
+               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+      </div>
+
+      <div class="form-group row">
+        <label class="col-form-label col-form-label-sm col-md-2" for="parameter">Parameter</label>
+        <input type="text" formControlName="PARAMETER_ID" id="parameter" name="parameter"
+               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+      </div>
+    </div>
+  </div>
+</form>
+
+<dk-app-search-help></dk-app-search-help>

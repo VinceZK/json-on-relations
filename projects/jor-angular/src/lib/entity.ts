@@ -183,3 +183,68 @@ export class RoleMeta {
   LAST_CHANGE_TIME: string;
   RELATIONS?: RoleRelation[];
 }
+
+export class DataElementH {
+  ELEMENT_ID: string;
+  ELEMENT_DESC?: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class DataElementMeta {
+  ELEMENT_ID: string;
+  ELEMENT_DESC?: string;
+  LABEL_TEXT?: string;
+  LIST_HEADER_TEXT?: string;
+  DOMAIN_ID?: string;
+  DATA_TYPE: number;
+  DATA_LENGTH?: number;
+  DECIMAL?: number;
+  SEARCH_HELP_ID?: string;
+  SEARCH_HELP_EXPORT_FIELD?: string;
+  PARAMETER_ID?: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class DataDomainH {
+  DOMAIN_ID: string;
+  DOMAIN_DESC?: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class DataDomainMeta {
+  DOMAIN_ID: string;
+  DOMAIN_DESC?: string;
+  DATA_TYPE: number;
+  DATA_LENGTH?: number;
+  DECIMAL?: number;
+  SIGN: boolean;
+  LOWER_CASE: boolean;
+  DOMAIN_VALUES?: DataDomainValue[];
+  RELATION_ID?: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class DataDomainValue {
+  DOMAIN_ID: string;
+  DOMAIN_DESC?: string;
+  LOW_VALUE: string;
+  LOW_VALUE_TEXT: string;
+  HIGH_VALUE?: string;
+  HIGH_VALUE_TEXT?: string;
+}

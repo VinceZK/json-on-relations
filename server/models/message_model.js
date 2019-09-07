@@ -82,6 +82,18 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Role ID is missing", longText: 'dummy'}
     }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'DATA_ELEMENT_NOT_EXIST',
+    msgText: {
+      EN: {shortText: "Data element '%s' doesn't exist in DB", longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'DATA_ELEMENT_ID_MISSING',
+    msgText: {
+      EN: {shortText: "Data element ID is missing", longText: 'dummy'}
+    }
   }
 ];
 

@@ -28,9 +28,9 @@ const routes: Routes = [
       { path: 'relationship', component: RelationshipComponent,
         children: [{ path: ':relationshipID', canDeactivate: [WorkProtectionGuard], component: RelationshipDetailComponent }] },
       { path: 'data-element', component: DataElementComponent,
-        children: [{ path: ':relationshipID', canDeactivate: [WorkProtectionGuard], component: DataElementDetailComponent }] },
+        children: [{ path: ':elementID', canDeactivate: [WorkProtectionGuard], component: DataElementDetailComponent }] },
       { path: 'data-domain', component: DataDomainComponent,
-        children: [{ path: ':relationshipID', canDeactivate: [WorkProtectionGuard], component: DataDomainDetailComponent }] },
+        children: [{ path: ':domainID', canDeactivate: [WorkProtectionGuard], component: DataDomainDetailComponent }] },
       { path: '**', redirectTo: '/model/entity-type', pathMatch: 'full' },
     ]
   }

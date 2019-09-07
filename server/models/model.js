@@ -25,7 +25,11 @@ module.exports = {
   listRole: listRole,
   getRole: getRole,
   getRoleDesc: getRoleDesc,
-  saveRole: saveRole
+  saveRole: saveRole,
+  listDataElement: listDataElement,
+  getDataElement: getDataElement,
+  getDataElementDesc: getDataElementDesc,
+  saveDataElement: saveDataElement
 };
 
 function listEntityType(term, callback) {
@@ -662,4 +666,109 @@ function _generateUpdateRoleRelationSQL(roleRelation, roleID) {
         entityDB.pool.escape(roleRelation.CARDINALITY)  + " )";
   }
   return updateSQL;
+}
+
+function listDataElement(term, callback) {
+  let selectSQL = "select * from DATA_ELEMENT";
+  let searchTerm = term?term.trim():null;
+  if (searchTerm) {
+    searchTerm = '%' + searchTerm + '%';
+    selectSQL = selectSQL + " where ELEMENT_ID like " + entityDB.pool.escape(searchTerm) +
+      " or ELEMENT_DESC like " + entityDB.pool.escape(searchTerm) +
+      " order by LAST_CHANGE_TIME desc limit 10";
+  } else {
+    selectSQL = selectSQL + " order by LAST_CHANGE_TIME desc limit 10";
+  }
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null, rows);
+  });
+}
+
+function getDataElement(elementID, callback) {
+  let selectSQL = "select A.ELEMENT_ID, A.ELEMENT_DESC, A.DOMAIN_ID, A.DATA_TYPE, A.DATA_LENGTH, A.DECIMAL, " +
+    "A.SEARCH_HELP_ID, A.SEARCH_HELP_EXPORT_FIELD, A.PARAMETER_ID, B.LABEL_TEXT, B.LIST_HEADER_TEXT, " +
+    "A.VERSION_NO, A.CREATE_BY, A.CREATE_TIME, A.LAST_CHANGE_BY, A.LAST_CHANGE_TIME " +
+    "from DATA_ELEMENT as A join DATA_ELEMENT_TEXT as B on A.ELEMENT_ID = B.ELEMENT_ID " +
+    "where A.ELEMENT_ID = "+ entityDB.pool.escape(elementID) + " and B.LANGU = 'EN'";
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_ELEMENT_NOT_EXIST', 'E', ELEMENT_ID));
+    callback(null, rows[0]);
+  })
+}
+
+function getDataElementDesc(elementID, callback) {
+  let selectSQL =
+    "select ELEMENT_DESC from DATA_ELEMENT where ELEMENT_ID = "+ entityDB.pool.escape(elementID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_ELEMENT_NOT_EXIST', 'E', elementID));
+    callback(null, rows[0].ELEMENT_DESC);
+  })
+}
+
+function saveDataElement(dataElement, userID, callback) {
+  if (!dataElement || dataElement === {}) {
+    return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
+  }
+
+  if (!dataElement.ELEMENT_ID) {
+    return callback(message.report('MODEL', 'DATA_ELEMENT_ID_MISSING', 'E'));
+  }
+
+  const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
+  const updateSQLs = [];
+  if (dataElement.action === 'update') {
+    let updateSQL = "update DATA_ELEMENT set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
+      ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
+    if (dataElement.ELEMENT_DESC !== undefined)
+      updateSQL += ", ELEMENT_DESC = " + entityDB.pool.escape(dataElement.ELEMENT_DESC);
+    if (dataElement.DOMAIN_ID !== undefined)
+      updateSQL += ", DOMAIN_ID = " + entityDB.pool.escape(dataElement.DOMAIN_ID);
+    if (dataElement.DATA_TYPE !== undefined)
+      updateSQL += ", DATA_TYPE = " + entityDB.pool.escape(dataElement.DATA_TYPE);
+    if (dataElement.DATA_LENGTH !== undefined)
+      updateSQL += ", DATA_LENGTH = " + entityDB.pool.escape(dataElement.DATA_LENGTH);
+    if (dataElement.DECIMAL !== undefined)
+      updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataElement.DECIMAL);
+    if (dataElement.SEARCH_HELP_ID !== undefined)
+      updateSQL += ", SEARCH_HELP_ID = " + entityDB.pool.escape(dataElement.SEARCH_HELP_ID);
+    if (dataElement.SEARCH_HELP_EXPORT_FIELD !== undefined)
+      updateSQL += ", SEARCH_HELP_EXPORT_FIELD = " + entityDB.pool.escape(dataElement.SEARCH_HELP_EXPORT_FIELD);
+    if (dataElement.PARAMETER_ID !== undefined)
+      updateSQL += ", PARAMETER_ID = " + entityDB.pool.escape(dataElement.PARAMETER_ID);
+    updateSQL += " where ELEMENT_ID = " + entityDB.pool.escape(dataElement.ELEMENT_ID);
+    updateSQLs.push(updateSQL);
+    updateSQL = '';
+    if (dataElement.LABEL_TEXT !== null && dataElement.LABEL_TEXT !== undefined)
+      updateSQL = "update DATA_ELEMENT_TEXT set LABEL_TEXT = " + entityDB.pool.escape(dataElement.LABEL_TEXT);
+    if (dataElement.LIST_HEADER_TEXT !== null && dataElement.LIST_HEADER_TEXT !== undefined)
+      updateSQL = updateSQL ? updateSQL + ", LIST_HEADER_TEXT = " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT) :
+        "update DATA_ELEMENT_TEXT set LIST_HEADER_TEXT = " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT);
+    if (updateSQL) {
+      updateSQL += " where ELEMENT_ID = " + entityDB.pool.escape(dataElement.ELEMENT_ID) + " and LANGU = 'EN'";
+      updateSQLs.push(updateSQL);
+    }
+  } else if (dataElement.action === 'add') {
+    let insertSQL = "insert into DATA_ELEMENT ( ELEMENT_ID, ELEMENT_DESC, DOMAIN_ID, DATA_TYPE, DATA_LENGTH, `DECIMAL`," +
+      " SEARCH_HELP_ID, SEARCH_HELP_EXPORT_FIELD, PARAMETER_ID, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+      " values ( " + entityDB.pool.escape(dataElement.ELEMENT_ID) + ", " + entityDB.pool.escape(dataElement.ELEMENT_DESC) +
+      ", " + entityDB.pool.escape(dataElement.DOMAIN_ID) + ", " + entityDB.pool.escape(dataElement.DATA_TYPE) +
+      ", " + entityDB.pool.escape(dataElement.DATA_LENGTH) + ", " + entityDB.pool.escape(dataElement.DECIMAL) +
+      ", " + entityDB.pool.escape(dataElement.SEARCH_HELP_ID) + ", " + entityDB.pool.escape(dataElement.SEARCH_HELP_EXPORT_FIELD) +
+      ", " + entityDB.pool.escape(dataElement.PARAMETER_ID) + ", 1, " + entityDB.pool.escape(userID) +
+      ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
+    updateSQLs.push(insertSQL);
+    insertSQL = "insert into DATA_ELEMENT_TEXT ( ELEMENT_ID, LANGU, LABEL_TEXT, LIST_HEADER_TEXT ) values ( " +
+      entityDB.pool.escape(dataElement.ELEMENT_ID) + ", 'EN', " + entityDB.pool.escape(dataElement.LABEL_TEXT) +
+      ", " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT) + " )";
+    updateSQLs.push(insertSQL);
+  }
+
+  entityDB.doUpdatesParallel(updateSQLs, function (err) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null);
+    // TODO: All related relations should be updated in the cache layer
+  })
 }

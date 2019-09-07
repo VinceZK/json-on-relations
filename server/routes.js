@@ -66,20 +66,28 @@ router.post('/api/query',
 
 // Model Service
 router.all('/api/model/*', defaultAddIns.beforeModelProcessing);
-router.get('/api/model/entity-type/list', model.listEntityType);
-router.get('/api/model/entity-type/desc/:entityID', model.getEntityTypeDesc);
-router.post('/api/model/entity-type', model.saveEntityType);
-router.get('/api/model/relation/list', model.listRelation);
-router.get('/api/model/relation/desc/:relationID', model.getRelationDesc);
-router.post('/api/model/relation', model.saveRelation);
-router.get('/api/model/relationship/list', model.listRelationship);
-router.get('/api/model/relationship/desc/:relationshipID', model.getRelationshipDesc);
-router.get('/api/model/relationship/:relationshipID', model.getRelationship);
-router.post('/api/model/relationship', model.saveRelationship);
-router.get('/api/model/role/list', model.listRole);
-router.get('/api/model/role/:roleID', model.getRole);
-router.get('/api/model/role/desc/:roleID', model.getRoleDesc);
-router.post('/api/model/role', model.saveRole);
+router.get('/api/model/entity-types', model.listEntityType);
+router.get('/api/model/entity-types/:entityID/desc', model.getEntityTypeDesc);
+router.post('/api/model/entity-types', model.saveEntityType);
+router.get('/api/model/relations', model.listRelation);
+router.get('/api/model/relations/:relationID/desc', model.getRelationDesc);
+router.post('/api/model/relations', model.saveRelation);
+router.get('/api/model/relationships', model.listRelationship);
+router.get('/api/model/relationships/:relationshipID/desc', model.getRelationshipDesc);
+router.get('/api/model/relationships/:relationshipID', model.getRelationship);
+router.post('/api/model/relationships', model.saveRelationship);
+router.get('/api/model/roles', model.listRole);
+router.get('/api/model/roles/:roleID', model.getRole);
+router.get('/api/model/roles/:roleID/desc', model.getRoleDesc);
+router.post('/api/model/roles', model.saveRole);
+router.get('/api/model/data-elements', model.listDataElement);
+router.get('/api/model/data-elements/:elementID', model.getDataElement);
+router.get('/api/model/data-elements/:elementID/desc', model.getDataElementDesc);
+router.post('/api/model/data-elements', model.saveDataElement);
+router.get('/api/model/data-domains', model.listDataDomain);
+router.get('/api/model/data-domains/:domainID', model.getDataDomain);
+router.get('/api/model/data-domains/:domainID/desc', model.getDataDomainDesc);
+router.post('/api/model/data-domains', model.saveDataDomain);
 
 // User Functions
 router.post('/api/function/:functionName', userFunction.execute);

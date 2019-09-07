@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from './entity';
+import {DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from './entity';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
 
@@ -85,73 +85,113 @@ export class EntityService {
   }
 
   listEntityType(term: string): Observable<EntityType[]> {
-    return this.http.get<EntityType[]>(this.originalHost + `/api/model/entity-type/list?term=${term}`).pipe(
+    return this.http.get<EntityType[]>(this.originalHost + `/api/model/entity-types?term=${term}`).pipe(
       catchError(this.handleError<any>('listEntityType')));
   }
 
   getEntityTypeDesc(entityID: string): Observable<string | {}> {
-    return this.http.get<string>( this.originalHost + `/api/model/entity-type/desc/${entityID}`).pipe(
+    return this.http.get<string>( this.originalHost + `/api/model/entity-types/${entityID}/desc`).pipe(
       catchError(this.handleError<any>('getEntityTypeDesc')));
   }
 
   saveEntityType(entityType: any): Observable<any> {
-    return this.http.post<any>(this.originalHost + `/api/model/entity-type`, entityType, httpOptions).pipe(
+    return this.http.post<any>(this.originalHost + `/api/model/entity-types`, entityType, httpOptions).pipe(
       catchError(this.handleError<any>('saveEntityType')));
   }
 
   listRelation(term: string): Observable<Relation[]> {
-    return this.http.get<Relation[]>(this.originalHost + `/api/model/relation/list?term=${term}`).pipe(
+    return this.http.get<Relation[]>(this.originalHost + `/api/model/relations?term=${term}`).pipe(
       catchError(this.handleError<any>('listRelation')));
   }
 
   getRelationDesc(relationID: string): Observable<string | {}> {
-    return this.http.get<string>( this.originalHost + `/api/model/relation/desc/${relationID}`).pipe(
+    return this.http.get<string>( this.originalHost + `/api/model/relations/${relationID}/desc`).pipe(
       catchError(this.handleError<any>('getRelationDesc')));
   }
 
   saveRelation(relation: any): Observable<any> {
-    return this.http.post<any>(this.originalHost + `/api/model/relation`, relation, httpOptions).pipe(
+    return this.http.post<any>(this.originalHost + `/api/model/relations`, relation, httpOptions).pipe(
       catchError(this.handleError<any>('saveRelation')));
   }
 
   listRelationship(term: string): Observable<RelationshipH[]> {
-    return this.http.get<RelationshipH[]>(this.originalHost + `/api/model/relationship/list?term=${term}`).pipe(
+    return this.http.get<RelationshipH[]>(this.originalHost + `/api/model/relationships?term=${term}`).pipe(
       catchError(this.handleError<any>('listRelationship')));
   }
 
   getRelationship(relationshipID: string): Observable<any> {
-    return this.http.get<any>(this.originalHost + `/api/model/relationship/${relationshipID}`).pipe(
+    return this.http.get<any>(this.originalHost + `/api/model/relationships/${relationshipID}`).pipe(
       catchError(this.handleError<any>('getRelationship')));
   }
 
   getRelationshipDesc(relationshipID: string): Observable<string | {}> {
-    return this.http.get<string>(this.originalHost + `/api/model/relationship/desc/${relationshipID}`).pipe(
+    return this.http.get<string>(this.originalHost + `/api/model/relationships/${relationshipID}/desc`).pipe(
       catchError(this.handleError<any>('getRelationshipDesc')));
   }
 
   saveRelationship(relationship: any): Observable<any> {
-    return this.http.post<any>(this.originalHost + `/api/model/relationship`, relationship, httpOptions).pipe(
+    return this.http.post<any>(this.originalHost + `/api/model/relationships`, relationship, httpOptions).pipe(
       catchError(this.handleError<any>('saveRelationship')));
   }
 
   listRole(term: string): Observable<RoleH[]> {
-    return this.http.get<RoleH[]>( this.originalHost + `/api/model/role/list?term=${term}`).pipe(
+    return this.http.get<RoleH[]>( this.originalHost + `/api/model/roles?term=${term}`).pipe(
       catchError(this.handleError<any>('listRole')));
   }
 
   getRole(roleID: string): Observable<any> {
-    return this.http.get<any>( this.originalHost + `/api/model/role/${roleID}`).pipe(
+    return this.http.get<any>( this.originalHost + `/api/model/roles/${roleID}`).pipe(
       catchError(this.handleError<any>('getRole')));
   }
 
   getRoleDesc(roleID: string): Observable<string | {}> {
-    return this.http.get<string>( this.originalHost + `/api/model/role/desc/${roleID}`).pipe(
+    return this.http.get<string>( this.originalHost + `/api/model/roles/${roleID}/desc`).pipe(
       catchError(this.handleError<any>('getRoleDesc')));
   }
 
   saveRole(role: any): Observable<any> {
-    return this.http.post<any>(this.originalHost + `/api/model/role`, role, httpOptions).pipe(
+    return this.http.post<any>(this.originalHost + `/api/model/roles`, role, httpOptions).pipe(
       catchError(this.handleError<any>('saveRole')));
+  }
+
+  listDataElement(term: string): Observable<DataElementH[]> {
+    return this.http.get<RoleH[]>( this.originalHost + `/api/model/data-elements?term=${term}`).pipe(
+      catchError(this.handleError<any>('listDataElement')));
+  }
+
+  getDataElement(elementID: string): Observable<any> {
+    return this.http.get<any>( this.originalHost + `/api/model/data-elements/${elementID}`).pipe(
+      catchError(this.handleError<any>('getDataElement')));
+  }
+
+  getDataElementDesc(elementID: string): Observable<string | {}> {
+    return this.http.get<string>( this.originalHost + `/api/model/data-elements/${elementID}/desc`).pipe(
+      catchError(this.handleError<any>('getDataElementDesc')));
+  }
+
+  saveDataElement(element: any): Observable<any> {
+    return this.http.post<any>(this.originalHost + `/api/model/data-elements`, element, httpOptions).pipe(
+      catchError(this.handleError<any>('saveDataElement')));
+  }
+
+  listDataDomain(term: string): Observable<DataDomainH[]> {
+    return this.http.get<RoleH[]>( this.originalHost + `/api/model/data-domains?term=${term}`).pipe(
+      catchError(this.handleError<any>('listDataDomain')));
+  }
+
+  getDataDomain(domainID: string): Observable<any> {
+    return this.http.get<any>( this.originalHost + `/api/model/data-domains/${domainID}`).pipe(
+      catchError(this.handleError<any>('getDataDomain')));
+  }
+
+  getDataDomainDesc(domainID: string): Observable<string | {}> {
+    return this.http.get<string>( this.originalHost + `/api/model/data-domains/${domainID}/desc`).pipe(
+      catchError(this.handleError<any>('getDataDomainDesc')));
+  }
+
+  saveDataDomain(domain: any): Observable<any> {
+    return this.http.post<any>(this.originalHost + `/api/model/data-domains`, domain, httpOptions).pipe(
+      catchError(this.handleError<any>('saveDataDomain')));
   }
 
   generateFakeRelationshipUUID(): string {

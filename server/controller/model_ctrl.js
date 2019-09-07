@@ -133,6 +133,58 @@ module.exports = {
         })
       }
     })
-  }
+  },
 
+  listDataElement: function (req, res) {
+    model.listDataElement(req.query.term, function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
+  },
+
+  getDataElement: function (req, res) {
+    model.getDataElement(req.params['elementID'], function (errs, dataElement) {
+      if(errs)res.json(errs);
+      else res.json(dataElement);
+    })
+  },
+
+  getDataElementDesc: function (req, res) {
+    model.getDataElementDesc(req.params['elementID'], function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
+  },
+
+  saveDataElement: function (req, res) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveDataElement(req.body, userID, function (err) {
+      if(err) return res.json(err);
+      else{
+        model.getDataElement(req.body.ELEMENT_ID, function (err, dataElement) {
+          if(err) return res.json(err);
+          else return res.json(dataElement);
+        })
+      }
+    })
+  },
+
+  listDataDomain: function (req, res) {
+
+  },
+
+  getDataDomain: function (req, res) {
+
+  },
+
+  getDataDomainDesc: function (req, res) {
+
+  },
+
+  saveDataDomain: function (req, res) {
+
+  },
 };
