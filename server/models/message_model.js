@@ -94,6 +94,18 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Data element ID is missing", longText: 'dummy'}
     }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'DATA_DOMAIN_NOT_EXIST',
+    msgText: {
+      EN: {shortText: "Data domain '%s' doesn't exist in DB", longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'DATA_DOMAIN_ID_MISSING',
+    msgText: {
+      EN: {shortText: "Data domain ID is missing", longText: 'dummy'}
+    }
   }
 ];
 

@@ -55,7 +55,7 @@ export class DataElementComponent implements OnInit {
     });
 
     this.modelService.dialogAnswer$.subscribe( answer => {
-      if (answer === 'OK' && !this.dataElementList[0].CREATE_TIME) {
+      if (answer === 'OK' && this.dataElementList[0] && !this.dataElementList[0].CREATE_TIME) {
         this.dataElementList.splice(0, 1); // Remove the first one.
       } else if (answer === 'CANCEL') {
         const elementID = this.route.snapshot.firstChild.paramMap.get('elementID');

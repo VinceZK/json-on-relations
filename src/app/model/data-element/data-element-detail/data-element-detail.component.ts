@@ -1,6 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {AbstractControl, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.component';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {UniqueDataElementValidator} from '../../model-validators';
 import {Message, MessageService} from 'ui-message-angular';
@@ -26,8 +25,6 @@ export class DataElementDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
 
-  @ViewChild(AttributeMetaComponent)
-  private attrComponent: AttributeMetaComponent;
   @ViewChild(SearchHelpComponent)
   private searchHelpComponent: SearchHelpComponent;
 
@@ -56,24 +53,21 @@ export class DataElementDetailComponent implements OnInit {
           this.isNewMode = true;
           this.readonly = false;
           this.bypassProtection = false;
-          return forkJoin(of(dataElement), of([]));
+          return of(dataElement);
         } else {
           this.readonly = true;
           this.isNewMode = false;
-          return forkJoin(
-            this.entityService.getDataElement(elementID),
-            this.entityService.getRelationMeta(elementID));
-        }
-      })
+          return this.entityService.getDataElement(elementID);
+        }})
     ).subscribe(data => {
-      if ( 'msgName' in data[0]) {
+      if ( 'msgName' in data) {
         this.messageService.clearMessages();
         this.dataElementMeta = null;
         this.dataElementForm = null;
-        this.messageService.report(<Message>data[0]);
+        this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
-        this.dataElementMeta = data[0];
+        this.dataElementMeta = data;
         this._generateDataElementForm();
       }
     });

@@ -56,7 +56,7 @@ export class RoleComponent implements OnInit {
     });
 
     this.modelService.dialogAnswer$.subscribe( answer => {
-      if (answer === 'OK' && !this.roleList[0].CREATE_TIME) {
+      if (answer === 'OK' && this.roleList[0] && !this.roleList[0].CREATE_TIME) {
         this.roleList.splice(0, 1); // Remove the first one.
       } else if (answer === 'CANCEL') {
         const roleID = this.route.snapshot.firstChild.paramMap.get('roleID');

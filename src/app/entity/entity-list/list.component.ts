@@ -34,7 +34,7 @@ export class ListComponent implements OnInit {
     {ID: 'CN', LABEL: 'contains'},
   ];
   selections: Selection[] = [];
-  settingsObj: Handsontable.GridSettings;
+  settingsObj: Handsontable.default.GridSettings;
   entityIDPattern: RegExp;
 
   constructor(private entityService: EntityService,
@@ -59,12 +59,13 @@ export class ListComponent implements OnInit {
       manualRowResize: true,
       manualColumnResize: true,
       rowHeaders: true,
-      afterOnCellMouseDown: (TD, event, coords) => {
+      afterOnCellMouseDown: (TD, coords) => {
         const hotInstance = this.hotRegisterer.getInstance(this.instance);
         // @ts-ignore
         const regResult = this.entityIDPattern.exec(hotInstance.getDataAtCell( coords.row, coords.col));
         if ( regResult ) { this.router.navigate(['/entity', regResult[1]]); }
-      }
+      },
+      licenseKey: 'non-commercial-and-evaluation'
     };
   }
 

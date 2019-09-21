@@ -59,7 +59,7 @@ export class EntityTypeComponent implements OnInit {
     this.modelService.isSearchListShown$.subscribe( data => this.isSearchListShown = data);
 
     this.modelService.dialogAnswer$.subscribe( answer => {
-      if (answer === 'OK' && !this.entityTypeList[0].CREATE_TIME) {
+      if (answer === 'OK' && this.entityTypeList[0] && !this.entityTypeList[0].CREATE_TIME) {
         this.entityTypeList.splice(0, 1); // Remove the first one.
       } else if (answer === 'CANCEL') {
         const entityID = this.route.snapshot.firstChild.paramMap.get('entityID');

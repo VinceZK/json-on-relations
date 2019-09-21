@@ -57,7 +57,7 @@ export class RelationComponent implements OnInit {
     });
 
     this.modelService.dialogAnswer$.subscribe( answer => {
-      if (answer === 'OK' && !this.relationList[0].CREATE_TIME) {
+      if (answer === 'OK' && this.relationList[0] && !this.relationList[0].CREATE_TIME) {
         this.relationList.splice(0, 1); // Remove the first one.
       } else if (answer === 'CANCEL') {
         const relationID = this.route.snapshot.firstChild.paramMap.get('relationID');

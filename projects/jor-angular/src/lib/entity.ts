@@ -228,11 +228,13 @@ export class DataDomainMeta {
   DOMAIN_DESC?: string;
   DATA_TYPE: number;
   DATA_LENGTH?: number;
+  DOMAIN_TYPE: number;
   DECIMAL?: number;
-  SIGN: boolean;
-  LOWER_CASE: boolean;
-  DOMAIN_VALUES?: DataDomainValue[];
+  UNSIGNED?: boolean;
+  CAPITAL_ONLY?: boolean;
+  REG_EXPR?: string;
   RELATION_ID?: string;
+  DOMAIN_VALUES?: DataDomainValue[];
   VERSION_NO: number;
   CREATE_BY: string;
   CREATE_TIME: string;
@@ -241,10 +243,7 @@ export class DataDomainMeta {
 }
 
 export class DataDomainValue {
-  DOMAIN_ID: string;
-  DOMAIN_DESC?: string;
   LOW_VALUE: string;
-  LOW_VALUE_TEXT: string;
+  LOW_VALUE_TEXT?: string;
   HIGH_VALUE?: string;
-  HIGH_VALUE_TEXT?: string;
 }

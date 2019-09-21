@@ -1,3 +1,33 @@
-<p>
-  Under Construction!!!
-</p>
+<div class="row">
+  <div *ngIf="isSearchListShown" class="col-3">
+    <div class="btn-toolbar justify-content-between mb-2" role="toolbar">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search" #searchBox (keyup)="searchDataDomain(searchBox.value)" >
+      </div>
+
+      <div class="btn-group" role="group">
+        <button class="btn" type="button" title="Hide" (click)="hideSearchList()" [disabled]="!theSelectedDataDomain">
+          <span class="fas fa-arrow-left"></span>
+        </button>
+        <button class="btn" type="button" title="Add" (click)="newDataDomian()">
+          <span class="fas fa-plus"></span>
+        </button>
+      </div>
+    </div>
+    <div class="list-group">
+      <a *ngFor="let dataDomain of dataDomainList" routerLink="/model/data-element/{{dataDomain.DOMAIN_ID}}" routerLinkActive="active"
+         (click)="onSelect(dataDomain)" class="list-group-item list-group-item-action flex-column align-items-start">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{dataDomain.DOMAIN_ID}}</h5>
+          <small>version: {{dataDomain.VERSION_NO}}</small>
+        </div>
+        <p class="mb-1">{{dataDomain.ELEMENT_DESC}}</p>
+        <!--<small>created by: {{entityType.CREATE_BY}} @{{entityType.CREATE_TIME}}</small> <br/>-->
+        <small>last changed by: {{dataDomain.LAST_CHANGE_BY}} @{{dataDomain.LAST_CHANGE_TIME}}</small>
+      </a>
+    </div>
+  </div>
+  <div [ngClass]="{'col-9': isSearchListShown, 'col-12': !isSearchListShown}">
+    <router-outlet></router-outlet>
+  </div>
+</div>

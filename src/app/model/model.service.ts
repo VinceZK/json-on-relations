@@ -130,7 +130,7 @@ export class ModelService {
   }
 
   updateDataDomainDesc(domainDesc: string) {
-    this.theSelectedDataElement.ELEMENT_DESC = domainDesc;
+    this.theSelectedDataDomain.DOMAIN_DESC = domainDesc;
     this.selectedDataDomainSource.next(this.theSelectedDataDomain);
   }
 

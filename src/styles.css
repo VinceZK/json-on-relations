@@ -1,3 +1,4 @@
 /* You can add global styles to this file, and also import other style files */
-@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-@import '../node_modules/handsontable/dist/handsontable.full.css';
+@import '~bootstrap/dist/css/bootstrap.min.css';
+/*@import '../node_modules/handsontable/dist/handsontable.full.css';*/
+@import '~handsontable/dist/handsontable.full.css';

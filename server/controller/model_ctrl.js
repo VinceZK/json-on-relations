@@ -173,18 +173,39 @@ module.exports = {
   },
 
   listDataDomain: function (req, res) {
-
+    model.listDataDomain(req.query.term, function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
   },
 
   getDataDomain: function (req, res) {
-
+    model.getDataDomain(req.params['domainID'], function (errs, dataDomain) {
+      if(errs)res.json(errs);
+      else res.json(dataDomain);
+    })
   },
 
   getDataDomainDesc: function (req, res) {
-
+    model.getDataDomainDesc(req.params['domainID'], function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
   },
 
   saveDataDomain: function (req, res) {
-
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveDataDomain(req.body, userID, function (err) {
+      if(err) return res.json(err);
+      else{
+        model.getDataDomain(req.body.DOMAIN_ID, function (err, dataDomain) {
+          if(err) return res.json(err);
+          else return res.json(dataDomain);
+        })
+      }
+    })
   },
 };

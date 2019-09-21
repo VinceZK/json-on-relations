@@ -29,7 +29,11 @@ module.exports = {
   listDataElement: listDataElement,
   getDataElement: getDataElement,
   getDataElementDesc: getDataElementDesc,
-  saveDataElement: saveDataElement
+  saveDataElement: saveDataElement,
+  listDataDomain: listDataDomain,
+  getDataDomain: getDataDomain,
+  getDataDomainDesc: getDataDomainDesc,
+  saveDataDomain: saveDataDomain
 };
 
 function listEntityType(term, callback) {
@@ -764,6 +768,141 @@ function saveDataElement(dataElement, userID, callback) {
       entityDB.pool.escape(dataElement.ELEMENT_ID) + ", 'EN', " + entityDB.pool.escape(dataElement.LABEL_TEXT) +
       ", " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT) + " )";
     updateSQLs.push(insertSQL);
+  }
+
+  entityDB.doUpdatesParallel(updateSQLs, function (err) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null);
+    // TODO: All related relations should be updated in the cache layer
+  })
+}
+
+function listDataDomain(term, callback) {
+  let selectSQL = "select * from DATA_DOMAIN";
+  let searchTerm = term?term.trim():null;
+  if (searchTerm) {
+    searchTerm = '%' + searchTerm + '%';
+    selectSQL = selectSQL + " where DOMAIN_ID like " + entityDB.pool.escape(searchTerm) +
+      " or DOMAIN_DESC like " + entityDB.pool.escape(searchTerm) +
+      " order by LAST_CHANGE_TIME desc limit 10";
+  } else {
+    selectSQL = selectSQL + " order by LAST_CHANGE_TIME desc limit 10";
+  }
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null, rows);
+  });
+}
+
+function getDataDomain(domainID, callback) {
+  let selectSQL = "select * from DATA_DOMAIN where DOMAIN_ID = "+ entityDB.pool.escape(domainID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_DOMAIN_NOT_EXIST', 'E', ELEMENT_ID));
+    let dataDomain = rows[0];
+    if (dataDomain.RELATION_ID || dataDomain.REG_EXPR) return callback(null, dataDomain);
+    selectSQL = "select A.LOW_VALUE, A.HIGH_VALUE, B.LOW_VALUE_TEXT from DATA_DOMAIN_VALUE as A" +
+                " join DATA_DOMAIN_VALUE_TEXT as B on A.DOMAIN_ID = B.DOMAIN_ID and A.LOW_VALUE = B.LOW_VALUE" +
+                " where A.DOMAIN_ID = " + entityDB.pool.escape(domainID) + " and B.LANGU = 'EN'";
+    entityDB.executeSQL(selectSQL, function (err, rows) {
+      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      dataDomain['DOMAIN_VALUES'] = rows;
+      callback(null, dataDomain);
+    });
+  })
+}
+
+function getDataDomainDesc(domainID, callback) {
+  let selectSQL =
+    "select DOMAIN_DESC from DATA_DOMAIN where DOMAIN_ID = "+ entityDB.pool.escape(domainID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_DOMAIN_NOT_EXIST', 'E', domainID));
+    callback(null, rows[0].DOMAIN_DESC);
+  })
+}
+
+function saveDataDomain(dataDomain, userID, callback) {
+  if (!dataDomain || dataDomain === {}) {
+    return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
+  }
+
+  if (!dataDomain.DOMAIN_ID) {
+    return callback(message.report('MODEL', 'DATA_DOMAIN_ID_MISSING', 'E'));
+  }
+
+  const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
+  const updateSQLs = [];
+  if (dataDomain.action === 'update') {
+    let updateSQL = "update DATA_DOMAIN set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
+      ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
+    if (dataDomain.DOMAIN_DESC !== undefined)
+      updateSQL += ", DOMAIN_DESC = " + entityDB.pool.escape(dataDomain.DOMAIN_DESC);
+    if (dataDomain.DATA_TYPE !== undefined)
+      updateSQL += ", DATA_TYPE = " + entityDB.pool.escape(dataDomain.DATA_TYPE);
+    if (dataDomain.DATA_LENGTH !== undefined)
+      updateSQL += ", DATA_LENGTH = " + entityDB.pool.escape(dataDomain.DATA_LENGTH);
+    if (dataDomain.DECIMAL !== undefined)
+      updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataDomain.DECIMAL);
+    if (dataDomain.UNSIGNED !== undefined)
+      updateSQL += ", UNSIGNED = " + entityDB.pool.escape(dataDomain.UNSIGNED);
+    if (dataDomain.CAPITAL_ONLY !== undefined)
+      updateSQL += ", CAPITAL_ONLY = " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY);
+    if (dataDomain.RELATION_ID !== undefined)
+      updateSQL += ", RELATION_ID = " + entityDB.pool.escape(dataDomain.RELATION_ID);
+    if (dataDomain.REG_EXPR !== undefined)
+      updateSQL += ", REG_EXPR = " + entityDB.pool.escape(dataDomain.REG_EXPR);
+    updateSQL += " where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
+    updateSQLs.push(updateSQL);
+    if (dataDomain.DOMAIN_VALUES && dataDomain.DOMAIN_VALUES.length > 0) {
+      updateSQL = "delete from DATA_DOMAIN_VALUE where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + "; " +
+                  " insert into DATA_DOMAIN_VALUE ( `DOMAIN_ID`, `LOW_VALUE`, `HIGH_VALUE`) values ";
+      dataDomain.DOMAIN_VALUES.forEach( (domainValue, index, domainValues) => {
+        updateSQL += "( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(domainValue.LOW_VALUE) +
+          ", " + entityDB.pool.escape(domainValue.HIGH_VALUE);
+        updateSQL += (index === domainValues.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(updateSQL);
+      updateSQL = "delete from DATA_DOMAIN_VALUE_TEXT where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + "; " +
+        " insert into DATA_DOMAIN_VALUE_TEXT ( `DOMAIN_ID`, `LOW_VALUE`, `LANGU`, `LOW_VALUE_TEXT`, `HIGH_VALUE_TEXT`) values ";
+      dataDomain.DOMAIN_VALUES.forEach( (domainValue, index, domainValues) => {
+        updateSQL += "( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(domainValue.LOW_VALUE) +
+          ", 'EN', " + entityDB.pool.escape(domainValue.LOW_VALUE_TEXT) + ", " + entityDB.pool.escape(domainValue.HIGH_VALUE_TEXT);
+        updateSQL += (index === domainValues.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(updateSQL);
+    } else {
+      updateSQL = "delete from DATA_DOMAIN_VALUE where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
+      updateSQLs.push(updateSQL);
+      updateSQL = "delete from DATA_DOMAIN_VALUE_TEXT where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
+      updateSQLs.push(updateSQL);
+    }
+  } else if (dataDomain.action === 'add') {
+    let insertSQL = "insert into DATA_DOMAIN ( DOMAIN_ID, DOMAIN_DESC, DATA_TYPE, DATA_LENGTH, `DECIMAL`, SIGN, LOWER_CASE" +
+      " RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+      " values ( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_DESC) +
+      ", " + entityDB.pool.escape(dataDomain.DATA_TYPE) + ", " + entityDB.pool.escape(dataDomain.DATA_LENGTH) +
+      ", " + entityDB.pool.escape(dataDomain.DECIMAL) + ", " + entityDB.pool.escape(dataDomain.UNSIGNED) +
+      ", " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY) + ", " + entityDB.pool.escape(dataDomain.RELATION_ID) +
+      ", " + entityDB.pool.escape(dataDomain.REG_EXPR) + ", 1, "+ entityDB.pool.escape(userID) +
+      ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
+    updateSQLs.push(insertSQL);
+    if (dataDomain.DOMAIN_VALUES && dataDomain.DOMAIN_VALUES.length > 0) {
+      insertSQL = "insert into DATA_DOMAIN_VALUE ( DOMAIN_ID, LOW_VALUE, HIGH_VALUE ) values ";
+      dataDomain.DOMAIN_VALUES.forEach( (domainValue, index, domainValues) => {
+        insertSQL += "( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(domainValue.LOW_VALUE) +
+          ", " + entityDB.pool.escape(domainValue.HIGH_VALUE);
+        insertSQL += (index === domainValues.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(insertSQL);
+      insertSQL = "insert into DATA_DOMAIN_VALUE_TEXT ( DOMAIN_ID, LOW_VALUE, LANGU, LOW_VALUE_TEXT ) values ";
+      dataDomain.DOMAIN_VALUES.forEach( (domainValue, index, domainValues) => {
+        insertSQL += "( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(domainValue.LOW_VALUE) +
+          ", 'EN', " + entityDB.pool.escape(domainValue.LOW_VALUE_TEXT);
+        insertSQL += (index === domainValues.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(insertSQL);
+    }
   }
 
   entityDB.doUpdatesParallel(updateSQLs, function (err) {

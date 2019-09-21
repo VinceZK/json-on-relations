@@ -1,3 +1,193 @@
-<p>
-  data-domain-detail works!
-</p>
+<div class="btn-toolbar mb-2"  role="toolbar"
+     [ngClass]="{'justify-content-end': isSearchListShown, 'justify-content-between': !isSearchListShown}" >
+  <button *ngIf="!isSearchListShown" class="btn" type="button" title="Show List" (click)="showSearchList()">
+    <span class="fas fa-arrow-right"></span>
+  </button>
+
+  <div class="btn-group" role="group">
+    <button class="btn" type="button" title="Edit/Display" (click)="switchEditDisplay()">
+      <span *ngIf="readonly" class="fas fa-edit"></span>
+      <span *ngIf="!readonly" class="fas fa-glasses"></span>
+    </button>
+    <button class="btn" type="button" title="Save" (click)="save()">
+      <span class="fas fa-save"></span>
+    </button>
+  </div>
+</div>
+
+<dk-message></dk-message>
+<form *ngIf="dataDomainMeta" [formGroup]="dataDomainForm">
+  <div class="form-group"
+       [class.dk-invalid]="dataDomainForm.get('DOMAIN_ID').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
+    <label for="dataDomain" class="col-form-label form-control-sm">Data Domain:
+      <span class="dk-invalid-feedback">
+        {{dataDomainForm.get('DOMAIN_ID').errors?.message}}
+      </span>
+    </label>
+    <input type="text" class="form-control form-control-sm" id="dataDomain" [readonly]="readonly || !isNewMode"
+           (change)="onChangeDataDomainID()" name="dataDomain" formControlName="DOMAIN_ID">
+  </div>
+  <div class="form-group">
+    <label for="dataDomain-desc" class="col-form-label form-control-sm">Data Domain Description:</label>
+    <textarea class="form-control" id="dataDomain-desc" name="dataDomain-desc" rows="2"
+              formControlName="DOMAIN_DESC" [readonly]="readonly" (change)="onChangeDataDomainDesc()"></textarea>
+  </div>
+
+
+  <div class="card mt-2">
+    <div class="card-header">Data Type</div>
+    <div class="card-body">
+      <div class="ml-2 mb-2 row">
+        <select formControlName="DATA_TYPE" (change)="onChangeDataType(dataDomainForm)"
+                class="col-sm-8 col-lg-4 form-control form-control-sm">
+          <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
+        </select>
+      </div>
+
+      <div class="ml-0 row">
+        <div class="form-group col-sm-4 col-lg-2"
+             [class.dk-invalid]="dataDomainForm.get('DATA_LENGTH').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
+          <label class="col-form-label col-form-label-sm" for="data-length">Length:
+            <span class="dk-invalid-feedback">{{dataDomainForm.get('DATA_LENGTH').errors?.message}}</span>
+          </label>
+          <input type="number" formControlName="DATA_LENGTH" id="data-length" name="data-length" class="form-control form-control-sm"
+                 [readonly]="readonly" >
+        </div>
+
+        <div class="form-group col-sm-4 col-lg-2"
+             [class.dk-invalid]="dataDomainForm.get('DECIMAL').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
+          <label class="col-form-label col-form-label-sm" for="decimal-place">Decimal Place:
+            <span class="dk-invalid-feedback">{{dataDomainForm.get('DECIMAL').errors?.message}}</span>
+          </label>
+          <input type="number" formControlName="DECIMAL" id="decimal-place" name="decimal-place"
+                 class="form-control form-control-sm" [readonly]="readonly">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header">Domain Definition</div>
+    <div class="card-body">
+      <div *ngIf="enableGeneralType" class="card mb-3">
+        <div class="ml-2 mt-2 custom-control custom-radio">
+          <input type="radio" class="custom-control-input" id="general-type" name="DOMAIN_TYPE"
+                 [value]="0" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
+          <label class="custom-control-label" for="general-type">General Type</label>
+        </div>
+        <div class="card-body row">
+          <div class="form-check col-sm-3 mx-3">
+            <input type="checkbox" class="form-check-input" formControlName="UNSIGNED" id="unsigned" name="unsigned"
+                   [readonly]="readonly" >
+            <label class="form-check-label" for="unsigned">Unsigned</label>
+          </div>
+          <div class="form-check col-sm-3 mx-3">
+            <input type="checkbox" class="form-check-input" formControlName="CAPITAL_ONLY" id="CAPITAL_ONLY" name="CAPITAL_ONLY"
+                   [readonly]="readonly" >
+            <label class="form-check-label" for="CAPITAL_ONLY">Capital Only</label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="enableRegExpr" class="card mb-3">
+        <div class="ml-2 mt-2 custom-control custom-radio"
+             [class.dk-invalid]="dataDomainForm.get('REG_EXPR').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
+          <input type="radio" class="custom-control-input" id="regular-expression" name="DOMAIN_TYPE"
+                 [value]="1" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
+          <label class="custom-control-label" for="regular-expression">Regular Expression
+            <span class="dk-invalid-feedback">{{dataDomainForm.get('REG_EXPR').errors?.message}}</span>
+          </label>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <input type="text" formControlName="REG_EXPR" id="REG_EXPR" name="REG_EXPR"
+                   class="form-control form-control-sm" [readonly]="readonly" >
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="enableValueRelation" class="card mb-3">
+        <div class="ml-2 mt-2 custom-control custom-radio"
+             [class.dk-invalid]="dataDomainForm.get('RELATION_ID').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
+          <input type="radio" class="custom-control-input" id="value-relation" name="DOMAIN_TYPE"
+                 [value]="2" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
+          <label class="custom-control-label" for="value-relation">Value Relation
+            <span class="dk-invalid-feedback">{{dataDomainForm.get('RELATION_ID').errors?.message}}</span>
+          </label>
+        </div>
+        <div class="card-body">
+          <input type="text" formControlName="RELATION_ID" id="RELATION_ID" name="RELATION_ID"
+                 class="form-control form-control-sm col-4" [readonly]="readonly" >
+        </div>
+      </div>
+
+      <div *ngIf="enableArrayOrInterval" class="card mb-3">
+        <div class="ml-2 mt-2 row">
+          <div class="custom-control custom-radio col-3">
+            <input type="radio" class="custom-control-input" id="value-array" name="DOMAIN_TYPE"
+                   [value]="3" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
+            <label class="custom-control-label" for="value-array">Value Array</label>
+          </div>
+          <div class="custom-control custom-radio col-3">
+            <input type="radio" class="custom-control-input" id="value-interval" name="DOMAIN_TYPE"
+                   [value]="4" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
+            <label class="custom-control-label" for="value-interval">Value Interval</label>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <table class="table table-bordered dk-table">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Low Value</th>
+                <th *ngIf="dataDomainForm.get('DOMAIN_TYPE').value === 4" scope="col">High Value</th>
+                <th scope="col">Description</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody formArrayName="DOMAIN_VALUES">
+            <tr *ngFor="let domainValueForm of domainValueFormArray.controls; let i = index">
+              <td [formGroup]="domainValueForm"
+                  [class.dk-invalid]="domainValueForm.get('LOW_VALUE').invalid && (domainValueForm.touched || domainValueForm.dirty)">
+                <div class="input-group">
+                  <input class="form-control" type="text" formControlName="LOW_VALUE"
+                         [readonly]="readonly" (change)="onChangeDomainValue(i)">
+                  <div class="invalid-tooltip">
+                    {{domainValueForm.get('LOW_VALUE').errors?.message}}
+                  </div>
+                </div>
+              </td>
+              <td *ngIf="dataDomainForm.get('DOMAIN_TYPE').value === 4" [formGroup]="domainValueForm"
+                  [class.dk-invalid]="domainValueForm.get('HIGH_VALUE').invalid && (domainValueForm.touched || domainValueForm.dirty)">
+                <div class="input-group">
+                  <input class="form-control" type="text" formControlName="HIGH_VALUE"
+                         [readonly]="readonly"  (change)="onChangeDomainValue(i)">
+                  <div class="invalid-tooltip">
+                    {{domainValueForm.get('HIGH_VALUE').errors?.message}}
+                  </div>
+                </div>
+              </td>
+              <td [formGroup]="domainValueForm" class="dk-description">
+                <input  class="form-control" type="text" formControlName="LOW_VALUE_TEXT"
+                        [readonly]="readonly" (change)="onChangeDomainValue(i)">
+              </td>
+              <td class="dk-actions">
+                <button class="btn btn-sm" type="button" id="add" [disabled]="readonly" (click)="insertDomainValue(i)" title="Insert">
+                  <span class="fas fa-plus"></span>
+                </button>
+                <button class="btn btn-sm" type="button" id="delete" [disabled]="readonly" (click)="deleteDomainValue(i)" title="Delete">
+                  <span class="far fa-trash-alt"></span>
+                </button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<dk-app-search-help></dk-app-search-help>
