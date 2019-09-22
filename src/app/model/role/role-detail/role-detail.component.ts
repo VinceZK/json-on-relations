@@ -12,6 +12,7 @@ import {Observable, of} from 'rxjs';
 import {UniqueRoleValidator} from '../../model-validators';
 import {SearchHelp, SearchHelpMethod} from 'jor-angular';
 import {SearchHelpComponent} from 'jor-angular';
+import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.component';
 
 @Component({
   selector: 'app-role-detail',
@@ -27,8 +28,8 @@ export class RoleDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
 
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent!: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -72,7 +73,7 @@ export class RoleDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
-        this.roleMeta = data;
+        this.roleMeta = <RoleMeta>data;
         this._generateRoleForm();
       }
     });
@@ -85,7 +86,7 @@ export class RoleDetailComponent implements OnInit {
     this.modelService.showSearchList();
   }
 
-  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
+  onSearchHelp(control: AbstractControl, rowID: number): void {
     const searchHelpMeta = new SearchHelp();
     searchHelpMeta.OBJECT_NAME = 'Relation';
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {

@@ -32,10 +32,10 @@ export class RelationDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
 
-  @ViewChild(AttributeMetaComponent)
-  private attrComponent: AttributeMetaComponent;
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(AttributeMetaComponent, {static: false})
+  private attrComponent!: AttributeMetaComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent!: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,

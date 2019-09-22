@@ -15,13 +15,13 @@
       </div>
     </div>
     <div class="list-group">
-      <a *ngFor="let dataDomain of dataDomainList" routerLink="/model/data-element/{{dataDomain.DOMAIN_ID}}" routerLinkActive="active"
+      <a *ngFor="let dataDomain of dataDomainList" routerLink="/model/data-domain/{{dataDomain.DOMAIN_ID}}" routerLinkActive="active"
          (click)="onSelect(dataDomain)" class="list-group-item list-group-item-action flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
           <h5 class="mb-1">{{dataDomain.DOMAIN_ID}}</h5>
           <small>version: {{dataDomain.VERSION_NO}}</small>
         </div>
-        <p class="mb-1">{{dataDomain.ELEMENT_DESC}}</p>
+        <p class="mb-1">{{dataDomain.DOMAIN_DESC}}</p>
         <!--<small>created by: {{entityType.CREATE_BY}} @{{entityType.CREATE_TIME}}</small> <br/>-->
         <small>last changed by: {{dataDomain.LAST_CHANGE_BY}} @{{dataDomain.LAST_CHANGE_TIME}}</small>
       </a>

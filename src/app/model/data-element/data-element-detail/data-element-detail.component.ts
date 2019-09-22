@@ -7,8 +7,8 @@ import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
-import {forkJoin, Observable, of} from 'rxjs';
-import {DataElementMeta, EntityService, SearchHelp, SearchHelpComponent} from 'jor-angular';
+import {Observable, of} from 'rxjs';
+import {DataElementMeta, EntityService, SearchHelp, SearchHelpComponent, SearchHelpMethod} from 'jor-angular';
 
 @Component({
   selector: 'app-data-element-detail',
@@ -25,8 +25,8 @@ export class DataElementDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
 
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -67,7 +67,7 @@ export class DataElementDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
-        this.dataElementMeta = data;
+        this.dataElementMeta = <DataElementMeta>data;
         this._generateDataElementForm();
       }
     });
@@ -78,6 +78,23 @@ export class DataElementDetailComponent implements OnInit {
   showSearchList(): void {
     this.isSearchListShown = true;
     this.modelService.showSearchList();
+  }
+
+  onSearchHelp(control: AbstractControl): void {
+    const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Data Domain';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listDataDomain(searchTerm);
+    }(this.entityService);
+    searchHelpMeta.BEHAVIOUR = 'A';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
+    searchHelpMeta.FIELDS = [
+      {FIELD_NAME: 'DOMAIN_ID', FIELD_DESC: 'Domain', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'DOMAIN_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+    ];
+    searchHelpMeta.READ_ONLY = this.readonly || !this.dataElementForm.get('USE_DOMAIN').value;
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control);
   }
 
   _generateDataElementForm(): void {
@@ -97,8 +114,10 @@ export class DataElementDetailComponent implements OnInit {
       this.dataElementForm.get('PARAMETER_ID').setValue(this.dataElementMeta.PARAMETER_ID);
       if (this.dataElementMeta.DOMAIN_ID) {
         this.dataElementForm.get('USE_DOMAIN').setValue(1);
+        this.dataElementForm.get('DATA_TYPE').disable();
       } else {
         this.dataElementForm.get('USE_DOMAIN').setValue(0);
+        this.dataElementForm.get('DATA_TYPE').enable();
       }
       if (this.readonly) {
         this.dataElementForm.get('USE_DOMAIN').disable();
@@ -213,8 +232,12 @@ export class DataElementDetailComponent implements OnInit {
   _switch2EditMode(): void {
     this.readonly = false;
     this.dataElementForm.get('USE_DOMAIN').enable();
-    this.dataElementForm.get('DATA_TYPE').enable();
-    this._updateLengthAndDecimal(this.dataElementForm);
+    if (this.dataElementForm.get('USE_DOMAIN').value) {
+      this.dataElementForm.get('DATA_TYPE').disable();
+    } else {
+      this.dataElementForm.get('DATA_TYPE').enable();
+      this._updateLengthAndDecimal(this.dataElementForm);
+    }
   }
 
   onChangeDataElementID(): void {

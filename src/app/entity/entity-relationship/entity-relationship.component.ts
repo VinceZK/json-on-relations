@@ -42,8 +42,8 @@ export class EntityRelationshipComponent implements OnInit {
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
   @ViewChildren('p') popovers !: QueryList<NgbPopover>;
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
 
   private static _getFormattedDate(offset?: number): string {
     const d = offset ? new Date(new Date().getTime() + offset * 1000 ) : new Date();

@@ -798,7 +798,7 @@ function getDataDomain(domainID, callback) {
   let selectSQL = "select * from DATA_DOMAIN where DOMAIN_ID = "+ entityDB.pool.escape(domainID);
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    if(!rows[0]) return callback(message.report('MODEL', 'DATA_DOMAIN_NOT_EXIST', 'E', ELEMENT_ID));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_DOMAIN_NOT_EXIST', 'E', domainID));
     let dataDomain = rows[0];
     if (dataDomain.RELATION_ID || dataDomain.REG_EXPR) return callback(null, dataDomain);
     selectSQL = "select A.LOW_VALUE, A.HIGH_VALUE, B.LOW_VALUE_TEXT from DATA_DOMAIN_VALUE as A" +
@@ -844,8 +844,10 @@ function saveDataDomain(dataDomain, userID, callback) {
       updateSQL += ", DATA_LENGTH = " + entityDB.pool.escape(dataDomain.DATA_LENGTH);
     if (dataDomain.DECIMAL !== undefined)
       updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataDomain.DECIMAL);
+    if (dataDomain.DOMAIN_TYPE !== undefined)
+      updateSQL += ", DOMAIN_TYPE = " + entityDB.pool.escape(dataDomain.DOMAIN_TYPE);
     if (dataDomain.UNSIGNED !== undefined)
-      updateSQL += ", UNSIGNED = " + entityDB.pool.escape(dataDomain.UNSIGNED);
+      updateSQL += ", `UNSIGNED` = " + entityDB.pool.escape(dataDomain.UNSIGNED);
     if (dataDomain.CAPITAL_ONLY !== undefined)
       updateSQL += ", CAPITAL_ONLY = " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY);
     if (dataDomain.RELATION_ID !== undefined)
@@ -864,10 +866,10 @@ function saveDataDomain(dataDomain, userID, callback) {
       });
       updateSQLs.push(updateSQL);
       updateSQL = "delete from DATA_DOMAIN_VALUE_TEXT where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + "; " +
-        " insert into DATA_DOMAIN_VALUE_TEXT ( `DOMAIN_ID`, `LOW_VALUE`, `LANGU`, `LOW_VALUE_TEXT`, `HIGH_VALUE_TEXT`) values ";
+        " insert into DATA_DOMAIN_VALUE_TEXT ( `DOMAIN_ID`, `LOW_VALUE`, `LANGU`, `LOW_VALUE_TEXT`) values ";
       dataDomain.DOMAIN_VALUES.forEach( (domainValue, index, domainValues) => {
         updateSQL += "( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(domainValue.LOW_VALUE) +
-          ", 'EN', " + entityDB.pool.escape(domainValue.LOW_VALUE_TEXT) + ", " + entityDB.pool.escape(domainValue.HIGH_VALUE_TEXT);
+          ", 'EN', " + entityDB.pool.escape(domainValue.LOW_VALUE_TEXT);
         updateSQL += (index === domainValues.length - 1)? " );" : " ),";
       });
       updateSQLs.push(updateSQL);
@@ -878,14 +880,15 @@ function saveDataDomain(dataDomain, userID, callback) {
       updateSQLs.push(updateSQL);
     }
   } else if (dataDomain.action === 'add') {
-    let insertSQL = "insert into DATA_DOMAIN ( DOMAIN_ID, DOMAIN_DESC, DATA_TYPE, DATA_LENGTH, `DECIMAL`, SIGN, LOWER_CASE" +
-      " RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+    let insertSQL = "insert into DATA_DOMAIN ( DOMAIN_ID, DOMAIN_DESC, DATA_TYPE, DATA_LENGTH, `DECIMAL`, `DOMAIN_TYPE`," +
+      " `UNSIGNED`, `CAPITAL_ONLY`, RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_DESC) +
       ", " + entityDB.pool.escape(dataDomain.DATA_TYPE) + ", " + entityDB.pool.escape(dataDomain.DATA_LENGTH) +
-      ", " + entityDB.pool.escape(dataDomain.DECIMAL) + ", " + entityDB.pool.escape(dataDomain.UNSIGNED) +
-      ", " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY) + ", " + entityDB.pool.escape(dataDomain.RELATION_ID) +
-      ", " + entityDB.pool.escape(dataDomain.REG_EXPR) + ", 1, "+ entityDB.pool.escape(userID) +
-      ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
+      ", " + entityDB.pool.escape(dataDomain.DECIMAL) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_TYPE) +
+      ", " + entityDB.pool.escape(dataDomain.UNSIGNED) + ", " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY) +
+      ", " + entityDB.pool.escape(dataDomain.RELATION_ID) + ", " + entityDB.pool.escape(dataDomain.REG_EXPR) +
+      ", 1, "+ entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) +
+      ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);
     if (dataDomain.DOMAIN_VALUES && dataDomain.DOMAIN_VALUES.length > 0) {
       insertSQL = "insert into DATA_DOMAIN_VALUE ( DOMAIN_ID, LOW_VALUE, HIGH_VALUE ) values ";

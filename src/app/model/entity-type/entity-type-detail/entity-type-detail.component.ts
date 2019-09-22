@@ -29,10 +29,10 @@ export class EntityTypeDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
 
-  @ViewChild(AttributeMetaComponent)
-  private attrComponent: AttributeMetaComponent;
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(AttributeMetaComponent, {static: false})
+  private attrComponent !: AttributeMetaComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -100,7 +100,7 @@ export class EntityTypeDetailComponent implements OnInit {
     this.modelService.showSearchList();
   }
 
-  onSearchHelp(fieldName: string, control: AbstractControl, rowID: number): void {
+  onSearchHelp(control: AbstractControl, rowID: number): void {
     const searchHelpMeta = new SearchHelp();
     searchHelpMeta.OBJECT_NAME = 'Role';
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {

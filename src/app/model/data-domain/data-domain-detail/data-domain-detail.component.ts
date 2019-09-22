@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {AbstractControl, Form, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {UniqueDataDomainValidator} from '../../model-validators';
 import {Message, MessageService} from 'ui-message-angular';
@@ -30,8 +30,8 @@ export class DataDomainDetailComponent implements OnInit {
   enableValueRelation = false;
   enableArrayOrInterval = false;
 
-  @ViewChild(SearchHelpComponent)
-  private searchHelpComponent: SearchHelpComponent;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -59,7 +59,7 @@ export class DataDomainDetailComponent implements OnInit {
           dataDomain.DOMAIN_DESC = '';
           dataDomain.DATA_TYPE = 1; // Char by default
           dataDomain.DATA_LENGTH = 10;
-          dataDomain.DOMAIN_TYPE = 4;
+          dataDomain.DOMAIN_TYPE = 0;
           this.isNewMode = true;
           this.readonly = false;
           this.bypassProtection = false;
@@ -78,7 +78,7 @@ export class DataDomainDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
-        this.dataDomainMeta = data;
+        this.dataDomainMeta = <DataDomainMeta>data;
         this._generateDataDomainForm();
       }
     });
@@ -94,7 +94,7 @@ export class DataDomainDetailComponent implements OnInit {
   _generateDataDomainForm(): void {
     if (this.dataDomainForm) {
       this.dataDomainForm.markAsPristine({onlySelf: false});
-      this._setNewModeState();
+      this._setNewModeState(); // To make sure the validators are cleared
       this.dataDomainForm.get('DOMAIN_ID').setValue(this.dataDomainMeta.DOMAIN_ID);
       this.dataDomainForm.get('DOMAIN_DESC').setValue(this.dataDomainMeta.DOMAIN_DESC);
       this.dataDomainForm.get('DATA_TYPE').setValue(this.dataDomainMeta.DATA_TYPE);
@@ -105,6 +105,7 @@ export class DataDomainDetailComponent implements OnInit {
       this.dataDomainForm.get('CAPITAL_ONLY').setValue(this.dataDomainMeta.CAPITAL_ONLY);
       this.dataDomainForm.get('REG_EXPR').setValue(this.dataDomainMeta.REG_EXPR);
       this.dataDomainForm.get('RELATION_ID').setValue(this.dataDomainMeta.RELATION_ID);
+      (<FormArray>this.dataDomainForm.get('DOMAIN_VALUES')).clear();
       if (this.readonly) {
         this.dataDomainForm.get('DOMAIN_TYPE').disable();
         this.dataDomainForm.get('DATA_TYPE').disable();
@@ -116,28 +117,28 @@ export class DataDomainDetailComponent implements OnInit {
         DATA_TYPE: [{value: this.dataDomainMeta.DATA_TYPE, disabled: this.readonly}],
         DATA_LENGTH: [this.dataDomainMeta.DATA_LENGTH, [this._validateDataLength]],
         DECIMAL: [this.dataDomainMeta.DECIMAL, [this._validateDecimal]],
-        DOMAIN_TYPE: [this.dataDomainMeta.DOMAIN_TYPE],
-        UNSIGNED: [this.dataDomainMeta.UNSIGNED],
-        CAPITAL_ONLY: [this.dataDomainMeta.CAPITAL_ONLY],
+        DOMAIN_TYPE: [{value: this.dataDomainMeta.DOMAIN_TYPE, disabled: this.readonly}],
+        UNSIGNED: [{value: this.dataDomainMeta.UNSIGNED, disabled: this.readonly}],
+        CAPITAL_ONLY: [{value: this.dataDomainMeta.CAPITAL_ONLY, disabled: this.readonly}],
         REG_EXPR: [this.dataDomainMeta.REG_EXPR],
         RELATION_ID: [this.dataDomainMeta.RELATION_ID],
         DOMAIN_VALUES: this.fb.array([])
       });
-      if (this.dataDomainMeta.DOMAIN_TYPE >= 3 && this.dataDomainMeta.DOMAIN_VALUES) { // Value Array/Interval
-        this.dataDomainMeta.DOMAIN_VALUES.forEach( domainValue => {
-          this.domainValueFormArray.push(
-            this.fb.group({
-              LOW_VALUE: [domainValue.LOW_VALUE],
-              LOW_VALUE_TEXT: [domainValue.LOW_VALUE_TEXT],
-              HIGH_VALUE: [domainValue.HIGH_VALUE]
-            })
-          );
-        });
-      }
       this._setNewModeState();
     }
-    this.onChangeDomainType(this.dataDomainForm);
-    this._updateLengthAndDecimal(this.dataDomainForm);
+    if (this.dataDomainMeta.DOMAIN_TYPE >= 3 && this.dataDomainMeta.DOMAIN_VALUES) { // Value Array/Interval
+      this.dataDomainMeta.DOMAIN_VALUES.forEach( domainValue => {
+        this.domainValueFormArray.push(
+          this.fb.group({
+            LOW_VALUE: [domainValue.LOW_VALUE],
+            LOW_VALUE_TEXT: [domainValue.LOW_VALUE_TEXT],
+            HIGH_VALUE: [domainValue.HIGH_VALUE]
+          })
+        );
+      });
+    }
+    this._setDomainType(this.dataDomainForm, false);
+    this._updateLengthAndDecimal(this.dataDomainForm, false);
   }
 
   _setNewModeState() {
@@ -145,6 +146,10 @@ export class DataDomainDetailComponent implements OnInit {
       this.dataDomainForm.get('DOMAIN_ID').setValidators(this._validateDataDomainID);
       this.dataDomainForm.get('DOMAIN_ID').setAsyncValidators(
         this.uniqueDataDomainValidator.validate.bind(this.uniqueDataDomainValidator));
+      this.dataDomainForm.get('DATA_TYPE').enable();
+      this.dataDomainForm.get('DATA_TYPE').markAsDirty(); // Default value mark as dirty
+      this.dataDomainForm.get('DATA_LENGTH').markAsDirty(); // Default value mark as dirty
+      this.dataDomainForm.get('DOMAIN_TYPE').markAsDirty(); // Default value mark as dirty
     } else {
       this.dataDomainForm.get('DOMAIN_ID').clearValidators();
       this.dataDomainForm.get('DOMAIN_ID').clearAsyncValidators();
@@ -176,6 +181,13 @@ export class DataDomainDetailComponent implements OnInit {
   _validateDecimal(c: FormControl) {
     if (c.enabled && !c.value) {
       return {message: 'Please give a decimal place'};
+    }
+    return null;
+  }
+
+  _validateRelationID(c: FormControl) {
+    if (c.enabled && !c.value) {
+      return {message: 'Please give a relation'};
     }
     return null;
   }
@@ -217,13 +229,15 @@ export class DataDomainDetailComponent implements OnInit {
     this.readonly = true;
     this.dataDomainForm.get('DOMAIN_TYPE').disable();
     this.dataDomainForm.get('DATA_TYPE').disable();
+    this.dataDomainForm.get('UNSIGNED').disable();
+    this.dataDomainForm.get('CAPITAL_ONLY').disable();
   }
 
   _switch2EditMode(): void {
     this.readonly = false;
     this.dataDomainForm.get('DOMAIN_TYPE').enable();
     this.dataDomainForm.get('DATA_TYPE').enable();
-    this._updateLengthAndDecimal(this.dataDomainForm);
+    this._updateLengthAndDecimal(this.dataDomainForm, false);
   }
 
   onChangeDataDomainID(): void {
@@ -235,60 +249,58 @@ export class DataDomainDetailComponent implements OnInit {
   }
 
   onChangeDomainType(formGroup: AbstractControl): void {
+    this._setDomainType(formGroup, true);
+  }
+
+  _setDomainType(formGroup: AbstractControl, markAsDirty: boolean): void {
+    if (markAsDirty) { formGroup.get('DOMAIN_TYPE').markAsDirty(); }
     switch (+formGroup.get('DOMAIN_TYPE').value) {
       case 0: // General Type
         if (+formGroup.get('DATA_TYPE').value === 2) {
-          formGroup.get('UNSIGNED').enable();
-          this._invalidField(formGroup.get('CAPITAL_ONLY'));
+          if (!this.readonly) { formGroup.get('UNSIGNED').enable(); }
+          this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
         } else if (+formGroup.get('DATA_TYPE').value === 1) {
-          formGroup.get('CAPITAL_ONLY').enable();
-          this._invalidField(formGroup.get('UNSIGNED'));
+          if (!this.readonly) { formGroup.get('CAPITAL_ONLY').enable(); }
+          this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         }
-        this._invalidField(formGroup.get('REG_EXPR'));
-        this._invalidField(formGroup.get('RELATION_ID'));
-        this._invalidField(formGroup.get('DOMAIN_VALUES'), true);
+        this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
+        this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
+        this._invalidField(formGroup.get('DOMAIN_VALUES'), markAsDirty, true);
         break;
       case 1: // Regular Expression
-        formGroup.get('REG_EXPR').enable();
-        this._invalidField(formGroup.get('UNSIGNED'));
-        this._invalidField(formGroup.get('CAPITAL_ONLY'));
-        this._invalidField(formGroup.get('RELATION_ID'));
-        this._invalidField(formGroup.get('DOMAIN_VALUES'), true);
+        // formGroup.get('REG_EXPR').setValidators(this._validateRegExpr);
+        if (!this.readonly) { formGroup.get('REG_EXPR').enable(); }
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
+        this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
+        this._invalidField(formGroup.get('DOMAIN_VALUES'), markAsDirty, true);
         break;
       case 2: // Value Relation
-        formGroup.get('RELATION_ID').enable();
-        this._invalidField(formGroup.get('REG_EXPR'));
-        this._invalidField(formGroup.get('UNSIGNED'));
-        this._invalidField(formGroup.get('CAPITAL_ONLY'));
-        this._invalidField(formGroup.get('DOMAIN_VALUES'), true);
+        formGroup.get('RELATION_ID').setValidators(this._validateRelationID);
+        if (!this.readonly) { formGroup.get('RELATION_ID').enable(); }
+        this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
+        this._invalidField(formGroup.get('DOMAIN_VALUES'), markAsDirty, true);
         break;
       case 3: // Value Array
-        formGroup.get('DOMAIN_VALUES').enable();
-        this._invalidField(formGroup.get('RELATION_ID'));
-        this._invalidField(formGroup.get('REG_EXPR'));
-        this._invalidField(formGroup.get('UNSIGNED'));
-        this._invalidField(formGroup.get('CAPITAL_ONLY'));
+        if (!this.readonly) { formGroup.get('DOMAIN_VALUES').enable(); }
+        this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
+        this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
         this._generateEmptyLines(5);
         break;
       case 4: // Value Interval
-        formGroup.get('DOMAIN_VALUES').enable();
-        this._invalidField(formGroup.get('RELATION_ID'));
-        this._invalidField(formGroup.get('REG_EXPR'));
-        this._invalidField(formGroup.get('UNSIGNED'));
-        this._invalidField(formGroup.get('CAPITAL_ONLY'));
+        if (!this.readonly) { formGroup.get('DOMAIN_VALUES').enable(); }
+        this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
+        this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
         this._generateEmptyLines(5);
         break;
       default:
     }
-  }
-
-  _invalidField(fieldCtrl: AbstractControl, isArray: boolean = false): void {
-    fieldCtrl.disable();
-    // if (isArray) {
-    //   (<FormArray>fieldCtrl).clear();
-    // }
-    fieldCtrl.setValue(null);
-    fieldCtrl.markAsDirty();
   }
 
   _generateEmptyLines(num: number): void {
@@ -319,19 +331,17 @@ export class DataDomainDetailComponent implements OnInit {
     }
     formGroup.get('DATA_LENGTH').markAsDirty();
     formGroup.get('DECIMAL').markAsDirty();
-    this._updateLengthAndDecimal(formGroup);
+    this._updateLengthAndDecimal(formGroup, true);
   }
 
-  _updateLengthAndDecimal(formGroup: AbstractControl): void {
+  _updateLengthAndDecimal(formGroup: AbstractControl, markAsDirty: boolean): void {
     switch (+formGroup.get('DATA_TYPE').value) {
       case 1: // char
-        formGroup.get('DATA_LENGTH').enable();
-        formGroup.get('DECIMAL').disable();
+        if (!this.readonly) { formGroup.get('DATA_LENGTH').enable(); }
+        this._invalidField(formGroup.get('DECIMAL'));
         if (+formGroup.get('DOMAIN_TYPE').value === 0) {
-          formGroup.get('CAPITAL_ONLY').enable();
-          formGroup.get('UNSIGNED').disable();
-          formGroup.get('UNSIGNED').setValue(null);
-          formGroup.get('UNSIGNED').markAsDirty();
+          if (!this.readonly) { formGroup.get('CAPITAL_ONLY').enable(); }
+          this._invalidField(formGroup.get('UNSIGNED'));
         }
         this.enableGeneralType = true;
         this.enableRegExpr = true;
@@ -340,15 +350,13 @@ export class DataDomainDetailComponent implements OnInit {
         break;
       case 2: // Integer
         formGroup.get('DATA_LENGTH').disable();
-        formGroup.get('DECIMAL').disable();
+        this._invalidField(formGroup.get('DECIMAL'), markAsDirty);
         if (+formGroup.get('DOMAIN_TYPE').value === 0) {
-          formGroup.get('UNSIGNED').enable();
-          formGroup.get('CAPITAL_ONLY').disable();
-          formGroup.get('CAPITAL_ONLY').setValue(null);
-          formGroup.get('CAPITAL_ONLY').markAsDirty();
+          if (!this.readonly) { formGroup.get('UNSIGNED').enable(); }
+          this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
         } else if (+formGroup.get('DOMAIN_TYPE').value === 1 || +formGroup.get('DOMAIN_TYPE').value === 2) {
-          formGroup.get('DOMAIN_TYPE').setValue(0);
-          this.onChangeDomainType(formGroup);
+          if (!this.readonly) { formGroup.get('DOMAIN_TYPE').setValue(0); }
+          this._setDomainType(formGroup, markAsDirty);
         }
         this.enableGeneralType = true;
         this.enableRegExpr = false;
@@ -356,47 +364,47 @@ export class DataDomainDetailComponent implements OnInit {
         this.enableArrayOrInterval = true;
         break;
       case 4: // decimal
-        formGroup.get('DATA_LENGTH').enable();
-        formGroup.get('DECIMAL').enable();
-        formGroup.get('CAPITAL_ONLY').disable();
-        formGroup.get('CAPITAL_ONLY').setValue(null);
-        formGroup.get('CAPITAL_ONLY').markAsDirty();
-        formGroup.get('UNSIGNED').disable();
-        formGroup.get('UNSIGNED').setValue(null);
-        formGroup.get('UNSIGNED').markAsDirty();
+        if (!this.readonly) { formGroup.get('DATA_LENGTH').enable(); }
+        if (!this.readonly) { formGroup.get('DECIMAL').enable(); }
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         formGroup.get('DOMAIN_TYPE').setValue(0);
-        this.onChangeDomainType(formGroup);
+        this._setDomainType(formGroup, markAsDirty);
         this.enableGeneralType = true;
         this.enableRegExpr = false;
         this.enableValueRelation = false;
         this.enableArrayOrInterval = false;
         break;
       case 5: // string
-        formGroup.get('DATA_LENGTH').disable();
-        formGroup.get('DECIMAL').disable();
+        this._invalidField(formGroup.get('DATA_LENGTH'), markAsDirty);
+        this._invalidField(formGroup.get('DECIMAL'), markAsDirty);
         formGroup.get('DOMAIN_TYPE').setValue(1);
-        this.onChangeDomainType(formGroup);
+        this._setDomainType(formGroup, markAsDirty);
         this.enableGeneralType = false;
         this.enableRegExpr = true;
         this.enableValueRelation = false;
         this.enableArrayOrInterval = false;
         break;
       default:
-        formGroup.get('DATA_LENGTH').disable();
-        formGroup.get('DECIMAL').disable();
-        formGroup.get('CAPITAL_ONLY').disable();
-        formGroup.get('CAPITAL_ONLY').setValue(null);
-        formGroup.get('CAPITAL_ONLY').markAsDirty();
-        formGroup.get('UNSIGNED').disable();
-        formGroup.get('UNSIGNED').setValue(null);
-        formGroup.get('UNSIGNED').markAsDirty();
+        this._invalidField(formGroup.get('DATA_LENGTH'), markAsDirty);
+        this._invalidField(formGroup.get('DECIMAL'), markAsDirty);
+        this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
+        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         formGroup.get('DOMAIN_TYPE').setValue(0);
-        this.onChangeDomainType(formGroup);
+        this._setDomainType(formGroup, markAsDirty);
         this.enableGeneralType = true;
         this.enableRegExpr = false;
         this.enableValueRelation = false;
         this.enableArrayOrInterval = false;
     }
+  }
+
+  _invalidField(fieldCtrl: AbstractControl, markAsDirty: boolean = false, isArray: boolean = false): void {
+    fieldCtrl.clearValidators();
+    fieldCtrl.clearAsyncValidators();
+    fieldCtrl.disable();
+    isArray ? (<FormArray>fieldCtrl).clear() : fieldCtrl.setValue(null);
+    if (markAsDirty) { fieldCtrl.markAsDirty(); }
   }
 
   onChangeDomainValue(index: number): void {
@@ -430,6 +438,7 @@ export class DataDomainDetailComponent implements OnInit {
 
   deleteDomainValue(index: number): void {
     this.domainValueFormArray.removeAt(index);
+    this.domainValueFormArray.markAsDirty();
   }
 
   canDeactivate(): Observable<boolean> | boolean {
@@ -492,15 +501,20 @@ export class DataDomainDetailComponent implements OnInit {
       this.changedDataDomain['RELATION_ID'] = this.dataDomainForm.get('RELATION_ID').value;
     }
     if (this.dataDomainForm.get('DOMAIN_VALUES').dirty) {
-      this.changedDataDomain['DOMAIN_VALUES'] = this.dataDomainForm.get('DOMAIN_VALUES').value;
+      this.changedDataDomain['DOMAIN_VALUES'] = [];
+      this.dataDomainForm.get('DOMAIN_VALUES').value.forEach( domainValue => {
+        if (domainValue.LOW_VALUE) {
+          this.changedDataDomain['DOMAIN_VALUES'].push(domainValue);
+        }
+      });
     }
     console.log(this.changedDataDomain);
-    // this.entityService.saveDataDomain(this.changedDataDomain)
-    //   .subscribe(data => this._postActivityAfterSavingDataDomain(data));
+    this.entityService.saveDataDomain(this.changedDataDomain)
+      .subscribe(data => this._postActivityAfterSavingDataDomain(data));
   }
 
   _postActivityAfterSavingDataDomain(data: any) {
-    if (data['ELEMENT_ID']) {
+    if (data['DOMAIN_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
@@ -521,4 +535,5 @@ export class DataDomainDetailComponent implements OnInit {
     }
   }
 }
+
 

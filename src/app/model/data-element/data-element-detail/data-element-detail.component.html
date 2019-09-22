@@ -44,9 +44,19 @@
                  [value]="1" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
           <label class="custom-control-label" for="use-domain">Data Domain</label>
         </div>
-        <input type="text" class="col-sm-4 col-lg-4 form-control form-control-sm" id="data-domain"
-               [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
-        <span class="dk-invalid-feedback">{{dataElementForm.get('DOMAIN_ID').errors?.required? 'A Data Domain is required': null}}</span>
+        <div class="input-group col-sm-4 col-lg-4">
+          <input type="text" class="form-control form-control-sm" id="data-domain"
+                 [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="searchDomain"
+                    (click)="onSearchHelp(dataElementForm)">
+              <span class="fas fa-search"></span>
+            </button>
+          </div>
+        </div>
+        <span class="dk-invalid-feedback">
+          {{dataElementForm.get('DOMAIN_ID').errors?.required? 'A Data Domain is required': null}}
+        </span>
       </div>
 
       <div class="ml-2 mb-2 row">
@@ -55,11 +65,12 @@
                  [value]="0" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
           <label class="custom-control-label" for="use-data-type">Elementary Type</label>
         </div>
-
-        <select formControlName="DATA_TYPE" (change)="onChangeDataType(dataElementForm)"
-                class="col-sm-8 col-lg-4 form-control form-control-sm">
-          <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
-        </select>
+        <div class="input-group col-sm-4 col-lg-4">
+          <select formControlName="DATA_TYPE" (change)="onChangeDataType(dataElementForm)"
+                  class="form-control form-control-sm">
+            <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
+          </select>
+        </div>
       </div>
 
       <div class="ml-0 row">
