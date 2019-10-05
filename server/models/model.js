@@ -4,6 +4,7 @@ Created by VinceZK on 2018.10.02
 const entityDB = require('./connections/sql_mdb.js');
 const timeUtil = require('../util/date_time.js');
 const guid = require('../util/guid.js');
+const async = require('async');
 const Message = require('ui-message').Message;
 const MsgArrayStore = require('ui-message').MsgArrayStore;
 const msgArray = require('./message_model.js');
@@ -63,6 +64,13 @@ function getEntityTypeDesc(entityID, callback) {
   })
 }
 
+/**
+ * Save an entity type
+ * @param entityType
+ * @param userID
+ * @param callback(errs)
+ * @returns {*}
+ */
 function saveEntityType(entityType, userID, callback) {
   if (!entityType || entityType === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -77,14 +85,14 @@ function saveEntityType(entityType, userID, callback) {
   if (entityType.action === 'update') {
     let updateSQL = "update ENTITY set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (entityType.ENTITY_DESC !== null && entityType.ENTITY_DESC !== undefined)
+    if (entityType.ENTITY_DESC !== undefined)
       updateSQL = updateSQL + ", ENTITY_DESC = " + entityDB.pool.escape(entityType.ENTITY_DESC);
     updateSQL = updateSQL + " where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID);
     updateSQLs.push(updateSQL);
-  } else if (entityType.action === 'add') {
-    let insertSQL = "insert into ENTITY ( ENTITY_ID, ENTITY_DESC, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+  } else if (entityType.action === undefined || entityType.action === 'add') {
+    let insertSQL = "insert into ENTITY ( ENTITY_ID, ENTITY_DESC, VERSION_NO, RELOAD_IND, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(entityType.ENTITY_ID) + ", " + entityDB.pool.escape(entityType.ENTITY_DESC) +
-      ", 1, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) +
+      ", 1, 0, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) +
       ", "  + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);
   }
@@ -97,85 +105,124 @@ function saveEntityType(entityType, userID, callback) {
   _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime);
 
   let deletedAttributes = [];
-  let changedAttributes = [];
+  let nameChangedAttributes = [];
   let errMessages = [];
-  if (entityType.ATTRIBUTES) {
-    entityType.ATTRIBUTES.forEach(function (attribute) {
-      if (!attribute.RELATION_ID){
-        attribute.RELATION_ID = entityType.ENTITY_ID;
-      } else {
-        if (attribute.RELATION_ID !== entityType.ENTITY_ID) {
-          errMessages.push(
-            message.report('MODEL', 'ATTRIBUTE_NOT_BELONG_TO_RELATION', 'E',
-              attribute.ATTR_NAME, attribute.RELATION_ID, entityType.ENTITY_ID));}
+
+  __updateEntityAttributes();
+  if (errMessages.length > 0) return;
+
+  async.series(
+    [
+      function(callback) {
+        __updateEntityRoles(callback);
+      },
+      function(callback) {
+        __checkExistingEntityRoles(callback)
       }
-      if (attribute.action === 'delete') {
-        if (!attribute.ATTR_NAME) {
-          errMessages.push(
-            message.report('MODEL', 'MISS_ATTRIBUTE_NAME_WHEN_DELETION', 'E'));
-        }
-        deletedAttributes.push(attribute.ATTR_NAME);
-      } else {
-        if (attribute.ATTR_NAME) changedAttributes.push(attribute.ATTR_NAME);
-      }
-      updateSQLs.push(_generateUpdateAttributeSQL(attribute));
-    });
-    if(errMessages.length > 0 ){
-      return callback(errMessages);
-    }
-  }
-
-  let entityRelationMeta = entityDB.getRelationMeta(entityType.ENTITY_ID);
-  if (entityType.ROLES) {
-    entityType.ROLES.forEach(function (role) {
-      if (role.CONDITIONAL_ATTR) {
-        if (deletedAttributes.includes(role.CONDITIONAL_ATTR) && role.action !== 'delete')
-          errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
-            role.CONDITIONAL_ATTR, role.ROLE_ID));
-
-        if (!changedAttributes.includes(role.CONDITIONAL_ATTR)) {
-          if(!entityRelationMeta ||
-             !entityRelationMeta.ATTRIBUTES.find(relationMeta => relationMeta.ATTR_NAME === role.CONDITIONAL_ATTR)) {
-            errMessages.push(message.report('MODEL', 'INVALID_ROLE_CONDITION_ATTRIBUTE', 'E',
-              role.CONDITIONAL_ATTR));
-          }
-        }
-      }
-      updateSQLs.push(_generateUpdateRoleSQL(role, entityType.ENTITY_ID));
-    });
-  }
-
-  if(errMessages.length > 0 ){
-    return callback(errMessages);
-  }
-
-  entityDB.executeSQL("select * from ENTITY_ROLES where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID),
-    function (err, results) {
-      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-
-      results.forEach( entityRole => {
-        if (entityRole.CONDITIONAL_ATTR && deletedAttributes.includes(entityRole.CONDITIONAL_ATTR)
-            && (!entityType.ROLES || !entityType.ROLES.find( ele => ele.ROLE_ID === entityRole.ROLE_ID))) {
-          errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
-            entityRole.CONDITIONAL_ATTR, entityRole.ROLE_ID));
-        }
-      });
-
-      if(errMessages.length > 0 ){
-        return callback(errMessages);
-      }
-
+    ],
+    function (err) {
+      if (err) return callback(errMessages);
       entityDB.doUpdatesParallel(updateSQLs, function (err) {
         if (err) {
-          callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+          callback([message.report('MODEL', 'GENERAL_ERROR', 'E', err)]);
         } else {
           _syncDBTable(relation.RELATION_ID, callback);
         }
       })
-  });
+    }
+  );
 
+  function __updateEntityAttributes() {
+    if (entityType.ATTRIBUTES) {
+      entityType.ATTRIBUTES.forEach(function (attribute) {
+        if (!attribute.RELATION_ID){
+          attribute.RELATION_ID = entityType.ENTITY_ID;
+        } else {
+          if (attribute.RELATION_ID !== entityType.ENTITY_ID) {
+            errMessages.push(
+              message.report('MODEL', 'ATTRIBUTE_NOT_BELONG_TO_RELATION', 'E',
+                attribute.ATTR_NAME, attribute.RELATION_ID, entityType.ENTITY_ID));}
+        }
+        if (attribute.action === 'delete') {
+          if (!attribute.ATTR_NAME) {
+            errMessages.push(
+              message.report('MODEL', 'MISS_ATTRIBUTE_NAME_WHEN_DELETION', 'E'));
+          }
+          deletedAttributes.push(attribute.ATTR_NAME);
+        } else {
+          if (attribute.ATTR_NAME) nameChangedAttributes.push(attribute.ATTR_NAME);
+        }
+        updateSQLs.push(_generateUpdateAttributeSQL(attribute));
+      });
+      if(errMessages.length > 0 ) {
+        callback(errMessages);
+      } else {
+        updateSQLs.push(_updateRelationReloadIndicator(entityType.ENTITY_ID));
+      }
+    }
+  }
+
+  function __updateEntityRoles(callback) {
+    if (entityType.ROLES) {
+      entityDB.getRelationMeta(entityType.ENTITY_ID, function (err, entityRelationMeta) {
+        if (err) {
+          errMessages.push(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+        } else {
+          entityType.ROLES.forEach(role => {
+            if (role.CONDITIONAL_ATTR) {
+              if (deletedAttributes.includes(role.CONDITIONAL_ATTR) && role.action !== 'delete')
+                errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
+                  role.CONDITIONAL_ATTR, role.ROLE_ID));
+
+              if (!nameChangedAttributes.includes(role.CONDITIONAL_ATTR)) {
+                if(!entityRelationMeta ||
+                  !entityRelationMeta.ATTRIBUTES.find(relationMeta => relationMeta.ATTR_NAME === role.CONDITIONAL_ATTR)) {
+                  errMessages.push(message.report('MODEL', 'INVALID_ROLE_CONDITION_ATTRIBUTE', 'E',
+                    role.CONDITIONAL_ATTR));
+                }
+              }
+            }
+            updateSQLs.push(_generateUpdateRoleSQL(role, entityType.ENTITY_ID));
+          })
+        }
+        if(errMessages.length > 0){
+          callback('has errors');
+        } else {
+          updateSQLs.push(_updateEntityReloadIndicator(entityType.ENTITY_ID));
+          callback(null);
+        }
+      });
+    } else {
+      callback(null);
+    }
+  }
+
+  function __checkExistingEntityRoles(callback) {
+    entityDB.executeSQL("select * from ENTITY_ROLES where ENTITY_ID = " + entityDB.pool.escape(entityType.ENTITY_ID),
+      function (err, results) {
+        if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+
+        results.forEach( entityRole => {
+          if (entityRole.CONDITIONAL_ATTR && deletedAttributes.includes(entityRole.CONDITIONAL_ATTR)
+            && (!entityType.ROLES || !entityType.ROLES.find( ele => ele.ROLE_ID === entityRole.ROLE_ID))) {
+            errMessages.push(message.report('MODEL', 'ATTRIBUTE_USED_IN_ROLE_CONDITION', 'E',
+              entityRole.CONDITIONAL_ATTR, entityRole.ROLE_ID));
+          }
+        });
+        if(errMessages.length > 0){
+          callback('has errors');
+        } else {
+          callback(null);
+        }
+      });
+  }
 }
 
+/**
+ * List entity types
+ * @param term
+ * @param callback(err, rows)
+ */
 function listRelation(term, callback) {
   let selectSQL = "select * from RELATION where substr(`RELATION_ID`, 1, 2) = 'r_'";
   let searchTerm = term?term.trim():null;
@@ -193,6 +240,11 @@ function listRelation(term, callback) {
   });
 }
 
+/**
+ * Get entity description
+ * @param relationID
+ * @param callback(err, desc)
+ */
 function getRelationDesc(relationID, callback) {
   let selectSQL =
     "select RELATION_DESC from RELATION where RELATION_ID = "+ entityDB.pool.escape(relationID);
@@ -203,6 +255,13 @@ function getRelationDesc(relationID, callback) {
   })
 }
 
+/**
+ * Save a relation
+ * @param relation: a relation object
+ * @param userID
+ * @param callback(errs)
+ * @returns {*}
+ */
 function saveRelation(relation, userID, callback) {
   if (!relation || relation === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -214,9 +273,11 @@ function saveRelation(relation, userID, callback) {
 
   const updateSQLs = [];
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
+  let updateReloadIndicator = false;
   _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime);
 
   if (relation.ATTRIBUTES) {
+    updateReloadIndicator = true;
     let errMessages = [];
     relation.ATTRIBUTES.forEach(function (attribute) {
       if (!attribute.RELATION_ID){
@@ -235,9 +296,14 @@ function saveRelation(relation, userID, callback) {
   }
 
   if (relation.ASSOCIATIONS && Array.isArray(relation.ASSOCIATIONS)) {
+    updateReloadIndicator = true;
     relation.ASSOCIATIONS.forEach(function (association) {
       _generateUpdateAssociation(relation.RELATION_ID, association, updateSQLs);
     })
+  }
+
+  if (updateReloadIndicator) {
+    updateSQLs.push(_updateRelationReloadIndicator(relation.RELATION_ID));
   }
 
   entityDB.doUpdatesParallel(updateSQLs, function (err) {
@@ -253,14 +319,14 @@ function _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime) {
   if (relation.action === 'update') {
     let updateSQL = "update RELATION set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) + ", LAST_CHANGE_TIME = "
       + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relation.RELATION_DESC !== null && relation.RELATION_DESC !== undefined)
+    if (relation.RELATION_DESC !== undefined)
       updateSQL = updateSQL + ", RELATION_DESC = " + entityDB.pool.escape(relation.RELATION_DESC);
     updateSQL = updateSQL + " where RELATION_ID = " + entityDB.pool.escape(relation.RELATION_ID);
     updateSQLs.push(updateSQL);
-  } else if (relation.action === 'add') {
-    let insertSQL = "insert into RELATION ( RELATION_ID, RELATION_DESC, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+  } else if (relation.action === undefined || relation.action === 'add') {
+    let insertSQL = "insert into RELATION ( RELATION_ID, RELATION_DESC, VERSION_NO, RELOAD_IND, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(relation.RELATION_ID) + ", " + entityDB.pool.escape(relation.RELATION_DESC) +
-      ", 1, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID)
+      ", 1, 0, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID)
       + ", " + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);
   }
@@ -272,9 +338,9 @@ function _generateUpdateAssociation(relationID, association, updateSQLs) {
   switch (association.action) {
     case 'update':
       let updateSQL;
-      if (association.CARDINALITY)
+      if (association.CARDINALITY !== undefined)
         updateSQL = "update RELATION_ASSOCIATION set CARDINALITY = " + entityDB.pool.escape(association.CARDINALITY);
-      if (association.FOREIGN_KEY_CHECK)
+      if (association.FOREIGN_KEY_CHECK !== undefined)
         updateSQL = updateSQL? updateSQL + ", FOREIGN_KEY_CHECK = " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK)
                :"update RELATION_ASSOCIATION set FOREIGN_KEY_CHECK = " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK);
       if (updateSQL)
@@ -321,7 +387,7 @@ function _syncDBTable(relationID, callback) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     let relation = { RELATION_ID: relationID, ATTRIBUTES: attributes};
     entityDB.syncDBTable(relation, function (err) {
-      // TODO : In case sync to DB failed, the change should be restored back
+      // In case sync to DB failed, change is not restored back. However, in the UI, it shows inconsistency btw DB
       if(err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
       else callback(null);
     });
@@ -329,27 +395,6 @@ function _syncDBTable(relationID, callback) {
 }
 /**
  * Update data in the table ATTRIBUTE.
- * For entity attributes, which are not derived from a relation, have attributes "UNIQUE" and "SEARCHABLE".
- * These 2 attributes of a Attribute are used to decide whether to create a unique index table(UIX_) or
- * a non-unique index table(NIX_). Creation such 2 kinds of index tables not only requires meta data integrity,
- * but also the application data integrity. If an Attribute is before not searchable, but then changed to searchable,
- * its existing data requires an index rebuild, which populates data into the new index table and is supposed to
- * take some time. Thus, the process should not be included in the normal Entity changing activities,
- * but should be separated into an consistency checking utility process. A separate tool will be given
- * which can check if index tables exist in the database according to the model definition. If not, a batch process will
- * create and populate them.
- *
- * Maybe, keeping ENTITY level attributes is not a good idea. Why not all use RELATION? While the current concept of
- * using RELATION is indirectly through ROLE, the ENTITY attributes do not always have ROLEs. For example, height or age
- * of a person, why one has to assign a ROLE to a person ENTITY so that it can have height or age? If each ENTITY is
- * by default assign a RELATION to include all ENTITY level attributes, then it seems everything is much less confusion
- * and the design is more tight.
- *
- * The default relation has the same name with ENTITY. Table is altered when attributes are added or removed from the entity.
- * Whether an ENTITY should be allowed to have more than one default relation? Not necessary, so far as my understanding.
- * All entity level attributes can not exist independently without an entity instance.
- * It is always a literal stuff without any independent physic counterparts. For example, Height, Age, Hobbies, and so on.
- * Those social attributes, like marriage, ownership, position, address, and so on are more well represented using ROLE
  * and RELATIONSHIP.
  * @param attribute
  * @returns {*}
@@ -412,6 +457,14 @@ function _generateUpdateRoleSQL(role, entityID) {
   return updateSQL;
 }
 
+function _updateEntityReloadIndicator(entityID) {
+  return "update ENTITY set RELOAD_IND = RELOAD_IND + 1 where ENTITY_ID = " + entityDB.pool.escape(entityID);
+}
+
+function _updateRelationReloadIndicator(relationID) {
+  return "update RELATION set RELOAD_IND = RELOAD_IND + 1 where RELATION_ID = " + entityDB.pool.escape(relationID);
+}
+
 function listRelationship(term, callback) {
   let selectSQL = "select * from RELATIONSHIP";
   let searchTerm = term?term.trim():null;
@@ -448,8 +501,7 @@ function getRelationship(relationshipID, callback) {
     let relationship = rows[0];
     let selectSQL =
       "select A.ROLE_ID, B.ROLE_DESC, A.CARDINALITY, A.DIRECTION from RELATIONSHIP_INVOLVES as A" +
-      " join ROLE as B on A.ROLE_ID = B.ROLE_ID where RELATIONSHIP_ID = "
-      + entityDB.pool.escape(relationshipID);
+      " join ROLE as B on A.ROLE_ID = B.ROLE_ID where RELATIONSHIP_ID = " + entityDB.pool.escape(relationshipID);
     entityDB.executeSQL(selectSQL, function (err, rows) {
       if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
       relationship['INVOLVES'] = rows;
@@ -458,6 +510,13 @@ function getRelationship(relationshipID, callback) {
   })
 }
 
+/**
+ * Save a relationship
+ * @param relationship
+ * @param userID
+ * @param callback(errs)
+ * @returns {*}
+ */
 function saveRelationship(relationship, userID, callback) {
   if (!relationship || relationship === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -469,16 +528,20 @@ function saveRelationship(relationship, userID, callback) {
 
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
   const updateSQLs = [];
+  let updateEntityReloadIndicator = false;
   if (relationship.action === 'update') {
     let updateSQL = "update RELATIONSHIP set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (relationship.RELATIONSHIP_DESC !== null && relationship.RELATIONSHIP_DESC !== undefined)
+    if (relationship.RELATIONSHIP_DESC !== null && relationship.RELATIONSHIP_DESC !== undefined) {
       updateSQL += ", RELATIONSHIP_DESC = " + entityDB.pool.escape(relationship.RELATIONSHIP_DESC);
-    if (relationship.VALID_PERIOD !== null && relationship.VALID_PERIOD !== undefined)
+    }
+    if (relationship.VALID_PERIOD !== null && relationship.VALID_PERIOD !== undefined) {
       updateSQL += ", VALID_PERIOD = " + entityDB.pool.escape(relationship.VALID_PERIOD);
+      updateEntityReloadIndicator = true;
+    }
     updateSQL += " where RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID);
     updateSQLs.push(updateSQL);
-  } else if (relationship.action === 'add') {
+  } else if (relationship.action === undefined || relationship.action === 'add') {
     let insertSQL = "insert into RELATIONSHIP ( RELATIONSHIP_ID, RELATIONSHIP_DESC, VALID_PERIOD, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) + ", " +
       entityDB.pool.escape(relationship.RELATIONSHIP_DESC) + ", " + entityDB.pool.escape(relationship.VALID_PERIOD) +
@@ -486,7 +549,6 @@ function saveRelationship(relationship, userID, callback) {
       ", "  + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);
   }
-
   let relation = {
     action: relationship.action,
     RELATION_ID: relationship.RELATIONSHIP_ID,
@@ -510,22 +572,59 @@ function saveRelationship(relationship, userID, callback) {
     if(errMessages.length > 0 ){
       return callback(errMessages);
     }
+    updateSQLs.push(_updateRelationReloadIndicator(relationship.RELATIONSHIP_ID));
   }
 
-  if (relationship.INVOLVES) {
-    relationship.INVOLVES.forEach(function (involvement) {
+  async.series(
+    [
+      function(callback) {
+        __updateReloadInd4InvolvedEntities(callback);
+      },
+      function(callback) {
+        __updateInvolves(callback);
+      }
+    ],
+    function (errMessage) {
+      if (errMessage) callback(errMessage);
+      else __doDbUpdate(callback);
+  });
+
+  function __updateInvolves(callback) {
+    if (!relationship.INVOLVES) return callback(null);
+    async.map(relationship.INVOLVES, function (involvement, callback) {
       updateSQLs.push(_generateUpdateInvolvementSQL(involvement, relationship.RELATIONSHIP_ID));
+      if (!updateEntityReloadIndicator && (involvement.CARDINALITY || involvement.action !== 'update')) {
+        _updateEntityReloadIndByRole(involvement.ROLE_ID, updateSQLs, callback)
+      } else { callback(null); }
+    }, function (errMessage) {
+      if (errMessage) callback(errMessage);
+      else callback(null);
+    });
+  }
+  function __updateReloadInd4InvolvedEntities(callback) {
+    if (!updateEntityReloadIndicator) return callback(null);
+    let selectSQL = "select ROLE_ID from RELATIONSHIP_INVOLVES where RELATIONSHIP_ID = "
+      + entityDB.pool.escape(relationship.RELATIONSHIP_ID);
+    entityDB.executeSQL(selectSQL, function (err, rows) {
+      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      async.map(rows, function (row, callback) {
+        _updateEntityReloadIndByRole(row.ROLE_ID, updateSQLs, callback)
+      }, function (errMessage) {
+        if (errMessage) callback(errMessage);
+        else callback(null);
+      });
     })
   }
 
-  entityDB.doUpdatesParallel(updateSQLs, function (err) {
-    if (err) {
-      callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    } else {
-      //TODO Not only sync DB table, but also the involved entities need to be reloaded
-      _syncDBTable(relation.RELATION_ID, callback);
-    }
-  })
+  function __doDbUpdate(callback) {
+    entityDB.doUpdatesParallel(updateSQLs, function (err) {
+      if (err) {
+        callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      } else {
+        _syncDBTable(relation.RELATION_ID, callback);
+      }
+    })
+  }
 }
 
 function _generateUpdateInvolvementSQL(involvement, relationshipID) {
@@ -554,6 +653,11 @@ function _generateUpdateInvolvementSQL(involvement, relationshipID) {
   return updateSQL;
 }
 
+/**
+ * List roles
+ * @param term: search term
+ * @param callback(err, rows)
+ */
 function listRole(term, callback) {
   let selectSQL = "select * from ROLE";
   let searchTerm = term?term.trim():null;
@@ -571,6 +675,11 @@ function listRole(term, callback) {
   });
 }
 
+/**
+ * Get a role detail
+ * @param roleID
+ * @param callback(err, role)
+ */
 function getRole(roleID, callback) {
   let selectSQL =
     "select * from ROLE where ROLE_ID = "+ entityDB.pool.escape(roleID);
@@ -589,6 +698,11 @@ function getRole(roleID, callback) {
   })
 }
 
+/**
+ * Get role description
+ * @param roleID
+ * @param callback(err, desc)
+ */
 function getRoleDesc(roleID, callback) {
   let selectSQL =
     "select ROLE_DESC from ROLE where ROLE_ID = "+ entityDB.pool.escape(roleID);
@@ -599,6 +713,13 @@ function getRoleDesc(roleID, callback) {
   })
 }
 
+/**
+ * Save a role
+ * @param role
+ * @param userID: user who save the role
+ * @param callback(err)
+ * @returns {*}
+ */
 function saveRole(role, userID, callback) {
   if (!role || role === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -613,11 +734,11 @@ function saveRole(role, userID, callback) {
   if (role.action === 'update') {
     let updateSQL = "update ROLE set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
-    if (role.ROLE_DESC !== null && role.ROLE_DESC !== undefined)
+    if (role.ROLE_DESC !== undefined)
       updateSQL += ", ROLE_DESC = " + entityDB.pool.escape(role.ROLE_DESC);
     updateSQL += " where ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
     updateSQLs.push(updateSQL);
-  } else if (role.action === 'add') {
+  } else if (role.action === undefined || role.action === 'add') {
     let insertSQL = "insert into ROLE ( ROLE_ID, ROLE_DESC, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(role.ROLE_ID) + ", " + entityDB.pool.escape(role.ROLE_DESC) +
       ", 1, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) +
@@ -628,22 +749,29 @@ function saveRole(role, userID, callback) {
   if (role.RELATIONS) {
     role.RELATIONS.forEach(function (roleRelation) {
       updateSQLs.push(_generateUpdateRoleRelationSQL(roleRelation, role.ROLE_ID));
+    });
+    _updateEntityReloadIndByRole(role.ROLE_ID, updateSQLs, function (err) {
+      if (err) return callback(err);
+      entityDB.doUpdatesParallel(updateSQLs, function (err) {
+        if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+        else callback(null);
+      })
+    });
+  } else {
+    entityDB.doUpdatesParallel(updateSQLs, function (err) {
+      if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      else callback(null);
     })
   }
+}
 
-  entityDB.doUpdatesParallel(updateSQLs, function (err) {
+function _updateEntityReloadIndByRole(roleID, updateSQLs, callback) {
+  let selectSQL = "select ENTITY_ID from ENTITY_ROLES where ROLE_ID = " + entityDB.pool.escape(roleID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-
-    let selectSQL = "select ENTITY_ID from ENTITY_ROLES where ROLE_ID = " + entityDB.pool.escape(role.ROLE_ID);
-    entityDB.executeSQL(selectSQL, function (err, rows) {
-      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-      const entities = [];
-      rows.forEach(function (row) {
-        entities.push(row.ENTITY_ID);
-      });
-      entityDB.loadEntities(entities, callback);
-    });
-  })
+    rows.forEach(row => updateSQLs.push(_updateEntityReloadIndicator(row.ENTITY_ID)));
+    callback(null);
+  });
 }
 
 function _generateUpdateRoleRelationSQL(roleRelation, roleID) {
@@ -672,6 +800,11 @@ function _generateUpdateRoleRelationSQL(roleRelation, roleID) {
   return updateSQL;
 }
 
+/**
+ * List data elements
+ * @param term
+ * @param callback(err, rows)
+ */
 function listDataElement(term, callback) {
   let selectSQL = "select * from DATA_ELEMENT";
   let searchTerm = term?term.trim():null;
@@ -689,6 +822,11 @@ function listDataElement(term, callback) {
   });
 }
 
+/**
+ * Get a data element detial
+ * @param elementID
+ * @param callback(err, dataElement)
+ */
 function getDataElement(elementID, callback) {
   let selectSQL = "select A.ELEMENT_ID, A.ELEMENT_DESC, A.DOMAIN_ID, A.DATA_TYPE, A.DATA_LENGTH, A.DECIMAL, " +
     "A.SEARCH_HELP_ID, A.SEARCH_HELP_EXPORT_FIELD, A.PARAMETER_ID, B.LABEL_TEXT, B.LIST_HEADER_TEXT, " +
@@ -702,6 +840,11 @@ function getDataElement(elementID, callback) {
   })
 }
 
+/**
+ * Get data element description
+ * @param elementID
+ * @param callback(err, desc)
+ */
 function getDataElementDesc(elementID, callback) {
   let selectSQL =
     "select ELEMENT_DESC from DATA_ELEMENT where ELEMENT_ID = "+ entityDB.pool.escape(elementID);
@@ -712,6 +855,13 @@ function getDataElementDesc(elementID, callback) {
   })
 }
 
+/**
+ * Save a Data Element
+ * @param dataElement
+ * @param userID
+ * @param callback(err)
+ * @returns {*}
+ */
 function saveDataElement(dataElement, userID, callback) {
   if (!dataElement || dataElement === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -723,19 +873,29 @@ function saveDataElement(dataElement, userID, callback) {
 
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
   const updateSQLs = [];
+  let syncDBTableIndicator = false;
+  let updateRelationReloadIndicator = false;
   if (dataElement.action === 'update') {
     let updateSQL = "update DATA_ELEMENT set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
     if (dataElement.ELEMENT_DESC !== undefined)
       updateSQL += ", ELEMENT_DESC = " + entityDB.pool.escape(dataElement.ELEMENT_DESC);
-    if (dataElement.DOMAIN_ID !== undefined)
+    if (dataElement.DOMAIN_ID !== undefined) {
       updateSQL += ", DOMAIN_ID = " + entityDB.pool.escape(dataElement.DOMAIN_ID);
-    if (dataElement.DATA_TYPE !== undefined)
+      syncDBTableIndicator = true;
+    }
+    if (dataElement.DATA_TYPE !== undefined) {
       updateSQL += ", DATA_TYPE = " + entityDB.pool.escape(dataElement.DATA_TYPE);
-    if (dataElement.DATA_LENGTH !== undefined)
+      syncDBTableIndicator = true;
+    }
+    if (dataElement.DATA_LENGTH !== undefined) {
       updateSQL += ", DATA_LENGTH = " + entityDB.pool.escape(dataElement.DATA_LENGTH);
-    if (dataElement.DECIMAL !== undefined)
+      syncDBTableIndicator = true;
+    }
+    if (dataElement.DECIMAL !== undefined) {
       updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataElement.DECIMAL);
+      syncDBTableIndicator = true;
+    }
     if (dataElement.SEARCH_HELP_ID !== undefined)
       updateSQL += ", SEARCH_HELP_ID = " + entityDB.pool.escape(dataElement.SEARCH_HELP_ID);
     if (dataElement.SEARCH_HELP_EXPORT_FIELD !== undefined)
@@ -745,16 +905,20 @@ function saveDataElement(dataElement, userID, callback) {
     updateSQL += " where ELEMENT_ID = " + entityDB.pool.escape(dataElement.ELEMENT_ID);
     updateSQLs.push(updateSQL);
     updateSQL = '';
-    if (dataElement.LABEL_TEXT !== null && dataElement.LABEL_TEXT !== undefined)
+    if (dataElement.LABEL_TEXT !== undefined) {
       updateSQL = "update DATA_ELEMENT_TEXT set LABEL_TEXT = " + entityDB.pool.escape(dataElement.LABEL_TEXT);
-    if (dataElement.LIST_HEADER_TEXT !== null && dataElement.LIST_HEADER_TEXT !== undefined)
+      updateRelationReloadIndicator = true;
+    }
+    if (dataElement.LIST_HEADER_TEXT !== undefined) {
       updateSQL = updateSQL ? updateSQL + ", LIST_HEADER_TEXT = " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT) :
         "update DATA_ELEMENT_TEXT set LIST_HEADER_TEXT = " + entityDB.pool.escape(dataElement.LIST_HEADER_TEXT);
+      updateRelationReloadIndicator = true;
+    }
     if (updateSQL) {
       updateSQL += " where ELEMENT_ID = " + entityDB.pool.escape(dataElement.ELEMENT_ID) + " and LANGU = 'EN'";
       updateSQLs.push(updateSQL);
     }
-  } else if (dataElement.action === 'add') {
+  } else if (dataElement.action === undefined || dataElement.action === 'add') {
     let insertSQL = "insert into DATA_ELEMENT ( ELEMENT_ID, ELEMENT_DESC, DOMAIN_ID, DATA_TYPE, DATA_LENGTH, `DECIMAL`," +
       " SEARCH_HELP_ID, SEARCH_HELP_EXPORT_FIELD, PARAMETER_ID, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(dataElement.ELEMENT_ID) + ", " + entityDB.pool.escape(dataElement.ELEMENT_DESC) +
@@ -770,13 +934,49 @@ function saveDataElement(dataElement, userID, callback) {
     updateSQLs.push(insertSQL);
   }
 
-  entityDB.doUpdatesParallel(updateSQLs, function (err) {
-    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    else callback(null);
-    // TODO: All related relations should be updated in the cache layer
-  })
+  if (syncDBTableIndicator || updateRelationReloadIndicator) {
+    _getElementUsedRelations(dataElement.ELEMENT_ID, function(err, relations) {
+      if (err) return callback(err);
+      relations.forEach( relation => updateSQLs.push(_updateRelationReloadIndicator(relation.RELATION_ID)));
+      entityDB.doUpdatesParallel(updateSQLs, function (err) {
+        if (err) {
+          callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+        } else if (syncDBTableIndicator) {
+          _getElementUsedRelations(dataElement.ELEMENT_ID, function(err, relations) {
+            if (err) return callback(err);
+            async.map(relations, function (relation, callback) {
+              _syncDBTable(relation.RELATION_ID, callback);
+            }, function (err) {
+              if (err) callback(err);
+              else callback(null);
+            });
+          });
+        } else {
+          callback(null);
+        }
+      })
+    });
+  } else {
+    entityDB.doUpdatesParallel(updateSQLs, function (err) {
+      if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      else callback(null);
+    })
+  }
 }
 
+function _getElementUsedRelations(elementID, callback) {
+  let selectSQL = "select distinct RELATION_ID from ATTRIBUTE where DATA_ELEMENT = " + entityDB.pool.escape(elementID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null, rows);
+  });
+}
+
+/**
+ * List data domains
+ * @param term
+ * @param callback(err, rows)
+ */
 function listDataDomain(term, callback) {
   let selectSQL = "select * from DATA_DOMAIN";
   let searchTerm = term?term.trim():null;
@@ -794,13 +994,18 @@ function listDataDomain(term, callback) {
   });
 }
 
+/**
+ * Get domain detail
+ * @param domainID
+ * @param callback(err, domainMeta)
+ */
 function getDataDomain(domainID, callback) {
   let selectSQL = "select * from DATA_DOMAIN where DOMAIN_ID = "+ entityDB.pool.escape(domainID);
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     if(!rows[0]) return callback(message.report('MODEL', 'DATA_DOMAIN_NOT_EXIST', 'E', domainID));
     let dataDomain = rows[0];
-    if (dataDomain.RELATION_ID || dataDomain.REG_EXPR) return callback(null, dataDomain);
+    if (dataDomain.DOMAIN_TYPE < 3) return callback(null, dataDomain);
     selectSQL = "select A.LOW_VALUE, A.HIGH_VALUE, B.LOW_VALUE_TEXT from DATA_DOMAIN_VALUE as A" +
                 " join DATA_DOMAIN_VALUE_TEXT as B on A.DOMAIN_ID = B.DOMAIN_ID and A.LOW_VALUE = B.LOW_VALUE" +
                 " where A.DOMAIN_ID = " + entityDB.pool.escape(domainID) + " and B.LANGU = 'EN'";
@@ -812,6 +1017,11 @@ function getDataDomain(domainID, callback) {
   })
 }
 
+/**
+ * Get domain description
+ * @param domainID
+ * @param callback(err, desc)
+ */
 function getDataDomainDesc(domainID, callback) {
   let selectSQL =
     "select DOMAIN_DESC from DATA_DOMAIN where DOMAIN_ID = "+ entityDB.pool.escape(domainID);
@@ -822,6 +1032,13 @@ function getDataDomainDesc(domainID, callback) {
   })
 }
 
+/**
+ * Save a data domain
+ * @param dataDomain
+ * @param userID
+ * @param callback(err)
+ * @returns {*}
+ */
 function saveDataDomain(dataDomain, userID, callback) {
   if (!dataDomain || dataDomain === {}) {
     return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
@@ -833,21 +1050,30 @@ function saveDataDomain(dataDomain, userID, callback) {
 
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
   const updateSQLs = [];
+  let syncDBTableIndicator = false;
   if (dataDomain.action === 'update') {
     let updateSQL = "update DATA_DOMAIN set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
     if (dataDomain.DOMAIN_DESC !== undefined)
       updateSQL += ", DOMAIN_DESC = " + entityDB.pool.escape(dataDomain.DOMAIN_DESC);
-    if (dataDomain.DATA_TYPE !== undefined)
+    if (dataDomain.DATA_TYPE !== undefined) {
       updateSQL += ", DATA_TYPE = " + entityDB.pool.escape(dataDomain.DATA_TYPE);
-    if (dataDomain.DATA_LENGTH !== undefined)
+      syncDBTableIndicator = true;
+    }
+    if (dataDomain.DATA_LENGTH !== undefined) {
       updateSQL += ", DATA_LENGTH = " + entityDB.pool.escape(dataDomain.DATA_LENGTH);
-    if (dataDomain.DECIMAL !== undefined)
+      syncDBTableIndicator = true;
+    }
+    if (dataDomain.DECIMAL !== undefined) {
       updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataDomain.DECIMAL);
+      syncDBTableIndicator = true;
+    }
     if (dataDomain.DOMAIN_TYPE !== undefined)
       updateSQL += ", DOMAIN_TYPE = " + entityDB.pool.escape(dataDomain.DOMAIN_TYPE);
-    if (dataDomain.UNSIGNED !== undefined)
+    if (dataDomain.UNSIGNED !== undefined) {
       updateSQL += ", `UNSIGNED` = " + entityDB.pool.escape(dataDomain.UNSIGNED);
+      syncDBTableIndicator = true;
+    }
     if (dataDomain.CAPITAL_ONLY !== undefined)
       updateSQL += ", CAPITAL_ONLY = " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY);
     if (dataDomain.RELATION_ID !== undefined)
@@ -879,7 +1105,7 @@ function saveDataDomain(dataDomain, userID, callback) {
       updateSQL = "delete from DATA_DOMAIN_VALUE_TEXT where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
       updateSQLs.push(updateSQL);
     }
-  } else if (dataDomain.action === 'add') {
+  } else if (dataDomain.action === undefined || dataDomain.action === 'add') {
     let insertSQL = "insert into DATA_DOMAIN ( DOMAIN_ID, DOMAIN_DESC, DATA_TYPE, DATA_LENGTH, `DECIMAL`, `DOMAIN_TYPE`," +
       " `UNSIGNED`, `CAPITAL_ONLY`, RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_DESC) +
@@ -908,9 +1134,38 @@ function saveDataDomain(dataDomain, userID, callback) {
     }
   }
 
-  entityDB.doUpdatesParallel(updateSQLs, function (err) {
-    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    else callback(null);
-    // TODO: All related relations should be updated in the cache layer
-  })
+  if (syncDBTableIndicator) {
+    _getDomainUsedRelations(dataDomain.DOMAIN_ID, function(err, relations) {
+      if (err) return callback(err);
+      relations.forEach( relation => updateSQLs.push(_updateRelationReloadIndicator(relation.RELATION_ID)));
+      entityDB.doUpdatesParallel(updateSQLs, function (err) {
+        if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+        else {
+          _getDomainUsedRelations(dataDomain.DOMAIN_ID, function(err, relations) {
+            if (err) return callback(err);
+            async.map(relations, function (relation, callback) {
+              _syncDBTable(relation.RELATION_ID, callback);
+            }, function (err) {
+              if (err) callback(err);
+              else callback(null);
+            });
+          });
+        }
+      })
+    });
+  } else {
+    entityDB.doUpdatesParallel(updateSQLs, function (err) {
+      if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      else callback(null);
+    })
+  }
+}
+
+function _getDomainUsedRelations(domainID, callback) {
+  let selectSQL = "select distinct RELATION_ID from ATTRIBUTE as A join DATA_ELEMENT as B " +
+    "on A.DATA_ELEMENT = B.ELEMENT_ID where B.DOMAIN_ID = " + entityDB.pool.escape(domainID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null, rows);
+  });
 }

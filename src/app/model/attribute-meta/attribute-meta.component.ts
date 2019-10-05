@@ -79,10 +79,12 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     const changedAttributes = [];
     let changedAttribute;
     let order = 0;
+    let lastOrder = 0;
     if (this.formArray.dirty) {
       this.formArray.controls.forEach((attribute, index) => {
-        const currentOrder = attribute.get('ORDER') ? attribute.get('ORDER').value : index;
-        order = order <= currentOrder ? currentOrder + 1 : order + 1;
+        order = attribute.get('ORDER') ? attribute.get('ORDER').value : index;
+        if (order < lastOrder) { order = lastOrder + 1; }
+        lastOrder = order;
         if (attribute.get('ATTR_NAME').value.trim() === '') { return; }
         if (attribute.dirty) {
           changedAttribute = { ORDER: order };

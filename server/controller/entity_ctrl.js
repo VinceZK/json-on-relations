@@ -11,7 +11,10 @@ module.exports = {
   },
 
   getEntityMeta: function (req, res) {
-    res.json(entity.getEntityMeta(req.params['entityID']))
+    entity.getEntityMeta(req.params['entityID'], function (errs, entityMeta) {
+      if(errs) res.json(errs);
+      else res.json(entityMeta);
+    })
   },
 
   getEntityInstance: function (req, res, next) {
@@ -46,7 +49,10 @@ module.exports = {
   },
 
   getRelationMeta: function (req, res) {
-    res.json(entity.getRelationMeta(req.params['relationID']));
+    entity.getRelationMeta(req.params['relationID'], function (errs, relationMeta) {
+      if(errs) res.json(errs);
+      else res.json(relationMeta);
+    })
   },
 
   getRelationMetaOfEntity: function (req, res) {

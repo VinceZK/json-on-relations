@@ -38,7 +38,7 @@ module.exports = {
   setConnPool: setConnPool,
   loadEntity: loadEntity,
   loadEntities: loadEntities,
-  loadRelation: getRelation,
+  loadRelation: loadRelation,
   listEntityID: listEntityID,
   listEntityIDbyRole: listEntityIDbyRole,
   getEntityMeta: getEntityMeta,
@@ -65,7 +65,6 @@ function setConnPool(nodeDB, config) {
 }
 /**
  * Load multiple entities meta into cache
- * TODO Use REDIS as the global cache layer to store entities meta
  * @param entities
  * @param done
  */
@@ -84,6 +83,7 @@ function loadEntities(entities, done) {
   })
 }
 
+// TODO: Add a reload indicator in ENTITY and RELATION table
 /**
  * Load a specific entity's meta into cache
  *
@@ -97,7 +97,7 @@ function loadEntities(entities, done) {
  *                   {RELATION_ID: 'r_email', CARDINALITY: '[1..n]'},
  *                   {RELATION_ID: 'r_user', CARDINALITY: '[1..1]'}],
  *       RELATIONSHIPS: [{ RELATIONSHIP_ID: 'rs_user_role',
- *                         RELATIONSHIP_DESC: 'A system user has multiple use roles',
+ *                         // RELATIONSHIP_DESC: 'A system user has multiple use roles',
  *                         VALID_PERIOD: 3162240000,
  *                         INVOLVES: [ { ROLE_ID: 'system_user', CARDINALITY: '[1..1]' },
  *                                     { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' } ]}]
@@ -105,20 +105,23 @@ function loadEntities(entities, done) {
  *   ]
  * }
  *
- *[{RELATION_ID: 'person',
- *  RELATION_DESC: 'People Entity Default Relation',
- *  VERSION_NO: 1,
- *  ATTRIBUTES: []
- * },
+ *[
+ * {
+ *   RELATION_ID: 'person',
+ *   RELATION_DESC: 'People Entity Default Relation',
+ *   VERSION_NO: 1,
+ *   ATTRIBUTES: []
+ *  },
  * {
  *   RELATION_ID: 'r_user',
  *   RELATION_DESC: 'System Logon User',
  *   VERSION_NO: 1,
  *   ATTRIBUTES: [
- *     RowDataPacket {
+ *     {
  *       ATTR_GUID: '13976E0B39AEBAFBDC35764518DB72D9', RELATION_ID: 'person', ATTR_NAME: 'HEIGHT', ATTR_DESC: null,
  *       DATA_ELEMENT: null, DATA_TYPE: 2, DATA_LENGTH: null, SEARCHABLE: 0, NOT_NULL: 0, UNIQUE: 0, FINALIZE: 0,
- *       AUTO_INCREMENT: 0, IS_MULTI_VALUE: 0 }
+ *       AUTO_INCREMENT: 0, IS_MULTI_VALUE: 0
+ *       }
  *   ]
  *   ASSOCIATIONS: [
  *     { RIGHT_RELATION_ID: assoc.RIGHT_RELATION_ID,
@@ -146,6 +149,7 @@ function loadEntity(entityID, done) {
       ENTITY_ID: entityRows[0].ENTITY_ID,
       ENTITY_DESC: entityRows[0].ENTITY_DESC,
       VERSION_NO: entityRows[0].VERSION_NO,
+      RELOAD_IND: entityRows[0].RELOAD_IND,
       CREATE_BY: entityRows[0].CREATE_BY,
       CREATE_TIME: entityRows[0].CREATE_TIME,
       LAST_CHANGE_BY: entityRows[0].LAST_CHANGE_BY,
@@ -155,7 +159,7 @@ function loadEntity(entityID, done) {
 
     async.parallel([
         function(callback){
-          getRelation(entity.ENTITY_ID, callback)
+          loadRelation(entity.ENTITY_ID, callback)
         },
         function(callback){
           _getEntityRoles(entity,callback);
@@ -190,16 +194,14 @@ function listEntityIDbyRole(roleID) {
 
 function _getEntityRoles(entity, callback) {
   let selectSQL =
-    "SELECT A.ROLE_ID, A.CONDITIONAL_ATTR, A.CONDITIONAL_VALUE, B.ROLE_DESC, C.RELATION_ID, C.CARDINALITY" +
+    "SELECT A.ROLE_ID, A.CONDITIONAL_ATTR, A.CONDITIONAL_VALUE, C.RELATION_ID, C.CARDINALITY" +
     "  FROM ENTITY_ROLES AS A" +
-    "  JOIN ROLE AS B" +
-    "    ON A.ROLE_ID = B.ROLE_ID" +
     "  LEFT JOIN ROLE_RELATION AS C" +
     "    ON A.ROLE_ID = C.ROLE_ID" +
     " WHERE A.ENTITY_ID = " + pool.escape(entity.ENTITY_ID);
 
   pool.query(selectSQL, function (err, roleRows) {
-    if (err)return callback(err, 'Get Roles Error');
+    if (err) return callback(err);
 
     let groupedRoles = [];
     roleRows.forEach(function (role) {
@@ -209,7 +211,6 @@ function _getEntityRoles(entity, callback) {
       if (idx === -1) {
         let roleInstance = {
             ROLE_ID: role.ROLE_ID,
-            ROLE_DESC: role.ROLE_DESC,
             CONDITIONAL_ATTR: role.CONDITIONAL_ATTR,
             CONDITIONAL_VALUE: role.CONDITIONAL_VALUE,
             RELATIONS: [],
@@ -226,12 +227,12 @@ function _getEntityRoles(entity, callback) {
     async.parallel([
       function(callback){
         async.map(roleRows, function (role, callbackMap) {
-          getRelation(role.RELATION_ID, callbackMap);
+          loadRelation(role.RELATION_ID, callbackMap);
         }, function (err, mapResults) {
           if(err){
             debug("%s.\n" +
               "Error detail: %s \n", JSON.stringify(mapResults), err);
-            return callback(err, entity.ENTITY_ID);
+            return callback(err);
           }
           callback(null);
         });
@@ -243,7 +244,7 @@ function _getEntityRoles(entity, callback) {
           if(err){
             debug("%s.\n" +
               "Error detail: %s \n", JSON.stringify(mapResults), err);
-            return callback(err, entity.ENTITY_ID);
+            return callback(err);
           }
           callback(null);
         });
@@ -251,24 +252,24 @@ function _getEntityRoles(entity, callback) {
         if(err){
           debug("%s.\n" +
             "Error detail: %s \n", JSON.stringify(parallelResults), err);
-          return callback(err, entity.ENTITY_ID);
+          return callback(err);
         }
         callback(null);
       });
   })
 }
 
-function getRelation(relationID, callback) { //Get Relations and their attributes and associations
+function loadRelation(relationID, callback) { //Get Relations and their attributes and associations
   if (!relationID) return callback(null);
   let selectSQL = "select * from RELATION where RELATION_ID = " + pool.escape(relationID);
   pool.query(selectSQL, function (err, relationRows) {
     if (err)return callback(err, 'Get Relations Error');
     if(relationRows.length === 0) return callback(null);
-
     let relation = {
       RELATION_ID: relationRows[0].RELATION_ID,
       RELATION_DESC: relationRows[0].RELATION_DESC,
-      VERSION_NO: relationRows[0].VERSION_NO
+      VERSION_NO: relationRows[0].VERSION_NO,
+      RELOAD_IND: relationRows[0].RELOAD_IND
     };
     async.parallel([
       function(callback){
@@ -281,7 +282,7 @@ function getRelation(relationID, callback) { //Get Relations and their attribute
         if(err){
           debug("%s.\n" +
             "Error detail: %s \n", JSON.stringify(parallelResults), err);
-          return callback(err, relation.RELATION_ID);
+          return callback(err);
         }
         _modifyRelations(relation);
         callback(null);
@@ -300,7 +301,7 @@ function _getRelationAssociations(relation, callback) {
     " where A.LEFT_RELATION_ID = " + pool.escape(relation.RELATION_ID);
 
   pool.query(selectSQL, function (err, associations) {
-    if (err) return callback(err, 'Get Associations Error');
+    if (err) return callback(err);
 
     let groupedAssociations = [];
     associations.forEach(function (assoc) {
@@ -325,11 +326,24 @@ function _getRelationAssociations(relation, callback) {
 
 function _getRelationAttributes(relation, callback) {
   let selectSQL =
-    "select * from ATTRIBUTE where RELATION_ID = " + pool.escape(relation.RELATION_ID) +
-    " order by `ORDER`";
+    "select A.ATTR_GUID, A.RELATION_ID, A.ATTR_NAME, coalesce(B.ELEMENT_DESC, A.ATTR_DESC) as ATTR_DESC, " +
+    "A.DATA_ELEMENT, B.DOMAIN_ID, coalesce(C.LABEL_TEXT, A.ATTR_DESC, A.ATTR_NAME) as LABEL_TEXT, " +
+    "coalesce(C.LIST_HEADER_TEXT, A.ATTR_DESC, A.ATTR_NAME) as LIST_HEADER_TEXT, " +
+    "coalesce(E.DATA_TYPE, B.DATA_TYPE, A.DATA_TYPE) as DATA_TYPE, " +
+    "coalesce(E.DATA_LENGTH, B.DATA_LENGTH, A.DATA_LENGTH) as DATA_LENGTH, " +
+    "coalesce(E.`DECIMAL`, B.`DECIMAL`, A.`DECIMAL`) as `DECIMAL`, " +
+    "E.`UNSIGNED`, A.`ORDER`, A.PRIMARY_KEY, A.`AUTO_INCREMENT`" +
+    "from ATTRIBUTE as A " +
+    "left join DATA_ELEMENT as B " +
+    "  on A.DATA_ELEMENT = B.ELEMENT_ID " +
+    "left join DATA_ELEMENT_TEXT as C " +
+    "  on B.ELEMENT_ID = C.ELEMENT_ID" +
+    " and C.LANGU = 'EN' " +
+    "left join DATA_DOMAIN as E " +
+    "  on B.DOMAIN_ID = E.DOMAIN_ID " +
+    "where A.RELATION_ID = " + pool.escape(relation.RELATION_ID) + " order by `ORDER`";
   pool.query(selectSQL, function (err, attrRows) {
-    if (err)return callback(err, 'Get Relation Attributes Error');
-
+    if (err) return callback(err);
     relation.ATTRIBUTES = attrRows;
     callback(null);
   })
@@ -337,25 +351,25 @@ function _getRelationAttributes(relation, callback) {
 
 function _getRelationships(role, callback) {
   let selectSQL =
-    "select A.RELATIONSHIP_ID, A.RELATIONSHIP_DESC, A.VALID_PERIOD" +
+    "select A.RELATIONSHIP_ID, A.VALID_PERIOD" +
     "  from RELATIONSHIP as A" +
     "  join RELATIONSHIP_INVOLVES as B" +
     "    on A.RELATIONSHIP_ID = B.RELATIONSHIP_ID " +
     " where B.ROLE_ID = "+ pool.escape(role.ROLE_ID);
 
   pool.query(selectSQL, function (err, relationships) {
-    if (err) return callback(err, 'Get Relationships Error');
+    if (err) return callback(err);
 
     async.map(relationships, function(ele, callback){
       let relationship = {
         RELATIONSHIP_ID: ele.RELATIONSHIP_ID,
-        RELATIONSHIP_DESC: ele.RELATIONSHIP_DESC,
+        // RELATIONSHIP_DESC: ele.RELATIONSHIP_DESC,
         VALID_PERIOD: ele.VALID_PERIOD
       };
 
       async.parallel([
           function (callback) {
-            getRelation(relationship.RELATIONSHIP_ID, callback);
+            loadRelation(relationship.RELATIONSHIP_ID, callback);
           },
           function(callback){
             _getRelationshipInvolves(relationship, callback);
@@ -364,7 +378,7 @@ function _getRelationships(role, callback) {
           if(err){
             debug("%s.\n" +
               "Error detail: %s \n", JSON.stringify(parallelResults), err);
-            return callback(err, relationship.RELATIONSHIP_ID);
+            return callback(err);
           }
           role.RELATIONSHIPS.push(relationship);
           callback(null);
@@ -373,7 +387,7 @@ function _getRelationships(role, callback) {
       if(err){
         debug("%s.\n" +
           "Error detail: %s \n", JSON.stringify(results), err);
-        return callback(err, role.ROLE_ID);
+        return callback(err);
       }
       callback(null);
     });
@@ -384,7 +398,7 @@ function _getRelationshipInvolves(relationship, callback) {
   let selectSQL = "select ROLE_ID, CARDINALITY from RELATIONSHIP_INVOLVES where RELATIONSHIP_ID = " +
     pool.escape(relationship.RELATIONSHIP_ID);
   pool.query(selectSQL, function (err, involves) {
-    if (err) return callback(err, 'Get Relationship Involves Error');
+    if (err) return callback(err);
     relationship.INVOLVES = involves;
     callback(null);
   })
@@ -416,33 +430,65 @@ function _modifyRelations(relation){
 
 /**
  * Get the meta of an entity
- * @param entity_id
+ * @param entityID
+ * @param callback(err, entity)
  */
-function getEntityMeta(entity_id) {
-  return entities.find(function (ele) {
-    return ele.ENTITY_ID === entity_id;
-  })
+function getEntityMeta(entityID, callback) {
+  let selectSQL = "select RELOAD_IND from ENTITY where ENTITY_ID = " + pool.escape(entityID);
+  pool.query(selectSQL, function (err, entityRows) {
+    if (err) {
+      debug("Get entity %s error: %s", entityID, err);
+      return callback(err, null);
+    }
+    if (entityRows.length === 0) return callback(null, null);
+    let entityInCache = entities.find(function (entity) { return entity.ENTITY_ID === entityID;});
+    if (!entityInCache || entityInCache.RELOAD_IND !== entityRows[0].RELOAD_IND) {
+      loadEntity(entityID, function (err) {
+        if (err) callback(err, null);
+        else callback(null, entities.find(function (entity) { return entity.ENTITY_ID === entityID;}));
+      })
+    } else {
+      return callback(null, entityInCache);
+    }
+  });
 }
 
 /**
  * Get the meta of a relation
- * @param relation_id
+ * @param relationID
+ * @param callback(err, relationMeta)
  */
-function getRelationMeta(relation_id) {
-  return relations.find(function (ele) {
-    return ele.RELATION_ID === relation_id;
-  })
+function getRelationMeta(relationID, callback) {
+  let selectSQL = "select RELOAD_IND from RELATION where RELATION_ID = " + pool.escape(relationID);
+  pool.query(selectSQL, function (err, relationRows) {
+    if (err) {
+      debug("Get relation %s error: %s", relationID, err);
+      return callback(err, null);
+    }
+    if (relationRows.length === 0) return callback(null, null);
+    let relationInCache = relations.find(function (relation) {
+      return relation.RELATION_ID === relationID;
+    });
+    if (!relationInCache || relationInCache.RELOAD_IND !== relationRows[0].RELOAD_IND) {
+      loadRelation(relationID, function (err) {
+        if (err) callback(err, null);
+        else callback(null, relations.find(function (relation) {return relation.RELATION_ID === relationID;}));
+      })
+    } else {
+      return callback(null, relationInCache);
+    }
+  });
 }
 
 /**
  * Check whether the relation definition is consistent with DB table
  * @param relation
- * @param callback
+ * @param callback(err, result)
  */
 function checkDBConsistency(relation, callback) {
   if (!relation || !relation.RELATION_ID) return callback('Relation ID is not provided!');
   let selectSQL = "select column_comment as 'ATTR_GUID', column_name as 'ATTR_NAME', ordinal_position as 'ORDER', " +
-    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_key, extra " +
+    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_type, column_key, extra " +
     "from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='MDB' and TABLE_NAME = " + pool.escape(relation.RELATION_ID) +
     " order by ordinal_position";
 
@@ -464,7 +510,6 @@ function checkDBConsistency(relation, callback) {
     }
 
     result.tableExists = true;
-
     columns.forEach(function (column) {
       if (column.ATTR_NAME === 'INSTANCE_GUID') return;
       const attribute = relation.ATTRIBUTES.find(function (ele) {
@@ -486,12 +531,21 @@ function checkDBConsistency(relation, callback) {
                   DIFFERENCE: "Character length " + attribute.DATA_LENGTH + " is different with the DB data length " + column.DATA_LENGTH});
               }
               break;
+            case 'int':
+              const isColumnUnsigned = column['column_type'] === 'int(11) unsigned';
+              const isAttributeUnsigned = !(attribute.UNSIGNED === undefined || attribute.UNSIGNED === null || attribute.UNSIGNED === 0);
+              if (isColumnUnsigned !== isAttributeUnsigned) {
+                result.changedAttributes.push(
+                  {ATTR_NAME: attribute.ATTR_NAME,
+                    DIFFERENCE: "Integer unsigned or not is different with DB table"});
+              }
+              break;
             case 'decimal':
               if (attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale']) {
                 result.changedAttributes.push(
                   {ATTR_NAME: attribute.ATTR_NAME,
                     DIFFERENCE: "Decimal (" + attribute.DATA_LENGTH + "," + attribute.DECIMAL + ") is different with the DB decimal ("
-                      + column.DATA_LENGTH + "," + attribute.DECIMAL + ")"});
+                      + column['numeric_precision'] + "," + column['numeric_scale'] + ")"});
               }
               break;
             default:
@@ -550,12 +604,12 @@ function checkDBConsistency(relation, callback) {
  ADD PRIMARY KEY (`ORDER`, `INSTANCE_GUID`),
  ADD UNIQUE INDEX `ORDER_UNIQUE` (`ORDER` ASC);
  * @param relation
- * @param callback
+ * @param callback(err)
  */
 function syncDBTable(relation, callback) {
 
   let selectSQL = "select column_comment as 'ATTR_GUID', column_name as 'ATTR_NAME', ordinal_position as 'ORDER', " +
-    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_key, extra " +
+    "DATA_TYPE, CHARACTER_MAXIMUM_LENGTH as 'DATA_LENGTH', numeric_precision, numeric_scale, column_type, column_key, extra " +
     "from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='MDB' and TABLE_NAME = " + pool.escape(relation.RELATION_ID) +
     " order by ordinal_position";
 
@@ -573,100 +627,148 @@ function syncDBTable(relation, callback) {
     let alterTable = '';
     const primaryKeys = [];
     let isPrimaryKeyChanged = false;
-    columns.forEach(function (column) {
-      if (column.ATTR_NAME === 'INSTANCE_GUID') return;
+    async.mapSeries(columns, function (column, callback) {
+      if (column.ATTR_NAME === 'INSTANCE_GUID') return callback(null);
       const attribute = relation.ATTRIBUTES.find(function (ele) {
         return column.ATTR_GUID === ele.ATTR_GUID;
       });
       if (attribute) {
-        let changeColumn = " change column " + pool.escapeId(column.ATTR_NAME) + " " + pool.escapeId(attribute.ATTR_NAME);
-        let isChanged = column.ATTR_NAME !== attribute.ATTR_NAME;
-        let sqlType = _map2sqlType(attribute.DATA_TYPE);
-        switch (sqlType){
-          case 'varchar':
-            changeColumn += " varchar(" + attribute.DATA_LENGTH + ")";
-            isChanged = isChanged || attribute.DATA_LENGTH !== column.DATA_LENGTH;
-            break;
-          case 'decimal':
-            changeColumn += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
-            isChanged = isChanged || attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale'] ;
-            break;
-          default:
-            changeColumn += " " + sqlType;
-        }
-        isChanged = isChanged || sqlType !== column.DATA_TYPE;
-
-        if (attribute.PRIMARY_KEY){
-          changeColumn += " NOT NULL";
-          if (attribute.AUTO_INCREMENT) changeColumn += " AUTO_INCREMENT";
-          isChanged = isChanged || (column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
-            (column['extra'] === 'auto_increment' && !attribute.AUTO_INCREMENT);
-          primaryKeys.push(attribute.ATTR_NAME);
-          if (column['column_key'] !== 'PRI') isPrimaryKeyChanged = true;
+        if (attribute.DATA_ELEMENT) {
+          _getDataElementDataType(attribute.DATA_ELEMENT, function (err, dataElement) {
+            if (err) return callback(err);
+            attribute.DATA_TYPE = dataElement.DATA_TYPE;
+            attribute.DATA_LENGTH = dataElement.DATA_LENGTH;
+            attribute.DECIMAL = dataElement.DECIMAL;
+            __composeChangeColumnScript(column, attribute, dataElement.UNSIGNED);
+            callback(null);
+          })
         } else {
-          changeColumn += " NULL DEFAULT NULL";
-          if (column['column_key'] === 'PRI') {
-            isPrimaryKeyChanged = true;
-            isChanged = true;
-          }
+          __composeChangeColumnScript(column, attribute);
+          callback(null);
         }
-        if(isChanged)
-          alterTable += changeColumn + " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
       } else {
         alterTable += " drop column " + pool.escapeId(column.ATTR_NAME) + ",";
+        callback(null);
       }
+      }, function (err) {
+      if (err) return callback(err);
+      async.mapSeries(relation.ATTRIBUTES, function (attribute, callback) {
+        const found = columns.findIndex(function (ele) {
+          return attribute.ATTR_GUID === ele.ATTR_GUID;
+        });
+        if (found > -1) return callback(null);
+        // Not exist in DB table, then add them
+        if (attribute.DATA_ELEMENT) {
+          _getDataElementDataType(attribute.DATA_ELEMENT, function (err, dataElement) {
+            if (err) return callback(err);
+            attribute.DATA_TYPE = dataElement.DATA_TYPE;
+            attribute.DATA_LENGTH = dataElement.DATA_LENGTH;
+            attribute.DECIMAL = dataElement.DECIMAL;
+            __composeAddColumnScript(attribute, dataElement.UNSIGNED);
+            callback(null);
+          });
+        } else {
+          __composeAddColumnScript(attribute);
+          callback(null);
+        }
+      }, function (err) {
+        if (err) callback(err);
+        else __closeSyncDBTable(callback);
+      })
     });
 
-    relation.ATTRIBUTES.forEach(function (attribute) {
-      const found = columns.findIndex(function (ele) {
-        return attribute.ATTR_GUID === ele.ATTR_GUID;
-      });
-      if (found === -1){ // Not exist in DB table
-        alterTable += " add column " + pool.escapeId(attribute.ATTR_NAME);
-        let sqlType = _map2sqlType(attribute.DATA_TYPE);
-        switch (sqlType){
-          case 'varchar':
-            alterTable += " varchar(" + attribute.DATA_LENGTH + ")";
-            break;
-          case 'decimal':
-            alterTable += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
-            break;
-          default:
-            alterTable += " " + sqlType;
-        }
-        if (attribute.PRIMARY_KEY){
-          alterTable += " NOT NULL";
-          if (attribute.AUTO_INCREMENT) alterTable += " AUTO_INCREMENT";
-          primaryKeys.push(attribute.ATTR_NAME);
+    function __composeChangeColumnScript(column, attribute, unsigned) {
+      let changeColumn = " change column " + pool.escapeId(column.ATTR_NAME) + " " + pool.escapeId(attribute.ATTR_NAME);
+      let isChanged = column.ATTR_NAME !== attribute.ATTR_NAME;
+      const sqlType = _map2sqlType(attribute.DATA_TYPE);
+      switch (sqlType){
+        case 'varchar':
+          changeColumn += " varchar(" + attribute.DATA_LENGTH + ")";
+          isChanged = isChanged || attribute.DATA_LENGTH !== column.DATA_LENGTH;
+          break;
+        case 'int':
+          const intType = unsigned ? "int(11) unsigned" : "int(11)";
+          changeColumn += " " + intType;
+          isChanged = isChanged || column['column_type'] !== intType;
+          break;
+        case 'decimal':
+          changeColumn += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
+          isChanged = isChanged || attribute.DATA_LENGTH !== column['numeric_precision'] || attribute.DECIMAL !== column['numeric_scale'] ;
+          break;
+        default:
+          changeColumn += " " + sqlType;
+      }
+      isChanged = isChanged || sqlType !== column.DATA_TYPE;
+
+      if (attribute.PRIMARY_KEY){
+        changeColumn += " NOT NULL";
+        if (attribute.AUTO_INCREMENT) changeColumn += " AUTO_INCREMENT";
+        isChanged = isChanged || (column['extra'] !== 'auto_increment' && attribute.AUTO_INCREMENT) ||
+          (column['extra'] === 'auto_increment' && !attribute.AUTO_INCREMENT);
+        primaryKeys.push(attribute.ATTR_NAME);
+        if (column['column_key'] !== 'PRI') isPrimaryKeyChanged = true;
+      } else {
+        changeColumn += " NULL DEFAULT NULL";
+        if (column['column_key'] === 'PRI') {
           isPrimaryKeyChanged = true;
-        } else {
-          alterTable += " NULL DEFAULT NULL";
+          isChanged = true;
         }
-        alterTable += " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
       }
-    });
-
-    if(isPrimaryKeyChanged) {
-      alterTable += "drop primary key, ";
-      let addPrimaryKey = "add primary key (";
-      if (relation.RELATION_ID.substring(0,2) === 'r_' && primaryKeys.length === 0)
-        return callback('Relation must have primary key(s)');
-      primaryKeys.forEach(function (primaryKey, i) {
-        if (i === 0){
-          addPrimaryKey += pool.escapeId(primaryKey);
-        } else {
-          addPrimaryKey += ", " + pool.escapeId(primaryKey);
-        }
-      });
-      alterTable += addPrimaryKey + ")";
-    }else{
-      alterTable = alterTable.slice(0, -1); // Remove the last ","
+      if(isChanged)
+        alterTable += changeColumn + " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
     }
 
-    if (alterTable){
-      executeSQL("alter table " + pool.escapeId(relation.RELATION_ID) + alterTable, callback);
-    } else {
-      callback(null);
+    function __composeAddColumnScript(attribute, unsigned) {
+      alterTable += " add column " + pool.escapeId(attribute.ATTR_NAME);
+      const sqlType = _map2sqlType(attribute.DATA_TYPE);
+      switch (sqlType){
+        case 'varchar':
+          alterTable += " varchar(" + attribute.DATA_LENGTH + ")";
+          break;
+        case 'int':
+          const intType = unsigned ? "int(11) unsigned" : "int(11)";
+          alterTable += " " + intType;
+          break;
+        case 'decimal':
+          alterTable += " decimal(" + attribute.DATA_LENGTH + "," + attribute.DECIMAL+ ")";
+          break;
+        default:
+          alterTable += " " + sqlType;
+      }
+      if (attribute.PRIMARY_KEY){
+        alterTable += " NOT NULL";
+        if (attribute.AUTO_INCREMENT) alterTable += " AUTO_INCREMENT";
+        primaryKeys.push(attribute.ATTR_NAME);
+        isPrimaryKeyChanged = true;
+      } else {
+        alterTable += " NULL DEFAULT NULL";
+      }
+      alterTable += " COMMENT " + pool.escape(attribute.ATTR_GUID) + ",";
+    }
+
+    function __closeSyncDBTable(callback) {
+      if(isPrimaryKeyChanged) {
+        alterTable += "drop primary key, ";
+        let addPrimaryKey = "add primary key (";
+        if (relation.RELATION_ID.substring(0,2) === 'r_' && primaryKeys.length === 0)
+          return callback('Relation must have primary key(s)');
+        primaryKeys.forEach(function (primaryKey, i) {
+          if (i === 0){
+            addPrimaryKey += pool.escapeId(primaryKey);
+          } else {
+            addPrimaryKey += ", " + pool.escapeId(primaryKey);
+          }
+        });
+        alterTable += addPrimaryKey + ")";
+      }else{
+        alterTable = alterTable.slice(0, -1); // Remove the last ","
+      }
+
+      if (alterTable){
+        executeSQL("alter table " + pool.escapeId(relation.RELATION_ID) + alterTable, callback);
+      } else {
+        callback(null);
+      }
     }
   })
 }
@@ -690,9 +792,30 @@ function createDBTable(relation, callback) {
   if (relation.RELATION_ID.substring(0,2) !== 'r_') { // Entity or Relationship
     createTable += "`INSTANCE_GUID` varchar(32) NOT NULL, ";
   }
-  relation.ATTRIBUTES.forEach(function(attribute){
+
+  async.mapSeries(relation.ATTRIBUTES, function (attribute, callback) {
+    if (attribute.DATA_ELEMENT) {
+      _getDataElementDataType(attribute.DATA_ELEMENT, function (err, dataElement) {
+        if (err) callback(err);
+        attribute.DATA_TYPE = dataElement.DATA_TYPE;
+        attribute.DATA_LENGTH = dataElement.DATA_LENGTH;
+        attribute.DECIMAL = dataElement.DECIMAL;
+        __composeTableColumnScript(attribute, dataElement.UNSIGNED);
+        callback(null);
+      })
+    } else {
+      __composeTableColumnScript(attribute, false);
+      callback(null)
+    }
+  }, function (err) {
+    if (err) callback(err);
+    else __closeCreateTable(callback);
+  });
+
+  function __composeTableColumnScript(attribute, unsigned) {
     createTable += pool.escapeId(attribute.ATTR_NAME) + " " +
       _generateColumnType(attribute.DATA_TYPE, attribute.DATA_LENGTH, attribute.DECIMAL);
+    if (attribute.DATA_TYPE === 2 && unsigned) createTable += " UNSIGNED ";
     if(attribute.PRIMARY_KEY){
       primaryKeys.push(attribute.ATTR_NAME);
       createTable += " NOT NULL ";
@@ -701,28 +824,63 @@ function createDBTable(relation, callback) {
       createTable += " NULL ";
     }
     createTable += "COMMENT " + pool.escape(attribute.ATTR_GUID) + ", ";
-  });
-  if (relation.RELATION_ID.substring(0,2) === 'r_'){
-    createTable += " `INSTANCE_GUID` varchar(32) NULL";
-    if (primaryKeys.length === 0){
-      return callback("Relation must have primary key(s)");
-    }else{
-      createTable += ", PRIMARY KEY ";
-      primaryKeys.forEach(function (primaryKey, i) {
-        if (i === 0){
-          createTable += "(" + pool.escapeId(primaryKey);
-        } else {
-          createTable += "," + pool.escapeId(primaryKey);
-        }
-      });
-      createTable += "))";
-    }
-  } else {
-    if (primaryKeys.length > 0)
-      return callback("Entity or Relationship table doesn't have primary key other than INSTANCE_GUID");
-    createTable += " PRIMARY KEY (`INSTANCE_GUID`))";
   }
-  executeSQL(createTable, callback);
+
+  function __closeCreateTable(callback) {
+    if (relation.RELATION_ID.substring(0,2) === 'r_'){
+      createTable += " `INSTANCE_GUID` varchar(32) NULL";
+      if (primaryKeys.length === 0){
+        return callback("Relation must have primary key(s)");
+      }else{
+        createTable += ", PRIMARY KEY ";
+        primaryKeys.forEach(function (primaryKey, i) {
+          if (i === 0){
+            createTable += "(" + pool.escapeId(primaryKey);
+          } else {
+            createTable += "," + pool.escapeId(primaryKey);
+          }
+        });
+        createTable += "))";
+      }
+    } else {
+      if (primaryKeys.length > 0)
+        return callback("Entity or Relationship table doesn't have primary key other than INSTANCE_GUID");
+      createTable += " PRIMARY KEY (`INSTANCE_GUID`))";
+    }
+    executeSQL(createTable, callback);
+  }
+}
+
+function _getDataElementDataType(elementID, callback) {
+  let selectSQL = "select DOMAIN_ID, DATA_TYPE, DATA_LENGTH, `DECIMAL` from DATA_ELEMENT " +
+                  "where ELEMENT_ID = " + pool.escape(elementID);
+  pool.query(selectSQL, function (err, rows) {
+    if (err) {
+      debug("Get data element '%s' error: %s", elementID, err);
+      return callback(err);
+    }
+    const dataElement = rows[0];
+    if (!dataElement) return callback('Data element "' + elementID + '" does not exist.');
+    if (dataElement.DOMAIN_ID) {
+      _getDataDomainDataType(dataElement.DOMAIN_ID, callback);
+    } else {
+      callback(null, dataElement);
+    }
+  })
+}
+
+function _getDataDomainDataType(domainID, callback) {
+  let selectSQL = "select DOMAIN_ID, DATA_TYPE, DATA_LENGTH, `DECIMAL`, `UNSIGNED` from DATA_DOMAIN " +
+                  "where DOMAIN_ID = " + pool.escape(domainID);
+  pool.query(selectSQL, function (err, rows) {
+    if (err) {
+      debug("Get data domain '%s' error: %s", domainID, err);
+      callback(err);
+    } else {
+      if (!rows[0]) callback('Data domain "' + domainID + '" does not exist.');
+      else callback(null, rows[0]);
+    }
+  })
 }
 
 function _map2sqlType(dataType) {
@@ -736,6 +894,9 @@ function _generateColumnType(dataType, length, decimal) {
   switch (dataType) {
     case 1: // varchar
       columnType = 'varchar(' + length + ')';
+      break;
+    case 2: // int
+      columnType = 'int(11)';
       break;
     case 3: // boolean
       columnType = 'tinyint(1)';

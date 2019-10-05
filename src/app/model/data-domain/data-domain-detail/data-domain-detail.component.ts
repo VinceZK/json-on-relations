@@ -147,6 +147,7 @@ export class DataDomainDetailComponent implements OnInit {
       this.dataDomainForm.get('DOMAIN_ID').setAsyncValidators(
         this.uniqueDataDomainValidator.validate.bind(this.uniqueDataDomainValidator));
       this.dataDomainForm.get('DATA_TYPE').enable();
+      this.dataDomainForm.get('DOMAIN_TYPE').enable();
       this.dataDomainForm.get('DATA_TYPE').markAsDirty(); // Default value mark as dirty
       this.dataDomainForm.get('DATA_LENGTH').markAsDirty(); // Default value mark as dirty
       this.dataDomainForm.get('DOMAIN_TYPE').markAsDirty(); // Default value mark as dirty
@@ -508,7 +509,6 @@ export class DataDomainDetailComponent implements OnInit {
         }
       });
     }
-    console.log(this.changedDataDomain);
     this.entityService.saveDataDomain(this.changedDataDomain)
       .subscribe(data => this._postActivityAfterSavingDataDomain(data));
   }

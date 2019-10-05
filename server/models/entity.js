@@ -62,14 +62,26 @@ module.exports = {
   hardDeleteByID: hardDeleteByID
 };
 
-function getEntityMeta(entityID) {
-  let entityMeta = entityDB.getEntityMeta(entityID);
-  return entityMeta? entityMeta : [message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', entityID)];
+function getEntityMeta(entityID, callback) {
+  entityDB.getEntityMeta(entityID, function(err, entityMeta) {
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+    if (entityMeta) {
+      callback(entityMeta);
+    } else {
+      callback([message.report('ENTITY', 'ENTITY_META_NOT_EXIST', 'E', entityID)]);
+    }
+  });
 }
 
-function getRelationMeta(relationID) {
-  let relationMeta = entityDB.getRelationMeta(relationID);
-  return relationMeta? relationMeta : [message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID)];
+function getRelationMeta(relationID, callback) {
+  entityDB.getRelationMeta(relationID, function(err, relationMeta) {
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+    if (relationMeta) {
+      callback(relationMeta);
+    } else {
+      callback([message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationID)]);
+    }
+  });
 }
 
 function getRelationMetaOfEntity(entityID) {

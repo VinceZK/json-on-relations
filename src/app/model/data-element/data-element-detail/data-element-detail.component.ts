@@ -144,6 +144,8 @@ export class DataElementDetailComponent implements OnInit {
 
     if (this.dataElementForm.get('USE_DOMAIN').value) {
       this.dataElementForm.get('DOMAIN_ID').setValidators(Validators.required);
+    } else {
+      this.dataElementForm.get('DOMAIN_ID').clearValidators();
     }
     this._updateLengthAndDecimal(this.dataElementForm);
   }
@@ -155,6 +157,8 @@ export class DataElementDetailComponent implements OnInit {
         this.uniqueDataElementValidator.validate.bind(this.uniqueDataElementValidator));
       this.dataElementForm.get('USE_DOMAIN').enable();
       this.dataElementForm.get('DATA_TYPE').enable();
+      this.dataElementForm.get('DATA_TYPE').markAsDirty(); // Default value mark as dirty
+      this.dataElementForm.get('DATA_LENGTH').markAsDirty(); // Default value mark as dirty
     } else {
       this.dataElementForm.get('ELEMENT_ID').clearValidators();
       this.dataElementForm.get('ELEMENT_ID').clearAsyncValidators();
@@ -232,12 +236,7 @@ export class DataElementDetailComponent implements OnInit {
   _switch2EditMode(): void {
     this.readonly = false;
     this.dataElementForm.get('USE_DOMAIN').enable();
-    if (this.dataElementForm.get('USE_DOMAIN').value) {
-      this.dataElementForm.get('DATA_TYPE').disable();
-    } else {
-      this.dataElementForm.get('DATA_TYPE').enable();
-      this._updateLengthAndDecimal(this.dataElementForm);
-    }
+    this._setUseDomain(this.dataElementForm);
   }
 
   onChangeDataElementID(): void {
@@ -249,33 +248,42 @@ export class DataElementDetailComponent implements OnInit {
   }
 
   onChangeUseDomain(formGroup: AbstractControl): void {
+    this._setUseDomain(formGroup, true);
+  }
+
+  _setUseDomain(formGroup: AbstractControl, markAsDirty: boolean = false): void {
+    console.log(formGroup.get('USE_DOMAIN').value);
     if (formGroup.get('USE_DOMAIN').value) {
       formGroup.get('DOMAIN_ID').enable();
       formGroup.get('DOMAIN_ID').setValidators(Validators.required);
-      formGroup.get('DOMAIN_ID').setValue('');
-      formGroup.get('DATA_TYPE').disable();
-      formGroup.get('DATA_TYPE').setValue(null);
-      formGroup.get('DATA_TYPE').markAsDirty();
-      formGroup.get('DATA_LENGTH').disable();
-      formGroup.get('DATA_LENGTH').setValue(null);
-      formGroup.get('DATA_LENGTH').markAsDirty();
-      formGroup.get('DECIMAL').disable();
-      formGroup.get('DECIMAL').setValue(null);
-      formGroup.get('DECIMAL').markAsDirty();
+      // formGroup.get('DOMAIN_ID').setValue('');
+      this._invalidField(formGroup.get('DATA_TYPE'), markAsDirty);
+      this._invalidField(formGroup.get('DATA_LENGTH'), markAsDirty);
+      this._invalidField(formGroup.get('DECIMAL'), markAsDirty);
     } else {
-      formGroup.get('DOMAIN_ID').setValue('');
-      formGroup.get('DOMAIN_ID').markAsDirty();
-      formGroup.get('DOMAIN_ID').disable();
-      formGroup.get('DOMAIN_ID').clearValidators();
+      console.log('cleared');
+      this._invalidField(formGroup.get('DOMAIN_ID'), markAsDirty);
       formGroup.get('DATA_TYPE').enable();
-      formGroup.get('DATA_TYPE').setValue(1); // Char by default
-      formGroup.get('DATA_TYPE').markAsDirty();
       formGroup.get('DATA_LENGTH').enable();
-      formGroup.get('DATA_LENGTH').setValue(10);
-      formGroup.get('DATA_LENGTH').markAsDirty();
       formGroup.get('DECIMAL').enable();
+      if (!formGroup.get('DATA_TYPE').value) {
+        formGroup.get('DATA_TYPE').setValue(1);
+        formGroup.get('DATA_TYPE').markAsDirty();
+        if (!formGroup.get('DATA_LENGTH').value) {
+          formGroup.get('DATA_LENGTH').setValue(10);
+          formGroup.get('DATA_LENGTH').markAsDirty();
+        }
+      }
       this._updateLengthAndDecimal(formGroup);
     }
+  }
+
+  _invalidField(fieldCtrl: AbstractControl, markAsDirty: boolean = false): void {
+    fieldCtrl.clearValidators();
+    fieldCtrl.clearAsyncValidators();
+    fieldCtrl.disable();
+    fieldCtrl.setValue(null);
+    if (markAsDirty) { fieldCtrl.markAsDirty(); }
   }
 
   onChangeDataType(formGroup: AbstractControl): void {

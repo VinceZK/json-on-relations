@@ -18,7 +18,7 @@ describe('mysql connections tests', function () {
       dateStrings: true,
       port: 3306
     });
-    entityDB.loadEntity('person', done);
+    done();
   });
 
   /**
@@ -66,13 +66,13 @@ describe('mysql connections tests', function () {
    * }]
    */
   describe('#loadEntity(person)', function () {
-    it('should have the person entity', function () {
-      // console.log(entityDB.getEntityMeta('person').ROLES);
-      entityDB.entities.length.should.eql(1);
-      entityDB.getEntityMeta('person').ENTITY_ID.should.eql('person');
-      entityDB.getEntityMeta('person').ROLES.should.containDeep(
-        [ { ROLE_ID: 'system_user',
-            ROLE_DESC: 'System user for login',
+    it('should have the person entity', function (done) {
+      entityDB.entities.length.should.eql(0);
+      entityDB.getEntityMeta('person', function (err, personEntity) {
+        should(err).eql(null);
+        personEntity.ENTITY_ID.should.eql('person');
+        personEntity.ROLES.should.containDeep(
+          [ { ROLE_ID: 'system_user',
             CONDITIONAL_ATTR: 'SYSTEM_ACCESS',
             CONDITIONAL_VALUE: 'portal',
             RELATIONS: [
@@ -82,45 +82,60 @@ describe('mysql connections tests', function () {
             RELATIONSHIPS: [
               {
                 RELATIONSHIP_ID: 'rs_user_role',
-                RELATIONSHIP_DESC: 'A system user has multiple system roles ',
                 VALID_PERIOD: 0,
                 INVOLVES: [
                   { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' },
                   { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' }
-                  ]
+                ]
               }
             ]
           },
-          { ROLE_ID: 'employee',
-            ROLE_DESC: 'Company Employee',
-            CONDITIONAL_ATTR: 'TYPE',
-            CONDITIONAL_VALUE: 'employee',
-            RELATIONS: [
-              { RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
-              { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
-              { RELATION_ID: 'r_employee', CARDINALITY: '[1..1]' }]},
-        ]);
+            { ROLE_ID: 'employee',
+              CONDITIONAL_ATTR: 'TYPE',
+              CONDITIONAL_VALUE: 'employee',
+              RELATIONS: [
+                { RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
+                { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
+                { RELATION_ID: 'r_employee', CARDINALITY: '[1..1]' }]},
+          ]);
+        done();
+      });
     });
 
-    it('should have the relations', function(){
+    it('should have the relations', function(done){
       entityDB.relations.should.containDeep([{RELATION_ID: 'person'},{RELATION_ID: 'rs_user_role'},
                                              {RELATION_ID: 'r_employee'},{RELATION_ID: 'r_user'}]);
-      entityDB.getRelationMeta('person').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'},{ATTR_NAME: 'HOBBY'}]);
-      entityDB.getRelationMeta('rs_user_role').ATTRIBUTES.should.containDeep([{ATTR_NAME: 'SYNCED'}]);
-      entityDB.getRelationMeta('r_user')
-        .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
-        FIELDS_MAPPING: [ { LEFT_FIELD: 'USER_ID', RIGHT_FIELD: 'USER_ID' } ] }]);
-      entityDB.getRelationMeta('r_employee')
-        .ASSOCIATIONS.should.containDeep([{ RIGHT_RELATION_ID: 'r_company', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
-        FIELDS_MAPPING: [ { LEFT_FIELD: 'COMPANY_ID', RIGHT_FIELD: 'COMPANY_ID' } ] }]);
-    })
-  });
-
-  describe('#checkDBConsistency', function () {
-    it('should get passed for relation person', function (done) {
-      let relation = entityDB.getRelationMeta('r_address');
-      entityDB.checkDBConsistency(relation, function (err, results) {
+      entityDB.getRelationMeta('person', function (err, personRelation) {
         should(err).eql(null);
+        personRelation.ATTRIBUTES.should.containDeep([{ATTR_NAME: 'HEIGHT'},{ATTR_NAME: 'HOBBY'}]);
+        done();
+      });
+    });
+
+    it('should have the relation rs_user_role', function (done) {
+      entityDB.getRelationMeta('rs_user_role', function (err, relation) {
+        should(err).eql(null);
+        relation.ATTRIBUTES.should.containDeep([{ATTR_NAME: 'SYNCED'}]);
+        done();
+      })
+    });
+
+    it('should have the relation r_user', function (done) {
+      entityDB.getRelationMeta('r_user', function (err, relation) {
+        should(err).eql(null);
+        relation.ASSOCIATIONS.should.containDeep(
+          [{ RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
+            FIELDS_MAPPING: [ { LEFT_FIELD: 'USER_ID', RIGHT_FIELD: 'USER_ID' } ] }]);
+        done();
+      })
+    });
+
+    it('should have the relation r_employee', function (done) {
+      entityDB.getRelationMeta('r_employee', function (err, relation) {
+        should(err).eql(null);
+        relation.ASSOCIATIONS.should.containDeep(
+          [{ RIGHT_RELATION_ID: 'r_company', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
+            FIELDS_MAPPING: [ { LEFT_FIELD: 'COMPANY_ID', RIGHT_FIELD: 'COMPANY_ID' } ] }]);
         done();
       })
     });
@@ -131,7 +146,7 @@ describe('mysql connections tests', function () {
     relation.ATTRIBUTES = [
       { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test001',
         ATTR_NAME: 'FIELD1', DATA_TYPE: 1, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
-        DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0,  },
+        DATA_LENGTH: 100, DECIMAL: 0, AUTO_INCREMENT: 0,  },
       { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test001',
         ATTR_NAME: 'FIELD2', DATA_TYPE: 2, PRIMARY_KEY: 1,ATTR_DESC: null, DATA_ELEMENT: null,
         DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 1,  },
@@ -158,7 +173,11 @@ describe('mysql connections tests', function () {
     it('should create a DB table "r_test001"', function (done) {
       entityDB.createDBTable(relation, function (err) {
         should(err).eql(null);
-        entityDB.executeSQL("drop table `r_test001`", done);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          entityDB.executeSQL("drop table `r_test001`", done);
+        });
       });
     });
 
@@ -176,7 +195,11 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES[1].AUTO_INCREMENT = 0;
       entityDB.createDBTable(relation, function (err) {
         should(err).eql(null);
-        entityDB.executeSQL("drop table `test001`", done);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          entityDB.executeSQL("drop table `test001`", done);
+        });
       });
     });
 
@@ -186,9 +209,139 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES[1].AUTO_INCREMENT = 0;
       entityDB.createDBTable(relation, function (err) {
         should(err).eql(null);
-        entityDB.executeSQL("drop table `rs_test001`", done);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          entityDB.executeSQL("drop table `rs_test001`", done);
+        });
       });
     });
+
+    it('should create a DB table "r_test001" with data elements', function (done) {
+      relation.RELATION_ID = 'r_test001';
+      relation.ATTRIBUTES[1].PRIMARY_KEY = 1;
+      relation.ATTRIBUTES[1].AUTO_INCREMENT = 1;
+      const relation2 = {
+        RELATION_ID : 'r_test001',
+        ATTRIBUTES : [
+          { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD1', PRIMARY_KEY: 0, DATA_ELEMENT: 'DESCRIPTION_SHORT'},
+          { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD2', PRIMARY_KEY: 1, DATA_ELEMENT: 'INTEGER', AUTO_INCREMENT: 1},
+          { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD3', PRIMARY_KEY: 0, DATA_ELEMENT: 'BOOLEAN'},
+          { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD4', PRIMARY_KEY: 0, DATA_ELEMENT: 'AMOUNT'},
+          { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD5', PRIMARY_KEY: 0, DATA_ELEMENT: 'DESCRIPTION_UNLIMIT'},
+          { ATTR_GUID: 'C741889F45D74E16821EF50A5DC94BE5', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD6', PRIMARY_KEY: 0, DATA_ELEMENT: 'BINARY'},
+          { ATTR_GUID: '87B2AFE983C34C628A4D271280C2642C', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD7', PRIMARY_KEY: 0, DATA_ELEMENT: 'DATE' },
+          { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test002',
+            ATTR_NAME: 'FIELD8', PRIMARY_KEY: 0, DATA_ELEMENT: 'TIMESTAMP'}]
+      };
+      entityDB.createDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          entityDB.executeSQL("drop table `r_test001`", done);
+        });
+      });
+    });
+
+    it('should create a DB table "r_test001" with data elements and data domains', function (done) {
+      relation.RELATION_ID = 'r_test001';
+      relation.ATTRIBUTES[1].PRIMARY_KEY = 1;
+      relation.ATTRIBUTES[1].AUTO_INCREMENT = 1;
+      relation.ATTRIBUTES[0].DATA_LENGTH = 64;
+      const relation2 = {
+        RELATION_ID : 'r_test001',
+        ATTRIBUTES : [
+          { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD1', PRIMARY_KEY: 0, DATA_ELEMENT: 'ROLE_NAME'},
+          { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD2', PRIMARY_KEY: 1, DATA_ELEMENT: 'VERSION_NO', AUTO_INCREMENT: 1},
+          { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD3', PRIMARY_KEY: 0, DATA_ELEMENT: 'BOOLEAN'},
+          { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD4', PRIMARY_KEY: 0, DATA_ELEMENT: 'AMOUNT_LC'},
+          { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD5', PRIMARY_KEY: 0, DATA_ELEMENT: 'TEXT'},
+          { ATTR_GUID: 'C741889F45D74E16821EF50A5DC94BE5', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD6', PRIMARY_KEY: 0, DATA_ELEMENT: 'BINARY'},
+          { ATTR_GUID: '87B2AFE983C34C628A4D271280C2642C', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD7', PRIMARY_KEY: 0, DATA_ELEMENT: 'EFFECTIVE_DATE' },
+          { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD8', PRIMARY_KEY: 0, DATA_ELEMENT: 'CREATE_TIME'}]
+      };
+      entityDB.createDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          result.should.containDeep(
+            {
+              tableExists: true,
+              attributesOnlyInRelation: [],
+              attributesOnlyInTable: [],
+              changedAttributes: [
+                {ATTR_NAME: 'FIELD2', DIFFERENCE: 'Integer unsigned or not is different with DB table'}
+              ]
+            });
+          entityDB.executeSQL("drop table `r_test001`", done);
+        });
+      });
+    });
+
+    it('should return the expected check result', function (done) {
+      relation.ATTRIBUTES[1].PRIMARY_KEY = 0;
+      relation.ATTRIBUTES[1].AUTO_INCREMENT = 0;
+      relation.ATTRIBUTES[0].DATA_LENGTH = 100;
+      const relation2 = {
+        RELATION_ID : 'r_test001',
+        ATTRIBUTES : [
+          { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD1', PRIMARY_KEY: 0, DATA_ELEMENT: 'ROLE_NAME'},
+          { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD2', PRIMARY_KEY: 1, DATA_ELEMENT: 'VERSION_NO', AUTO_INCREMENT: 1},
+          { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD3', PRIMARY_KEY: 0, DATA_ELEMENT: 'BOOLEAN'},
+          { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD4', DATA_TYPE: 4, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
+            DATA_LENGTH: 22, DECIMAL: 3, AUTO_INCREMENT: 0,  },
+          { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD5', PRIMARY_KEY: 0, DATA_ELEMENT: 'TEXT'},
+          { ATTR_GUID: '93D75A540EF04ACF91D7A89BE05A79DF', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELDX', PRIMARY_KEY: 0, DATA_ELEMENT: 'DATE'},
+          { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test001',
+            ATTR_NAME: 'FIELD8', DATA_TYPE: 8, PRIMARY_KEY: 0, ATTR_DESC: null, DATA_ELEMENT: null,
+            DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 }]
+      };
+      entityDB.createDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          result.should.containDeep(
+            {
+              tableExists: true,
+              attributesOnlyInRelation: [ 'FIELD6', 'FIELD7' ],
+              attributesOnlyInTable: [ 'FIELDX' ],
+              changedAttributes: [
+                { ATTR_NAME: 'FIELD1',
+                  DIFFERENCE: 'Character length 100 is different with the DB data length 64' },
+                { ATTR_NAME: 'FIELD2',
+                  DIFFERENCE: 'Integer unsigned or not is different with DB table' },
+                { ATTR_NAME: 'FIELD2',
+                  DIFFERENCE: 'Primary key is still checked in DB' },
+                { ATTR_NAME: 'FIELD4',
+                  DIFFERENCE: 'Decimal (23,2) is different with the DB decimal (22,3)' }
+              ]
+            });
+          entityDB.executeSQL("drop table `r_test001`", done);
+        });
+      });
+    })
   });
 
   describe('#syncDBTable()', function () {
@@ -257,7 +410,11 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES[1].PRIMARY_KEY = true;
       entityDB.syncDBTable(relation, function (err) {
         should(err).eql(null);
-        done();
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          done();
+        });
       })
     });
 
@@ -266,7 +423,11 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES[0].AUTO_INCREMENT = true;
       entityDB.syncDBTable(relation, function (err) {
         should(err).eql(null);
-        done();
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          done();
+        });
       })
     });
 
@@ -276,7 +437,11 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES.splice(1, 1); // char
       entityDB.syncDBTable(relation, function (err) {
         should(err).eql(null);
-        done();
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          done();
+        });
       })
     });
 
@@ -288,28 +453,121 @@ describe('mysql connections tests', function () {
       relation.ATTRIBUTES.push(
         { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test002',
           ATTR_NAME: 'FIELD4', DATA_TYPE: 4, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
-          DATA_LENGTH: 23, DECIMAL: 2, AUTO_INCREMENT: 0 });
+          DATA_LENGTH: 17, DECIMAL: 3, AUTO_INCREMENT: 0 });
       relation.ATTRIBUTES.push(
         { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test002',
           ATTR_NAME: 'FIELD2', DATA_TYPE: 1, PRIMARY_KEY: 1,ATTR_DESC: null, DATA_ELEMENT: null,
           DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0 });
       entityDB.syncDBTable(relation, function (err) {
         should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          should(result).eql(null);
+          done();
+        });
+      })
+    });
+
+    const relation2 = {
+      RELATION_ID: 'r_test002',
+      ATTRIBUTES :[
+        { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD1',
+          DATA_TYPE: 2, PRIMARY_KEY: 1, DATA_ELEMENT: null, DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: true },
+        { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD3',
+          DATA_TYPE: 3, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: 'AA7A0438F38D46B9B4D5ABBE5586F0AE', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD5',
+          DATA_TYPE: 1, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 100, DECIMAL: 0, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: 'C741889F45D74E16821EF50A5DC94BE5', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD6',
+          DATA_TYPE: 6, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: '87B2AFE983C34C628A4D271280C2642C', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD7',
+          DATA_TYPE: 7, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: '4E298523E4744E95A8BB4333086AE0B9', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD8',
+          DATA_TYPE: 8, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: 'C476D9E702FA4C8EB3E666D3F38658FC', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD4',
+          DATA_TYPE: 4, PRIMARY_KEY: 0, DATA_ELEMENT: null, DATA_LENGTH: 23, DECIMAL: 2, AUTO_INCREMENT: 0 },
+        { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD2',
+          DATA_TYPE: 1, PRIMARY_KEY: 1, DATA_ELEMENT: null, DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0 } ] };
+
+    it('should change the length of FIELD2 using DTEL ROLE_NAME', function (done) {
+      relation2.ATTRIBUTES[7].DATA_ELEMENT = 'ROLE_NAME';
+      entityDB.syncDBTable(relation2, function (err) {
+        should(err).eql(null);
         done();
       })
     });
 
+    it('should change FIELD5 from CHAR100 to TEXT using DTEL TEXT', function (done) {
+      relation2.ATTRIBUTES[2].DATA_ELEMENT = 'TEXT';
+      entityDB.syncDBTable(relation2, function (err) {
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should change the length and decimal of FIELD4 using DTEL AMOUNT_LC', function (done) {
+      relation2.ATTRIBUTES[6].DATA_ELEMENT = 'AMOUNT_LC';
+      entityDB.syncDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          result.should.containDeep(
+            { tableExists: true,
+              attributesOnlyInRelation: [],
+              attributesOnlyInTable: [],
+              changedAttributes: [
+                { ATTR_NAME: 'FIELD5',
+                  DIFFERENCE: 'Data type \'varchar\' is different with the DB data type \'text\'' },
+                { ATTR_NAME: 'FIELD4',
+                  DIFFERENCE: 'Decimal (17,3) is different with the DB decimal (23,2)' },
+                { ATTR_NAME: 'FIELD2',
+                  DIFFERENCE:
+                    'Character length 32 is different with the DB data length 64' } ] });
+          done();
+        });
+      })
+    });
+
+    it('should remove FILED2', function (done) {
+      relation2.ATTRIBUTES.splice(7, 1); // FIELD2
+      entityDB.syncDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          result.should.containDeep({attributesOnlyInRelation: [ 'FIELD2' ]});
+          done();
+        });
+      })
+    });
+
+    it('should add back FILED2', function (done) {
+      relation2.ATTRIBUTES.push(
+        { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_test002', ATTR_NAME: 'FIELD2',
+          PRIMARY_KEY: 1, DATA_ELEMENT: 'ROLE_NAME' });
+      entityDB.syncDBTable(relation2, function (err) {
+        should(err).eql(null);
+        entityDB.checkDBConsistency(relation, function (err, result) {
+          should(err).eql(null);
+          result.should.containDeep({
+            attributesOnlyInRelation: [],
+            changedAttributes:
+              [ { ATTR_NAME: 'FIELD2',
+                  DIFFERENCE: 'Character length 32 is different with the DB data length 64' } ]
+          });
+          done();
+        });
+      })
+    });
     it('should drop the DB table "test002"', function (done) {
       entityDB.executeSQL("drop table `r_test002`", done);
     })
   });
 
   describe('#executeSQL()', function () {
-    it('should return tenant "darkhouse.com"', function (done) {
-      let selectSQL = "SELECT * FROM TENANTS WHERE TENANT_DOMAIN = 'darkhouse.com'";
+    it('should return entity "person"', function (done) {
+      let selectSQL = "SELECT * FROM ENTITY WHERE ENTITY_ID = 'person'";
       entityDB.executeSQL(selectSQL, function (err, rows) {
         if (err) throw err;
-        rows[0].TENANT_DOMAIN.should.equal('darkhouse.com');
+        rows[0].ENTITY_ID.should.equal('person');
         done();
       })
     })
@@ -443,11 +701,11 @@ describe('mysql connections tests', function () {
     });
 
     it('should load 2 entities', function (done) {
-      entityDB.loadEntities(['person', 'system_role'],done);
+      entityDB.loadEntities(['person', 'permission'],done);
     });
 
     it('should have 2 entities and 5 relations', function () {
-      entityDB.entities.should.containDeep([{ENTITY_ID: 'person'},{ENTITY_ID: 'system_role'}]);
+      entityDB.entities.should.containDeep([{ENTITY_ID: 'person'},{ENTITY_ID: 'permission'}]);
       entityDB.relations.should.containDeep([{RELATION_ID: 'r_employee'},{RELATION_ID: 'r_user'},
         {RELATION_ID: 'r_address'}, {RELATION_ID: 'r_email'}, {RELATION_ID: 'r_role'}])
     });
