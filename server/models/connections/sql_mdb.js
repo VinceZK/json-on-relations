@@ -39,8 +39,8 @@ module.exports = {
   loadEntity: loadEntity,
   loadEntities: loadEntities,
   loadRelation: loadRelation,
-  listEntityID: listEntityID,
-  listEntityIDbyRole: listEntityIDbyRole,
+  // listEntityID: listEntityID,
+  // listEntityIDbyRole: listEntityIDbyRole,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
   checkDBConsistency: checkDBConsistency,
@@ -177,20 +177,20 @@ function loadEntity(entityID, done) {
   })
 }
 
-function listEntityID() {
-  return _.map(this.entities, function (entity) {
-    return entity.ENTITY_ID;
-  })
-}
-
-function listEntityIDbyRole(roleID) {
-  const entityIDs = [];
-  this.entities.forEach( entity => {
-    const idx = entity.ROLES.findIndex( role => role.ROLE_ID === roleID );
-    if (idx > -1) entityIDs.push(entity.ENTITY_ID);
-  });
-  return entityIDs;
-}
+// function listEntityID() {
+//   return _.map(this.entities, function (entity) {
+//     return entity.ENTITY_ID;
+//   })
+// }
+//
+// function listEntityIDbyRole(roleID) {
+//   const entityIDs = [];
+//   this.entities.forEach( entity => {
+//     const idx = entity.ROLES.findIndex( role => role.ROLE_ID === roleID );
+//     if (idx > -1) entityIDs.push(entity.ENTITY_ID);
+//   });
+//   return entityIDs;
+// }
 
 function _getEntityRoles(entity, callback) {
   let selectSQL =

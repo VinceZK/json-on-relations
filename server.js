@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors'); // Allow cross site requests
 const compress = require('compression');
 const path = require('path');
-const entityDB = require('./server/models/connections/sql_mdb.js');
+// const entityDB = require('./server/models/connections/sql_mdb.js');
 
 const app = express();
 
@@ -33,14 +33,16 @@ process.on('SIGINT',function(){
   process.exit()
 });
 
-entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
-  if(err) debug("bootstrap: get entities==> %s", err);
-  else {
-    const entities = [];
-    rows.forEach( row => entities.push(row.ENTITY_ID));
-    entityDB.loadEntities(entities, function (err) {
-      if(err) debug("bootstrap: load entities==> %s", err);
-      else app.listen(3000, () => console.log('Example app listening on port 3000!'));
-    })
-  }
-});
+app.listen(3000, () => console.log('Example app listening on port 3000!'));
+
+// entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
+//   if(err) debug("bootstrap: get entities==> %s", err);
+//   else {
+//     const entities = [];
+//     rows.forEach( row => entities.push(row.ENTITY_ID));
+//     entityDB.loadEntities(entities, function (err) {
+//       if(err) debug("bootstrap: load entities==> %s", err);
+//       else app.listen(3000, () => console.log('Example app listening on port 3000!'));
+//     })
+//   }
+// });

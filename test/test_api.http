@@ -303,32 +303,32 @@ Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/entity-type/list?term=people
+GET http://localhost:3000/api/model/entity-types?term=people
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/relation/list?term=person
+GET http://localhost:3000/api/model/relations?term=person
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/relationship/list?term=marriage
+GET http://localhost:3000/api/model/relationships?term=marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/relationship/rs_marriage
+GET http://localhost:3000/api/model/relationships/rs_marriage
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/role/system_role
+GET http://localhost:3000/api/model/roles/system_role
 Accept: */*
 Cache-Control: no-cache
 
 ###
-GET http://localhost:3000/api/model/role/desc/system_role
+GET http://localhost:3000/api/model/roles/system_role/desc
 Accept: */*
 Cache-Control: no-cache
 

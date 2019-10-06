@@ -5,10 +5,6 @@ const entityDB = require('../server/models/connections/sql_mdb.js');
 const query = require('../server/models/query.js');
 
 describe('query tests', function () {
-  before(function (done) {
-    entityDB.loadEntity('person', done);
-  });
-
   let queryObject =
     {
       ENTITY_ID: 'person',
@@ -42,7 +38,11 @@ describe('query tests', function () {
   it('should return query result', function(done){
     query.run(queryObject, function (errs, rows) {
       should(errs).eql(null);
-      // console.log(rows);
+      rows.should.containDeep([
+        { USER_ID: 'DH001', USER_NAME: 'VINCEZK', GIVEN_NAME: 'Vincent',
+          Company: 'Darkhouse', INSTANCE_GUID: '2FBE7490E10F11E8A90957FA46F2CECA' },
+        { USER_ID: 'DH002', USER_NAME: 'Eleven', GIVEN_NAME: 'Eleven',
+          Company: 'darkhouse', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ]);
       done();
     });
   });
@@ -113,7 +113,7 @@ describe('query tests', function () {
     queryObject.PROJECTION[0] = 'USER_ID';
     queryObject.FILTER = 'xxxxxx';
     query.run(queryObject, function (errs) {
-      errs.should.containDeep([{
+      should(errs).containDeep([{
         msgCat: 'QUERY',
         msgName: 'INVALID_FILTER',
         msgType: 'E'
@@ -241,8 +241,9 @@ describe('query tests', function () {
         ORDER: 'DESC'
       }
     ];
-    query.run(queryObject, function (errs) {
+    query.run(queryObject, function (errs, rows) {
       should(errs).eql(null);
+      console.log(rows);
       done();
     });
   });

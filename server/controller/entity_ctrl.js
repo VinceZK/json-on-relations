@@ -1,13 +1,20 @@
 const entity = require('../models/entity.js');
-const entityDB = require('../models/connections/sql_mdb.js');
 
 module.exports = {
   listEntityID: function (req, res) {
-    res.json(entityDB.listEntityID())
+    // res.json(entityDB.listEntityID())
+    entity.listAllEntityIDs(function (errs, IDs) {
+      if(errs) res.json(errs);
+      else res.json(IDs);
+    })
   },
 
   listEntityIDbyRole: function (req, res) {
-    res.json(entityDB.listEntityIDbyRole(req.params['roleID']))
+    // res.json(entityDB.listEntityIDbyRole(req.params['roleID']))
+    entity.listEntityIDbyRole(req.params['roleID'], function (errs, IDs) {
+      if(errs) res.json(errs);
+      else res.json(IDs);
+    })
   },
 
   getEntityMeta: function (req, res) {
@@ -18,9 +25,10 @@ module.exports = {
   },
 
   getEntityInstance: function (req, res, next) {
-    entity.getInstanceByGUID(req.params['instanceGUID'], function (err, instance) {
-      if(err)res.json(err);
-      else {
+    entity.getInstanceByGUID(req.params['instanceGUID'], function (errs, instance) {
+      if(errs){
+        res.json(errs);
+      } else {
         req.body = instance;
         next();
       }
@@ -56,7 +64,9 @@ module.exports = {
   },
 
   getRelationMetaOfEntity: function (req, res) {
-    res.json(entity.getRelationMetaOfEntity(req.params['entityID']));
+    entity.getRelationMetaOfEntity(req.params['entityID'], function (results) {
+      res.json(results);
+    })
   },
   
   createInstance: function (req, res, next) {

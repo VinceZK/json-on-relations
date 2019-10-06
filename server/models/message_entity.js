@@ -30,12 +30,6 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
-    msgName: "ENTITY_NOT_EXIST",
-    msgText: {
-      EN: {shortText: "Entity '%s' doesn't exist", longText: "dummy"}
-    }
-  },
-  { msgCat: "ENTITY",
     msgName: "UPDATE_DELETE_NOT_ALLOWED",
     msgText: {
       EN: {shortText: "Update and Delete are not allowed during creating a new instance", longText: "dummy"}
@@ -209,12 +203,6 @@ const msgArray = [
     msgName: "RELATION_ID_MISSING",
     msgText: {
       EN: {shortText: "Please provide a relation for the ID", longText: "dummy"}
-    }
-  },
-  { msgCat: "ENTITY",
-    msgName: "RELATION_NOT_EXIST",
-    msgText: {
-      EN: {shortText: "Relation '%s' doesn't exist", longText: "dummy"}
     }
   },
   { msgCat: "ENTITY",

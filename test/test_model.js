@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const model = require('../server/models/model.js');
 
-describe.only('model tests', function () {
+describe('model tests', function () {
 
   describe('Entity Types', function () {
     let entityType = {
