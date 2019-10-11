@@ -828,14 +828,16 @@ function listDataElement(term, callback) {
  * @param callback(err, dataElement)
  */
 function getDataElement(elementID, callback) {
-  let selectSQL = "select A.ELEMENT_ID, A.ELEMENT_DESC, A.DOMAIN_ID, A.DATA_TYPE, A.DATA_LENGTH, A.DECIMAL, " +
+  let selectSQL = "select A.ELEMENT_ID, A.ELEMENT_DESC, A.DOMAIN_ID, coalesce(C.DATA_TYPE, A.DATA_TYPE) as DATA_TYPE, " +
+    "coalesce(C.DATA_LENGTH, A.DATA_LENGTH) as DATA_LENGTH, coalesce(C.`DECIMAL`, A.`DECIMAL`) as `DECIMAL`, " +
     "A.SEARCH_HELP_ID, A.SEARCH_HELP_EXPORT_FIELD, A.PARAMETER_ID, B.LABEL_TEXT, B.LIST_HEADER_TEXT, " +
     "A.VERSION_NO, A.CREATE_BY, A.CREATE_TIME, A.LAST_CHANGE_BY, A.LAST_CHANGE_TIME " +
     "from DATA_ELEMENT as A join DATA_ELEMENT_TEXT as B on A.ELEMENT_ID = B.ELEMENT_ID " +
+    "left join DATA_DOMAIN as C on A.DOMAIN_ID = C.DOMAIN_ID " +
     "where A.ELEMENT_ID = "+ entityDB.pool.escape(elementID) + " and B.LANGU = 'EN'";
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-    if(!rows[0]) return callback(message.report('MODEL', 'DATA_ELEMENT_NOT_EXIST', 'E', ELEMENT_ID));
+    if(!rows[0]) return callback(message.report('MODEL', 'DATA_ELEMENT_NOT_EXIST', 'E', elementID));
     callback(null, rows[0]);
   })
 }

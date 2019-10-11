@@ -1,8 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
-import {EntityService} from 'jor-angular';
-import {Attribute, EntityMeta} from 'jor-angular';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../../../msgStore';
@@ -11,8 +9,7 @@ import {AttributeMetaComponent} from '../../attribute-meta/attribute-meta.compon
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
 import {UniqueEntityTypeValidator} from '../../model-validators';
-import {SearchHelpComponent} from 'jor-angular';
-import {SearchHelpMethod, SearchHelp} from 'jor-angular';
+import {SearchHelpMethod, SearchHelp, SearchHelpComponent, EntityService, Attribute, EntityMeta} from 'jor-angular';
 
 @Component({
   selector: 'app-entity-type-detail',
@@ -358,6 +355,7 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingEntityType(data: any) {
+    this.changedEntityType = {};
     if (data[0] && data[0]['ENTITY_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -367,7 +365,6 @@ export class EntityTypeDetailComponent implements OnInit {
         this.readonly = true;
         this.entityMeta = data[0];
         this.attributes = data[1].ATTRIBUTES;
-        this.changedEntityType = {};
         this._generateEntityTypeForm();
         this.messageService.reportMessage('MODEL', 'ENTITY_TYPE_SAVED', 'S',
           this.entityMeta.ENTITY_ID);

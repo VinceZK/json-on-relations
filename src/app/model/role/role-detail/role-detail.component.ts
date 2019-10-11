@@ -335,6 +335,7 @@ export class RoleDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingRole(data: any) {
+    this.changedRole = {};
     if (data && data['ROLE_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -344,7 +345,6 @@ export class RoleDetailComponent implements OnInit {
         this.readonly = true;
         this.roleMeta = data;
         this._generateRoleForm();
-        this.changedRole = {};
         this.messageService.reportMessage('MODEL', 'ROLE_SAVED', 'S', this.roleMeta.ROLE_ID);
       }
     } else {

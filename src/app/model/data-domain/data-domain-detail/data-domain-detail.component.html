@@ -149,7 +149,7 @@
               <td [formGroup]="domainValueForm"
                   [class.dk-invalid]="domainValueForm.get('LOW_VALUE').invalid && (domainValueForm.touched || domainValueForm.dirty)">
                 <div class="input-group">
-                  <input class="form-control" type="text" formControlName="LOW_VALUE"
+                  <input class="form-control" type="text" formControlName="LOW_VALUE" maxlength="10"
                          [readonly]="readonly" (change)="onChangeDomainValue(i)">
                   <div class="invalid-tooltip">
                     {{domainValueForm.get('LOW_VALUE').errors?.message}}
@@ -167,7 +167,7 @@
                 </div>
               </td>
               <td [formGroup]="domainValueForm" class="dk-description">
-                <input  class="form-control" type="text" formControlName="LOW_VALUE_TEXT"
+                <input  class="form-control" type="text" formControlName="LOW_VALUE_TEXT" maxlength="100"
                         [readonly]="readonly" (change)="onChangeDomainValue(i)">
               </td>
               <td class="dk-actions">

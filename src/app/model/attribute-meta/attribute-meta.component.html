@@ -19,9 +19,17 @@
       <tbody formArrayName="ATTRIBUTES">
         <tr *ngFor="let attrFormGroup of formArray.controls; let i = index">
           <td class="dk-actions">
-            <button class="btn btn-sm" type="button" [disabled]="readonly || isFieldGray(attrFormGroup.value)"
+            <button class="btn btn-sm" type="button" id="delete" [disabled]="readonly || isFieldGray(attrFormGroup.value)"
                     (click)="deleteAttribute(i)" title="Delete">
               <span class="far fa-trash-alt"></span>
+            </button>
+            <button class="btn btn-sm" type="button" id="add" [disabled]="readonly || isFieldGray(attrFormGroup.value)"
+                    (click)="insertAttribute(i)" title="Insert">
+              <span class="fas fa-plus"></span>
+            </button>
+            <button class="btn btn-sm" type="button" id="switch" [disabled]="readonly || isFieldGray(attrFormGroup.value)"
+                    (click)="switchBtwDEAndDT(i)" title="Switch btw Data Element and Data Type">
+              <span class="far fa-lightbulb"></span>
             </button>
           </td>
           <td [formGroup]="attrFormGroup">
@@ -32,9 +40,21 @@
             <input type="text" formControlName="ATTR_DESC" class="form-control form-control-sm dk-description"
                    [readonly]="readonly || isFieldGray(attrFormGroup.value)">
           </td>
-          <td [formGroup]="attrFormGroup">
-            <input type="text" formControlName="DATA_ELEMENT" [readonly]="readonly || isFieldGray(attrFormGroup.value)"
-                   class="form-control form-control-sm">
+          <td [formGroup]="attrFormGroup"
+              [class.dk-invalid]="attrFormGroup.get('DATA_ELEMENT').invalid && (attrFormGroup.touched || attrFormGroup.dirty)">
+            <div class="input-group dk-dataElement">
+              <input type="text" formControlName="DATA_ELEMENT" [readonly]="readonly || isFieldGray(attrFormGroup.value)"
+                     class="form-control form-control-sm" (change)="onChangeDataElement(i)">
+              <div class="invalid-tooltip">
+                {{attrFormGroup.get('DATA_ELEMENT').errors?.message}}
+              </div>
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="searchDataElement"
+                        (click)="onSearchHelp(attrFormGroup, i)">
+                  <span class="fas fa-search"></span>
+                </button>
+              </div>
+            </div>
           </td>
           <td [formGroup]="attrFormGroup">
             <select formControlName="DATA_TYPE" (change)="onChangeDataType(attrFormGroup)" class="form-control form-control-sm">
@@ -42,13 +62,12 @@
             </select>
           </td>
           <td [formGroup]="attrFormGroup">
-            <input type="number" formControlName="DATA_LENGTH" class="dk-number"
-                   class="form-control form-control-sm"
+            <input type="number" formControlName="DATA_LENGTH" class="form-control form-control-sm dk-number"
                    [readonly]="(+attrFormGroup.value.DATA_TYPE !== 1 && +attrFormGroup.value.DATA_TYPE !== 4) || readonly || isFieldGray(attrFormGroup.value)">
           </td>
           <td [formGroup]="attrFormGroup">
-            <input type="number" formControlName="DECIMAL" class="dk-number"
-                   class="form-control form-control-sm" [readonly]="+attrFormGroup.value.DATA_TYPE !== 4 || readonly || isFieldGray(attrFormGroup.value)">
+            <input type="number" formControlName="DECIMAL" class="form-control form-control-sm dk-number"
+                   [readonly]="+attrFormGroup.value.DATA_TYPE !== 4 || readonly || isFieldGray(attrFormGroup.value)">
           </td>
           <td [formGroup]="attrFormGroup" [hidden]="relationID.substring(0,2) !== 'r_'">
             <input type="checkbox" formControlName="PRIMARY_KEY">
@@ -61,3 +80,4 @@
     </table>
   </div>
 </div>
+<dk-app-search-help></dk-app-search-help>

@@ -873,7 +873,7 @@ describe('model tests', function () {
     })
   });
 
-  describe('Data Element', function () {
+  describe.only('Data Element', function () {
 
     it('should save a character data element', function (done) {
       let dataElement = {
@@ -944,7 +944,7 @@ describe('model tests', function () {
           should(err).eql(null);
           dataElement.should.containEql({
             ELEMENT_ID: 'testDataElementDomain', ELEMENT_DESC: 'Description of element',
-            DOMAIN_ID: 'HUMAN_AGE', DATA_TYPE: null, DATA_LENGTH: null, DECIMAL: null,
+            DOMAIN_ID: 'HUMAN_AGE', DATA_TYPE: 2, DATA_LENGTH: null, DECIMAL: null,
             SEARCH_HELP_ID: null, SEARCH_HELP_EXPORT_FIELD: null, VERSION_NO: 1,
             PARAMETER_ID: null, LABEL_TEXT: 'Label text', LIST_HEADER_TEXT: 'List header text'
           });

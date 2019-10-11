@@ -45,7 +45,7 @@
           <label class="custom-control-label" for="use-domain">Data Domain</label>
         </div>
         <div class="input-group col-sm-4 col-lg-4">
-          <input type="text" class="form-control form-control-sm" id="data-domain"
+          <input type="text" class="form-control form-control-sm" id="data-domain" (change)="onChangeDataDomain(dataElementForm)"
                  [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary btn-sm" type="button" id="searchDomain"
@@ -56,6 +56,7 @@
         </div>
         <span class="dk-invalid-feedback">
           {{dataElementForm.get('DOMAIN_ID').errors?.required? 'A Data Domain is required': null}}
+          {{dataElementForm.get('DOMAIN_ID').errors?.message}}
         </span>
       </div>
 

@@ -359,7 +359,7 @@ export class RelationshipDetailComponent implements OnInit {
           RELATION_ID: [relationID],
           ATTR_NAME: [currentInvolveFormGroup.value.ROLE_ID + '_INSTANCE_GUID'],
           ATTR_DESC: ['Entity Instance GUID of role ' + currentInvolveFormGroup.value.ROLE_ID],
-          DATA_ELEMENT: [''],
+          DATA_ELEMENT: [null],
           DATA_TYPE: [{value: 1, disabled: true}],
           DATA_LENGTH: [32],
           DECIMAL: [null],
@@ -373,7 +373,7 @@ export class RelationshipDetailComponent implements OnInit {
           RELATION_ID: [relationID],
           ATTR_NAME: [currentInvolveFormGroup.value.ROLE_ID + '_ENTITY_ID'],
           ATTR_DESC: ['Entity ID of role ' + currentInvolveFormGroup.value.ROLE_ID],
-          DATA_ELEMENT: [''],
+          DATA_ELEMENT: [null],
           DATA_TYPE: [{value: 1, disabled: true}],
           DATA_LENGTH: [32],
           DECIMAL: [null],
@@ -478,6 +478,7 @@ export class RelationshipDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingRelationship(data: any) {
+    this.changedRelationship = {};
     if (data[0] && data[0]['RELATIONSHIP_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -488,7 +489,6 @@ export class RelationshipDetailComponent implements OnInit {
         this.relationshipForm.get('TIME_DEPENDENT').disable();
         this.relationshipMeta = data[0];
         this.attributes = data[1].ATTRIBUTES;
-        this.changedRelationship = {};
         this._generateRelationshipForm();
         this.messageService.reportMessage('MODEL', 'RELATIONSHIP_SAVED', 'S', this.relationshipMeta.RELATIONSHIP_ID);
       }

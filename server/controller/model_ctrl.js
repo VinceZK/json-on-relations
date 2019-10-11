@@ -23,25 +23,26 @@ module.exports = {
     }
     model.saveEntityType(req.body, userID ,function (err) {
       if(err) return res.json(err);
-      entityDB.loadEntity(req.body.ENTITY_ID, function (err) {
-        if(err) res.json(err);
-        else res.json(
-          [ entityDB.getEntityMeta(req.body.ENTITY_ID),
-            entityDB.getRelationMeta(req.body.ENTITY_ID)]);
-      });
+      entityDB.getEntityMeta(req.body.ENTITY_ID, function (errs, entityMeta) {
+        if(err) return res.json(err);
+        entityDB.getRelationMeta(req.body.ENTITY_ID, function (err, relationMeta) {
+          if(err) res.json(err);
+          else res.json([entityMeta, relationMeta]);
+        })
+      })
     })
   },
 
   listRelation: function (req, res) {
-    model.listRelation(req.query.term, function (errs, rows) {
-      if(errs)res.json(errs);
+    model.listRelation(req.query.term, function (err, rows) {
+      if(err)res.json(err);
       else res.json(rows);
     })
   },
 
   getRelationDesc: function (req, res) {
-    model.getRelationDesc(req.params['relationID'], function (errs, relationDesc) {
-      if(errs)res.json(errs);
+    model.getRelationDesc(req.params['relationID'], function (err, relationDesc) {
+      if(err)res.json(err);
       else res.json(relationDesc);
     })
   },
@@ -53,30 +54,30 @@ module.exports = {
     }
     model.saveRelation(req.body, userID ,function (err) {
       if(err) return res.json(err);
-      entityDB.loadRelation(req.body.RELATION_ID, function (err) {
+      entityDB.getRelationMeta(req.body.RELATION_ID, function (errs, relationMeta) {
         if(err) res.json(err);
-        else res.json(entityDB.getRelationMeta(req.body.RELATION_ID));
-      });
+        else res.json(relationMeta);
+      })
     })
   },
 
   listRelationship: function (req, res) {
-    model.listRelationship(req.query.term, function (errs, rows) {
-      if(errs)res.json(errs);
+    model.listRelationship(req.query.term, function (err, rows) {
+      if (err) res.json(err);
       else res.json(rows);
     })
   },
 
   getRelationship: function (req, res) {
-    model.getRelationship(req.params['relationshipID'], function (errs, relationship) {
-      if(errs)res.json(errs);
+    model.getRelationship(req.params['relationshipID'], function (err, relationship) {
+      if(err) res.json(err);
       else res.json(relationship);
     })
   },
 
   getRelationshipDesc: function(req, res) {
-    model.getRelationshipDesc(req.params['relationshipID'], function (errs, relationshipDesc) {
-      if(errs)res.json(errs);
+    model.getRelationshipDesc(req.params['relationshipID'], function (err, relationshipDesc) {
+      if (err) res.json(err);
       else res.json(relationshipDesc);
     })
   },
@@ -90,10 +91,10 @@ module.exports = {
       if(err) return res.json(err);
       model.getRelationship(req.body.RELATIONSHIP_ID, function (err, relationship) {
         if(err) return res.json(err);
-        entityDB.loadRelation(req.body.RELATIONSHIP_ID, function (err) {
+        entityDB.getRelationMeta(req.body.RELATIONSHIP_ID, function (err, relationMeta) {
           if(err) res.json(err);
-          else res.json([relationship, entityDB.getRelationMeta(req.body.RELATIONSHIP_ID)]);
-        });
+          else res.json([relationship, relationMeta]);
+        })
       })
     })
   },
@@ -162,8 +163,8 @@ module.exports = {
       userID = req.user.identity.userBasic.USER_ID;
     }
     model.saveDataElement(req.body, userID, function (err) {
-      if(err) return res.json(err);
-      else{
+      if (err) res.json(err);
+      else {
         model.getDataElement(req.body.ELEMENT_ID, function (err, dataElement) {
           if(err) return res.json(err);
           else return res.json(dataElement);
@@ -199,11 +200,11 @@ module.exports = {
       userID = req.user.identity.userBasic.USER_ID;
     }
     model.saveDataDomain(req.body, userID, function (err) {
-      if(err) return res.json(err);
-      else{
+      if(err) res.json(err);
+      else {
         model.getDataDomain(req.body.DOMAIN_ID, function (err, dataDomain) {
-          if(err) return res.json(err);
-          else return res.json(dataDomain);
+          if(err) res.json(err);
+          else res.json(dataDomain);
         })
       }
     })

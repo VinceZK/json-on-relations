@@ -94,7 +94,10 @@ export class DataElementDetailComponent implements OnInit {
       {FIELD_NAME: 'DOMAIN_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly || !this.dataElementForm.get('USE_DOMAIN').value;
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control);
+    const afterExportFn = function (context: any) {
+      return () => context.onChangeDataDomain(control);
+    }(this).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
   }
 
   _generateDataElementForm(): void {
@@ -144,7 +147,9 @@ export class DataElementDetailComponent implements OnInit {
 
     if (this.dataElementForm.get('USE_DOMAIN').value) {
       this.dataElementForm.get('DOMAIN_ID').setValidators(Validators.required);
+      this.onChangeDataDomain(this.dataElementForm);
     } else {
+      this.dataElementForm.get('DOMAIN_ID').setErrors(null);
       this.dataElementForm.get('DOMAIN_ID').clearValidators();
     }
     this._updateLengthAndDecimal(this.dataElementForm);
@@ -251,17 +256,27 @@ export class DataElementDetailComponent implements OnInit {
     this._setUseDomain(formGroup, true);
   }
 
+  onChangeDataDomain(formGroup: AbstractControl): void {
+    const dataDomainCtrl = formGroup.get('DOMAIN_ID');
+    this.entityService.getDataDomain(dataDomainCtrl.value).subscribe(data => {
+      if (data['msgCat']) {
+        dataDomainCtrl.setErrors({message: data['msgShortText']});
+      } else {
+        formGroup.get('DATA_TYPE').setValue(data['DATA_TYPE']);
+        formGroup.get('DATA_LENGTH').setValue(data['DATA_LENGTH']);
+        formGroup.get('DECIMAL').setValue(data['DECIMAL']);
+      }
+    });
+  }
+
   _setUseDomain(formGroup: AbstractControl, markAsDirty: boolean = false): void {
-    console.log(formGroup.get('USE_DOMAIN').value);
     if (formGroup.get('USE_DOMAIN').value) {
       formGroup.get('DOMAIN_ID').enable();
       formGroup.get('DOMAIN_ID').setValidators(Validators.required);
-      // formGroup.get('DOMAIN_ID').setValue('');
       this._invalidField(formGroup.get('DATA_TYPE'), markAsDirty);
       this._invalidField(formGroup.get('DATA_LENGTH'), markAsDirty);
       this._invalidField(formGroup.get('DECIMAL'), markAsDirty);
     } else {
-      console.log('cleared');
       this._invalidField(formGroup.get('DOMAIN_ID'), markAsDirty);
       formGroup.get('DATA_TYPE').enable();
       formGroup.get('DATA_LENGTH').enable();
@@ -282,8 +297,10 @@ export class DataElementDetailComponent implements OnInit {
     fieldCtrl.clearValidators();
     fieldCtrl.clearAsyncValidators();
     fieldCtrl.disable();
-    fieldCtrl.setValue(null);
-    if (markAsDirty) { fieldCtrl.markAsDirty(); }
+    if (markAsDirty) {
+      fieldCtrl.setValue(null);
+      fieldCtrl.markAsDirty();
+    }
   }
 
   onChangeDataType(formGroup: AbstractControl): void {
@@ -391,6 +408,7 @@ export class DataElementDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingDataElement(data: any) {
+    this.changedDataElement = {};
     if (data['ELEMENT_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -399,7 +417,6 @@ export class DataElementDetailComponent implements OnInit {
       } else {
         this._switch2DisplayMode();
         this.dataElementMeta = data;
-        this.changedDataElement = {};
         this._generateDataElementForm();
         this.messageService.reportMessage('MODEL', 'DATA_ELEMENT_SAVED', 'S', this.dataElementMeta.ELEMENT_ID);
       }

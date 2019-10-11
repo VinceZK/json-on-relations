@@ -404,8 +404,10 @@ export class DataDomainDetailComponent implements OnInit {
     fieldCtrl.clearValidators();
     fieldCtrl.clearAsyncValidators();
     fieldCtrl.disable();
-    isArray ? (<FormArray>fieldCtrl).clear() : fieldCtrl.setValue(null);
-    if (markAsDirty) { fieldCtrl.markAsDirty(); }
+    if (markAsDirty) {
+      isArray ? (<FormArray>fieldCtrl).clear() : fieldCtrl.setValue(null);
+      fieldCtrl.markAsDirty();
+    }
   }
 
   onChangeDomainValue(index: number): void {
@@ -514,6 +516,7 @@ export class DataDomainDetailComponent implements OnInit {
   }
 
   _postActivityAfterSavingDataDomain(data: any) {
+    this.changedDataDomain = {};
     if (data['DOMAIN_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -522,7 +525,6 @@ export class DataDomainDetailComponent implements OnInit {
       } else {
         this._switch2DisplayMode();
         this.dataDomainMeta = data;
-        this.changedDataDomain = {};
         this._generateDataDomainForm();
         this.messageService.reportMessage('MODEL', 'DATA_DOMAIN_SAVED', 'S', this.dataDomainMeta.DOMAIN_ID);
       }

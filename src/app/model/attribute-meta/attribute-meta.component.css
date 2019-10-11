@@ -5,17 +5,17 @@
   border: none;
 }
 .dk-actions{
-  width: 3rem;
-  min-width: 3rem;
-  max-width: 3rem;
+  width: 6rem;
 }
 .dk-description{
-  width: 15rem;
-  min-width: 15rem;
-  max-width: 15rem;
+  min-width: 12rem;
+  max-width: 20rem;
+}
+.dk-dataElement{
+  min-width: 12rem;
+  max-width: 20rem;
 }
 .dk-number{
-  width: 6rem;
-  min-width: 6rem;
+  min-width: 4rem;
   max-width: 6rem;
 }

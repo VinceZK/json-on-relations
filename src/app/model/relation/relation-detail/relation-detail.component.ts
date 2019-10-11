@@ -514,6 +514,7 @@ export class RelationDetailComponent implements OnInit {
 
 
   _postActivityAfterSavingRelation(data: any) {
+    this.changedRelation = {};
     if (data['RELATION_ID']) {
       if (this.isNewMode) {
         this.isNewMode = false;
@@ -522,7 +523,6 @@ export class RelationDetailComponent implements OnInit {
       } else {
         this.readonly = true;
         this.relationMeta = data;
-        this.changedRelation = {};
         this._generateRelationForm();
         this.messageService.reportMessage('MODEL', 'RELATION_SAVED', 'S', this.relationMeta.RELATION_ID);
       }
