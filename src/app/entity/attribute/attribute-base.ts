@@ -1,30 +1,20 @@
-export class AttributeBase<T> {
+export class AttributeBase {
+  controlType: string;
   key: string;
   name: string;
   label: string;
+  list_label: string;
   relationId: string;
+  maxLength?: number;
+  step?: string;
+  placeholder?: string;
+  pattern?: string;
   primaryKey: boolean;
-  unique: boolean;
   autoIncrement: boolean;
-  controlType: string;
+  dropdownList: DropdownList[] = [];
+}
 
-  constructor(options: {
-    key?: string,
-    name?: string,
-    label?: string,
-    relationId?: string,
-    primaryKey?: boolean,
-    unique?: boolean,
-    autoIncrement?: boolean,
-    controlType?: string
-  } = {}) {
-    this.key = options.key || '';
-    this.name = options.name || '';
-    this.label = options.label || '';
-    this.relationId = options.relationId || '';
-    this.primaryKey = options.primaryKey;
-    this.unique = options.unique;
-    this.autoIncrement = options.autoIncrement;
-    this.controlType = options.controlType || '';
-  }
+class DropdownList {
+  key: string | number;
+  value?: string;
 }

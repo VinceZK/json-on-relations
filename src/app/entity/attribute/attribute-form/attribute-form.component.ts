@@ -11,9 +11,10 @@ export class AttributeFormComponent implements OnInit {
 
   constructor() { }
 
-  @Input() attributeControl: AttributeBase<any>;
+  @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
   ngOnInit() {
+
   }
 }

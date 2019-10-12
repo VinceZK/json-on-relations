@@ -36,11 +36,9 @@ module.exports = {
   entities: entities,
   relations: relations,
   setConnPool: setConnPool,
-  loadEntity: loadEntity,
+  // loadEntity: loadEntity,
   loadEntities: loadEntities,
-  loadRelation: loadRelation,
-  // listEntityID: listEntityID,
-  // listEntityIDbyRole: listEntityIDbyRole,
+  // loadRelation: loadRelation,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
   checkDBConsistency: checkDBConsistency,
@@ -177,25 +175,12 @@ function loadEntity(entityID, done) {
   })
 }
 
-// function listEntityID() {
-//   return _.map(this.entities, function (entity) {
-//     return entity.ENTITY_ID;
-//   })
-// }
-//
-// function listEntityIDbyRole(roleID) {
-//   const entityIDs = [];
-//   this.entities.forEach( entity => {
-//     const idx = entity.ROLES.findIndex( role => role.ROLE_ID === roleID );
-//     if (idx > -1) entityIDs.push(entity.ENTITY_ID);
-//   });
-//   return entityIDs;
-// }
-
 function _getEntityRoles(entity, callback) {
   let selectSQL =
-    "SELECT A.ROLE_ID, A.CONDITIONAL_ATTR, A.CONDITIONAL_VALUE, C.RELATION_ID, C.CARDINALITY" +
+    "SELECT A.ROLE_ID, B.ROLE_DESC, A.CONDITIONAL_ATTR, A.CONDITIONAL_VALUE, C.RELATION_ID, C.CARDINALITY" +
     "  FROM ENTITY_ROLES AS A" +
+    "  JOIN ROLE AS B" +
+    "    ON A.ROLE_ID = B.ROLE_ID" +
     "  LEFT JOIN ROLE_RELATION AS C" +
     "    ON A.ROLE_ID = C.ROLE_ID" +
     " WHERE A.ENTITY_ID = " + pool.escape(entity.ENTITY_ID);
@@ -211,6 +196,7 @@ function _getEntityRoles(entity, callback) {
       if (idx === -1) {
         let roleInstance = {
             ROLE_ID: role.ROLE_ID,
+            ROLE_DESC: role.ROLE_DESC,
             CONDITIONAL_ATTR: role.CONDITIONAL_ATTR,
             CONDITIONAL_VALUE: role.CONDITIONAL_VALUE,
             RELATIONS: [],
@@ -332,7 +318,7 @@ function _getRelationAttributes(relation, callback) {
     "coalesce(E.DATA_TYPE, B.DATA_TYPE, A.DATA_TYPE) as DATA_TYPE, " +
     "coalesce(E.DATA_LENGTH, B.DATA_LENGTH, A.DATA_LENGTH) as DATA_LENGTH, " +
     "coalesce(E.`DECIMAL`, B.`DECIMAL`, A.`DECIMAL`) as `DECIMAL`, " +
-    "E.`UNSIGNED`, A.`ORDER`, A.PRIMARY_KEY, A.`AUTO_INCREMENT`" +
+    "E.`DOMAIN_TYPE`, E.`UNSIGNED`, E.`CAPITAL_ONLY`, E.`REG_EXPR`, A.`ORDER`, A.PRIMARY_KEY, A.`AUTO_INCREMENT`" +
     "from ATTRIBUTE as A " +
     "left join DATA_ELEMENT as B " +
     "  on A.DATA_ELEMENT = B.ELEMENT_ID " +
@@ -345,6 +331,11 @@ function _getRelationAttributes(relation, callback) {
   pool.query(selectSQL, function (err, attrRows) {
     if (err) return callback(err);
     relation.ATTRIBUTES = attrRows;
+    relation.ATTRIBUTES.forEach( attribute => {
+      if (attribute.DATA_TYPE !== 1 && attribute.DATA_TYPE !== 4 ) {
+        attribute.DATA_LENGTH = '';
+      }
+    });
     callback(null);
   })
 }

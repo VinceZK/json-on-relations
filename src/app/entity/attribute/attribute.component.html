@@ -1,14 +1,55 @@
 <div [formGroup]="formGroup">
   <div [ngSwitch]="attributeControl.controlType">
-    <input *ngSwitchCase="'text'" [formControlName]="attributeControl.name" [id]="attributeControl.key"
-           [type]="attributeControl['type']" [readonly]="isReadonly" class="form-control form-control-sm">
-
-    <select *ngSwitchCase="'dropdown'" [formControlName]="attributeControl.name" [id]="attributeControl.key"
-            [disabled]="isReadonly">
-      <option *ngFor="let opt of attributeControl['options']" [value]="opt.key">{{opt.value}}</option>
+    <input *ngSwitchCase="'text'" type="text" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [maxlength]="attributeControl.maxLength"
+           [pattern]="attributeControl.pattern"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'text_capital'" type="text" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [maxlength]="attributeControl.maxLength"
+           (keyup)="onKeyup(attributeControl.name)"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'integer'" type="number" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [pattern]="attributeControl.pattern"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'decimal'" type="number" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [step]="attributeControl.step"
+           [placeholder]="attributeControl.placeholder"
+           [pattern]="attributeControl.pattern"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'checkbox'" type="checkbox" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key">
+    <input *ngSwitchCase="'textarea'" type="textarea" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'file'" type="file" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'date'" type="date" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'datetime-local'" type="datetime-local" class="form-control form-control-sm"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           [readonly]="isReadonly" >
+    <select *ngSwitchCase="'dropdown'" class="form-control form-control-sm"
+            [formControlName]="attributeControl.name"
+            [id]="attributeControl.key">
+      <option *ngFor="let opt of attributeControl.dropdownList" [value]="opt.key">{{opt.value}}</option>
     </select>
   </div>
 
-  <div class="errorMessage" *ngIf="!isValid">{{attributeControl.label}} is required</div>
+  <div class="errorMessage" *ngIf="!isValid">{{errorMessage}}</div>
 </div>
 

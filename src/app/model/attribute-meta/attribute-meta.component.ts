@@ -84,7 +84,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
       DATA_LENGTH: [{value: '', disabled: true}],
       DECIMAL: [null],
       PRIMARY_KEY: [false],
-      AUTO_INCREMENT: [{value: '', disabled: true}]
+      AUTO_INCREMENT: [{value: false, disabled: true}]
     });
   }
 

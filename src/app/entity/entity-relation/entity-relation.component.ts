@@ -10,7 +10,7 @@ import {AttributeControlService} from '../attribute/attribute-control.service';
   styleUrls: ['./entity-relation.component.css']
 })
 export class EntityRelationComponent implements OnInit {
-  attributeControls: AttributeBase<any>[];
+  attributeControls: AttributeBase[];
   relationAttributes: Attribute[];
 
   constructor(private attributeControlService: AttributeControlService) {}

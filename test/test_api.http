@@ -81,7 +81,7 @@ Content-Type: application/json
 
 ### Get an entity instance through its UUID
 ### The return is an entity instance in JSON format. The relationships are also included
-GET http://localhost:3000/api/entity/instance/2FBE7490E10F11E8A90957FA46F2CECA
+GET http://localhost:3000/api/entity/instance/430C8BB0E1C611E8877F9D5C9668A7A3
 Accept: */*
 Cache-Control: no-cache
 

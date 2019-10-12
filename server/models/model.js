@@ -1076,12 +1076,16 @@ function saveDataDomain(dataDomain, userID, callback) {
       updateSQL += ", `UNSIGNED` = " + entityDB.pool.escape(dataDomain.UNSIGNED);
       syncDBTableIndicator = true;
     }
-    if (dataDomain.CAPITAL_ONLY !== undefined)
+    if (dataDomain.CAPITAL_ONLY !== undefined) {
       updateSQL += ", CAPITAL_ONLY = " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY);
+      syncDBTableIndicator = true;
+    }
     if (dataDomain.RELATION_ID !== undefined)
       updateSQL += ", RELATION_ID = " + entityDB.pool.escape(dataDomain.RELATION_ID);
-    if (dataDomain.REG_EXPR !== undefined)
+    if (dataDomain.REG_EXPR !== undefined) {
       updateSQL += ", REG_EXPR = " + entityDB.pool.escape(dataDomain.REG_EXPR);
+      syncDBTableIndicator = true;
+    }
     updateSQL += " where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
     updateSQLs.push(updateSQL);
     if (dataDomain.DOMAIN_VALUES && dataDomain.DOMAIN_VALUES.length > 0) {

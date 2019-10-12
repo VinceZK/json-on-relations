@@ -39,9 +39,16 @@ export class Attribute {
   ATTR_NAME: string;
   ATTR_DESC?: string;
   DATA_ELEMENT?: string;
+  DOMAIN_ID?: string;
+  DOMAIN_TYPE?: number;
+  REG_EXPR?: string;
+  LABEL_TEXT?: string;
+  LIST_HEADER_TEXT?: string;
   DATA_TYPE: number;
   DATA_LENGTH?: number;
   DECIMAL?: number;
+  CAPITAL_ONLY?: boolean;
+  UNSIGNED?: boolean;
   ORDER?: number;
   PRIMARY_KEY?: boolean;
   AUTO_INCREMENT?: boolean;

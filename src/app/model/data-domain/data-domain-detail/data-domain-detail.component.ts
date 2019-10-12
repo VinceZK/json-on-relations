@@ -183,6 +183,9 @@ export class DataDomainDetailComponent implements OnInit {
     if (c.enabled && !c.value) {
       return {message: 'Please give a decimal place'};
     }
+    if (c.value < 1 || c.value > 37) {
+      return {message: 'Decimal place can only between 1 and 37'};
+    }
     return null;
   }
 

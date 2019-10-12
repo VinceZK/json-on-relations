@@ -10,7 +10,7 @@ import {Attribute} from 'jor-angular';
   styleUrls: ['./entity-attribute.component.css']
 })
 export class EntityAttributeComponent implements OnInit {
-  attributeControls: AttributeBase<any>[];
+  attributeControls: AttributeBase[];
 
   constructor(private attributeControlService: AttributeControlService) { }
   @Input() formGroup: FormGroup;

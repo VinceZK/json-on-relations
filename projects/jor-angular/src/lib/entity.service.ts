@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject, Relation, RelationMeta, RelationshipH, RoleH} from './entity';
+import {DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject,
+        Relation, RelationMeta, RelationshipH, RoleH} from './entity';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
 

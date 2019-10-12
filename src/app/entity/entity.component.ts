@@ -90,6 +90,8 @@ export class EntityComponent implements OnInit {
           this.entityMeta = <EntityMeta>data[0];
           this.relationMetas = <RelationMeta[]>data[1];
           this._createFormFromMeta();
+          this.readonly ? this.attributeControlService.switch2DisplayMode4SpecialCtrls() :
+            this.attributeControlService.switch2EditMode4SpecialCtrls();
         }
         this.messageService.clearMessages();
     });
@@ -101,7 +103,7 @@ export class EntityComponent implements OnInit {
   get enabledEntityRoles() {return this.entityMeta.ROLES.filter( role => {
     if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
       const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
-      return conditionalValues.includes(this.formGroup.get(this.entityMeta.ENTITY_ID).value[role.CONDITIONAL_ATTR]);
+      return conditionalValues.includes(this.formGroup.get([this.entityMeta.ENTITY_ID, role.CONDITIONAL_ATTR]).value);
     } else {
       return true;
     }});
@@ -110,7 +112,7 @@ export class EntityComponent implements OnInit {
     const role = this.entityMeta.ROLES.find( roleMeta => roleMeta.ROLE_ID === relationship.SELF_ROLE_ID);
     if (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE) {
       const conditionalValues = role.CONDITIONAL_VALUE.split(`,`);
-      return conditionalValues.includes(this.formGroup.get(this.entityMeta.ENTITY_ID).value[role.CONDITIONAL_ATTR]);
+      return conditionalValues.includes(this.formGroup.get([this.entityMeta.ENTITY_ID, role.CONDITIONAL_ATTR]).value);
     } else {
       return true;
     }});
@@ -139,11 +141,13 @@ export class EntityComponent implements OnInit {
 
   _switch2EditMode(): void {
     this.readonly = false;
+    this.attributeControlService.switch2EditMode4SpecialCtrls();
     window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=change`);
   }
 
   _switch2DisplayMode(): void {
     this.readonly = true;
+    this.attributeControlService.switch2DisplayMode4SpecialCtrls();
     this.formGroup.markAsPristine();
     window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=display`);
   }
@@ -582,11 +586,10 @@ export class EntityComponent implements OnInit {
 
   _postActivityAfterSaving(data: any) {
     if (data['ENTITY_ID']) {
-      this.readonly = true;
       this.entity = data;
       this._refreshFormGroupValue(this.entity);
       this.formGroup.reset(this.formGroup.value);
-      window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID}`);
+      this._switch2DisplayMode();
       this.messageService.reportMessage('ENTITY', 'ENTITY_SAVED', 'S');
     } else if (Array.isArray(data)) {
       // Error messages are always an array

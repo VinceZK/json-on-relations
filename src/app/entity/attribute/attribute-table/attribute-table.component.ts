@@ -17,7 +17,7 @@ export class AttributeTableComponent implements OnInit {
 
   constructor() {}
 
-  @Input() attributeControls: AttributeBase<any>[];
+  @Input() attributeControls: AttributeBase[];
   @Input() formArray: FormArray;
   @Input() parentFormGroup: FormGroup;
   @Input() entityRelation: EntityRelation;

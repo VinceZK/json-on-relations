@@ -19,7 +19,7 @@ export class EntityRelationshipComponent implements OnInit {
   isModalShown = false;
   currentTime: string;
   detailValue: RelationshipInstance;
-  attributeControls: AttributeBase<any>[];
+  attributeControls: AttributeBase[];
   relationshipFormGroup: FormGroup;
   relationshipAttributes: Attribute[] = [];
   readonlyValidFrom: boolean;

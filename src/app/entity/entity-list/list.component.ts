@@ -145,6 +145,7 @@ export class ListComponent implements OnInit {
         break;
       case 4: // FLOAT
         columnDisplay['type'] =  'numeric';
+        columnDisplay['numericFormat'] = {};
         columnDisplay['numericFormat']['pattern'] = '0.00';
         break;
       case 5: // String

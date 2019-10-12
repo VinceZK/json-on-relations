@@ -41,8 +41,8 @@
   <div *ngIf="entityMeta">
 
     <app-entity-relation *ngFor="let entityRelation of entityRelations" [parentFormGroup]="formGroup"
-                         [entityRelations] = "entityRelations" [entityRelation]="entityRelation"
-                         [formGroup]="formGroup.controls[entityRelation.RELATION_ID]" [readonly]="readonly">
+                         [entityRelations]="entityRelations" [entityRelation]="entityRelation"
+                         [formGroup]="formGroup.get(entityRelation.RELATION_ID)" [readonly]="readonly">
 
     </app-entity-relation>
 
