@@ -8,7 +8,7 @@ import {DialogService} from '../../../dialog.service';
 import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
-import {DataDomainMeta, SearchHelpComponent, EntityService} from 'jor-angular';
+import {DataDomainMeta, SearchHelpComponent, EntityService, SearchHelp, SearchHelpMethod} from 'jor-angular';
 
 @Component({
   selector: 'app-data-domain-detail',
@@ -23,6 +23,7 @@ export class DataDomainDetailComponent implements OnInit {
   dataDomainForm: FormGroup;
   dataTypes = [];
   changedDataDomain = {};
+  relationsOfEntity = [];
   bypassProtection = false;
   isSearchListShown = true;
   enableGeneralType = false;
@@ -80,6 +81,7 @@ export class DataDomainDetailComponent implements OnInit {
         this.messageService.clearMessages();
         this.dataDomainMeta = <DataDomainMeta>data;
         this._generateDataDomainForm();
+        this._getRelationsOfEntity(false);
       }
     });
 
@@ -104,6 +106,7 @@ export class DataDomainDetailComponent implements OnInit {
       this.dataDomainForm.get('UNSIGNED').setValue(this.dataDomainMeta.UNSIGNED);
       this.dataDomainForm.get('CAPITAL_ONLY').setValue(this.dataDomainMeta.CAPITAL_ONLY);
       this.dataDomainForm.get('REG_EXPR').setValue(this.dataDomainMeta.REG_EXPR);
+      this.dataDomainForm.get('ENTITY_ID').setValue(this.dataDomainMeta.ENTITY_ID);
       this.dataDomainForm.get('RELATION_ID').setValue(this.dataDomainMeta.RELATION_ID);
       (<FormArray>this.dataDomainForm.get('DOMAIN_VALUES')).clear();
       if (this.readonly) {
@@ -121,7 +124,8 @@ export class DataDomainDetailComponent implements OnInit {
         UNSIGNED: [{value: this.dataDomainMeta.UNSIGNED, disabled: this.readonly}],
         CAPITAL_ONLY: [{value: this.dataDomainMeta.CAPITAL_ONLY, disabled: this.readonly}],
         REG_EXPR: [this.dataDomainMeta.REG_EXPR],
-        RELATION_ID: [this.dataDomainMeta.RELATION_ID],
+        ENTITY_ID: [this.dataDomainMeta.ENTITY_ID],
+        RELATION_ID: [{value: this.dataDomainMeta.RELATION_ID, disabled: this.readonly}],
         DOMAIN_VALUES: this.fb.array([])
       });
       this._setNewModeState();
@@ -188,7 +192,12 @@ export class DataDomainDetailComponent implements OnInit {
     }
     return null;
   }
-
+  _validateEntityID(c: FormControl) {
+    if (c.enabled && !c.value) {
+      return {message: 'Please give an entity'};
+    }
+    return null;
+  }
   _validateRelationID(c: FormControl) {
     if (c.enabled && !c.value) {
       return {message: 'Please give a relation'};
@@ -235,12 +244,14 @@ export class DataDomainDetailComponent implements OnInit {
     this.dataDomainForm.get('DATA_TYPE').disable();
     this.dataDomainForm.get('UNSIGNED').disable();
     this.dataDomainForm.get('CAPITAL_ONLY').disable();
+    this.dataDomainForm.get('RELATION_ID').disable();
   }
 
   _switch2EditMode(): void {
     this.readonly = false;
     this.dataDomainForm.get('DOMAIN_TYPE').enable();
     this.dataDomainForm.get('DATA_TYPE').enable();
+    this._setDomainType(this.dataDomainForm, false);
     this._updateLengthAndDecimal(this.dataDomainForm, false);
   }
 
@@ -256,6 +267,41 @@ export class DataDomainDetailComponent implements OnInit {
     this._setDomainType(formGroup, true);
   }
 
+  onEntitySearchHelp(control: AbstractControl): void {
+    const searchHelpMeta = new SearchHelp();
+    searchHelpMeta.OBJECT_NAME = 'Entity ID';
+    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
+      return (searchTerm: string): Observable<object[]> => entityService.listEntityType(searchTerm);
+    }(this.entityService);
+    searchHelpMeta.BEHAVIOUR = 'M';
+    searchHelpMeta.MULTI = false;
+    searchHelpMeta.FUZZY_SEARCH = true;
+    searchHelpMeta.FIELDS = [
+      {FIELD_NAME: 'ENTITY_ID', FIELD_DESC: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ENTITY_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+    ];
+    searchHelpMeta.READ_ONLY = this.readonly || this.dataDomainForm.get('DOMAIN_TYPE').value !== 2;
+    const afterExportFn = function (context: any) {
+      return () => context.onChangeEntityID(control);
+    }(this).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+  }
+
+  onChangeEntityID(formGroup: AbstractControl): void {
+    this._getRelationsOfEntity(true);
+  }
+
+  _getRelationsOfEntity(setDefault: boolean): void {
+    this.entityService.getRelationMetaOfEntity(this.dataDomainForm.get('ENTITY_ID').value)
+      .subscribe(entityRelations => {
+        this.relationsOfEntity = entityRelations.map(relationMeta => relationMeta.RELATION_ID )
+          .filter(relationId => relationId.substr(0, 2) !== 'rs' );
+        if (setDefault) {
+          this.dataDomainForm.get('RELATION_ID').setValue(this.relationsOfEntity[0]);
+        }
+      });
+  }
+
   _setDomainType(formGroup: AbstractControl, markAsDirty: boolean): void {
     if (markAsDirty) { formGroup.get('DOMAIN_TYPE').markAsDirty(); }
     switch (+formGroup.get('DOMAIN_TYPE').value) {
@@ -268,6 +314,7 @@ export class DataDomainDetailComponent implements OnInit {
           this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         }
         this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
+        this._invalidField(formGroup.get('ENTITY_ID'), markAsDirty);
         this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
         this._invalidField(formGroup.get('DOMAIN_VALUES'), markAsDirty, true);
         break;
@@ -276,12 +323,17 @@ export class DataDomainDetailComponent implements OnInit {
         if (!this.readonly) { formGroup.get('REG_EXPR').enable(); }
         this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
+        this._invalidField(formGroup.get('ENTITY_ID'), markAsDirty);
         this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
         this._invalidField(formGroup.get('DOMAIN_VALUES'), markAsDirty, true);
         break;
       case 2: // Value Relation
+        formGroup.get('ENTITY_ID').setValidators(this._validateEntityID);
         formGroup.get('RELATION_ID').setValidators(this._validateRelationID);
-        if (!this.readonly) { formGroup.get('RELATION_ID').enable(); }
+        if (!this.readonly) {
+          formGroup.get('ENTITY_ID').enable();
+          formGroup.get('RELATION_ID').enable();
+        }
         this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
         this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
@@ -289,6 +341,7 @@ export class DataDomainDetailComponent implements OnInit {
         break;
       case 3: // Value Array
         if (!this.readonly) { formGroup.get('DOMAIN_VALUES').enable(); }
+        this._invalidField(formGroup.get('ENTITY_ID'), markAsDirty);
         this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
         this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
         this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
@@ -297,6 +350,7 @@ export class DataDomainDetailComponent implements OnInit {
         break;
       case 4: // Value Interval
         if (!this.readonly) { formGroup.get('DOMAIN_VALUES').enable(); }
+        this._invalidField(formGroup.get('ENTITY_ID'), markAsDirty);
         this._invalidField(formGroup.get('RELATION_ID'), markAsDirty);
         this._invalidField(formGroup.get('REG_EXPR'), markAsDirty);
         this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
@@ -502,6 +556,9 @@ export class DataDomainDetailComponent implements OnInit {
     }
     if (this.dataDomainForm.get('REG_EXPR').dirty) {
       this.changedDataDomain['REG_EXPR'] = this.dataDomainForm.get('REG_EXPR').value;
+    }
+    if (this.dataDomainForm.get('ENTITY_ID').dirty) {
+      this.changedDataDomain['ENTITY_ID'] = this.dataDomainForm.get('ENTITY_ID').value;
     }
     if (this.dataDomainForm.get('RELATION_ID').dirty) {
       this.changedDataDomain['RELATION_ID'] = this.dataDomainForm.get('RELATION_ID').value;

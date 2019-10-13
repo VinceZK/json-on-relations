@@ -109,13 +109,25 @@
              [class.dk-invalid]="dataDomainForm.get('RELATION_ID').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
           <input type="radio" class="custom-control-input" id="value-relation" name="DOMAIN_TYPE"
                  [value]="2" formControlName="DOMAIN_TYPE" (change)="onChangeDomainType(dataDomainForm)">
-          <label class="custom-control-label" for="value-relation">Value Relation
-            <span class="dk-invalid-feedback">{{dataDomainForm.get('RELATION_ID').errors?.message}}</span>
+          <label class="custom-control-label" for="value-relation">Value Entity Relation
+            <span class="dk-invalid-feedback">
+              {{dataDomainForm.get('ENTITY_ID').errors?.message}}
+            </span>
           </label>
         </div>
-        <div class="card-body">
-          <input type="text" formControlName="RELATION_ID" id="RELATION_ID" name="RELATION_ID"
-                 class="form-control form-control-sm col-4" [readonly]="readonly" >
+        <div class="card-body row">
+          <div class="input-group col-4">
+            <input type="text" formControlName="ENTITY_ID" id="ENTITY_ID" name="ENTITY_ID" placeholder="Entity Type"
+                   class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeEntityID(dataDomainForm)">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="searchEntity" (click)="onEntitySearchHelp(dataDomainForm)">
+                <span class="fas fa-search"></span>
+              </button>
+            </div>
+          </div>
+          <select formControlName="RELATION_ID" class="form-control form-control-sm col-4">
+            <option *ngFor="let relation of relationsOfEntity" [value]="relation">{{relation}}</option>
+          </select>
         </div>
       </div>
 

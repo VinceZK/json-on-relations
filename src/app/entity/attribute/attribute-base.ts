@@ -7,8 +7,13 @@ export class AttributeBase {
   relationId: string;
   maxLength?: number;
   step?: string;
+  domainId?: string;
   placeholder?: string;
   pattern?: string;
+  domainEntityId?: string;
+  domainRelationId?: string;
+  searchHelpId?: string;
+  searchHelpExportField?: string;
   primaryKey: boolean;
   autoIncrement: boolean;
   dropdownList: DropdownList[] = [];

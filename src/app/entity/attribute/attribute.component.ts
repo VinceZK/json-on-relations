@@ -1,19 +1,21 @@
-import {Component, Input, OnChanges, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {AttributeBase} from './attribute-base';
 import {FormGroup} from '@angular/forms';
-import {EntityService} from 'jor-angular';
+import {SearchHelpComponent} from 'jor-angular';
 
 @Component({
   selector: 'app-attribute',
   templateUrl: './attribute.component.html',
   styleUrls: ['./attribute.component.css']
 })
-export class AttributeComponent implements OnInit, OnChanges {
+export class AttributeComponent implements OnInit {
   @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
 
-  constructor(private entityService: EntityService) { }
+  constructor() { }
 
   ngOnInit() {
   }
@@ -22,7 +24,11 @@ export class AttributeComponent implements OnInit, OnChanges {
   get errorMessage() {
     const fieldCtrl = this.formGroup.get(this.attributeControl.name);
     if (fieldCtrl.getError('pattern')) {
-      return 'The pattern is not correct!';
+      return 'The pattern is not correct';
+    } else if (fieldCtrl.getError('required')) {
+      return 'Required';
+    } else if (fieldCtrl.getError('message')) {
+      return fieldCtrl.getError('message');
     } else {
       return null;
     }
@@ -34,14 +40,9 @@ export class AttributeComponent implements OnInit, OnChanges {
     fieldCtrl.setValue(fieldCtrl.value.toUpperCase());
   }
 
-  onClickDropdown(domainID: string) {
-    this.entityService.getDataDomain(domainID)
-      .subscribe( dataDomain =>
-        dataDomain['DOMAIN_VALUES'].forEach( domainValue => {
-          this.attributeControl.dropdownList.push({
-            key: domainValue['LOW_VALUE'],
-            value: domainValue['LOW_VALUE_TEXT'] || domainValue['LOW_VALUE'] });
-        })
-      );
+  onSearchHelp(attributeControl: AttributeBase) {
+    this.searchHelpComponent.openSearchHelpModalByEntity(
+      attributeControl.domainEntityId, attributeControl.domainRelationId, this.formGroup, this.readonly,
+      attributeControl.name, attributeControl.domainId);
   }
 }

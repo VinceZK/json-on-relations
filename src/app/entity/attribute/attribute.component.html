@@ -1,22 +1,29 @@
 <div [formGroup]="formGroup">
   <div [ngSwitch]="attributeControl.controlType">
-    <input *ngSwitchCase="'text'" type="text" class="form-control form-control-sm"
-           [formControlName]="attributeControl.name"
-           [id]="attributeControl.key"
-           [maxlength]="attributeControl.maxLength"
-           [pattern]="attributeControl.pattern"
-           [readonly]="isReadonly" >
-    <input *ngSwitchCase="'text_capital'" type="text" class="form-control form-control-sm"
-           [formControlName]="attributeControl.name"
-           [id]="attributeControl.key"
-           [maxlength]="attributeControl.maxLength"
-           (keyup)="onKeyup(attributeControl.name)"
-           [readonly]="isReadonly" >
-    <input *ngSwitchCase="'integer'" type="number" class="form-control form-control-sm"
-           [formControlName]="attributeControl.name"
-           [id]="attributeControl.key"
-           [pattern]="attributeControl.pattern"
-           [readonly]="isReadonly" >
+    <div class="input-group">
+      <input *ngSwitchCase="'text'" type="text" class="form-control form-control-sm"
+             [formControlName]="attributeControl.name"
+             [id]="attributeControl.key"
+             [maxlength]="attributeControl.maxLength"
+             [pattern]="attributeControl.pattern"
+             [readonly]="isReadonly" >
+      <input *ngSwitchCase="'text_capital'" type="text" class="form-control form-control-sm"
+             [formControlName]="attributeControl.name"
+             [id]="attributeControl.key"
+             [maxlength]="attributeControl.maxLength"
+             (keyup)="onKeyup(attributeControl.name)"
+             [readonly]="isReadonly" >
+      <input *ngSwitchCase="'integer'" type="number" class="form-control form-control-sm"
+             [formControlName]="attributeControl.name"
+             [id]="attributeControl.key"
+             [pattern]="attributeControl.pattern"
+             [readonly]="isReadonly" >
+      <div *ngIf="attributeControl.searchHelpId || attributeControl.domainRelationId" class="input-group-append">
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="onSearchHelp(attributeControl)">
+          <span class="fas fa-search"></span>
+        </button>
+      </div>
+    </div>
     <input *ngSwitchCase="'decimal'" type="number" class="form-control form-control-sm"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
@@ -53,3 +60,4 @@
   <div class="errorMessage" *ngIf="!isValid">{{errorMessage}}</div>
 </div>
 
+<dk-app-search-help></dk-app-search-help>

@@ -39,9 +39,13 @@ export class Attribute {
   ATTR_NAME: string;
   ATTR_DESC?: string;
   DATA_ELEMENT?: string;
+  SEARCH_HELP_ID?: string;
+  SEARCH_HELP_EXPORT_FIELD?: string;
   DOMAIN_ID?: string;
   DOMAIN_TYPE?: number;
   REG_EXPR?: string;
+  DOMAIN_ENTITY_ID?: string;
+  DOMAIN_RELATION_ID?: string;
   LABEL_TEXT?: string;
   LIST_HEADER_TEXT?: string;
   DATA_TYPE: number;
@@ -240,6 +244,7 @@ export class DataDomainMeta {
   UNSIGNED?: boolean;
   CAPITAL_ONLY?: boolean;
   REG_EXPR?: string;
+  ENTITY_ID?: string;
   RELATION_ID?: string;
   DOMAIN_VALUES?: DataDomainValue[];
   VERSION_NO: number;

@@ -60,7 +60,8 @@ export class SearchHelpComponent implements OnInit {
     this.isSearchHelpModalShown = true;
   }
 
-  openSearchHelpModalByEntity(entityID: string, relationID: string, exportControl: any, readonly: boolean, afterExportFn?: any) {
+  openSearchHelpModalByEntity(entityID: string, relationID: string, exportControl: any,
+                              readonly: boolean, exportField?: string, domainID?: string, afterExportFn?: any) {
     const searchHelpMeta = new SearchHelp();
     searchHelpMeta.OBJECT_NAME = entityID;
     searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
@@ -80,8 +81,9 @@ export class SearchHelpComponent implements OnInit {
           searchHelpMeta.FIELDS.push({
             FIELD_NAME: attribute.ATTR_NAME,
             FIELD_DESC: attribute.ATTR_DESC,
-            IMPORT: attribute.PRIMARY_KEY,
-            EXPORT: attribute.PRIMARY_KEY,
+            IE_FIELD_NAME: attribute.DOMAIN_ID === domainID ? exportField : null,
+            IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
+            EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
             LIST_POSITION: attribute.ORDER,
             FILTER_POSITION: attribute.ORDER
           }));

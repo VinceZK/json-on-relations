@@ -11,7 +11,7 @@
   </div>
   <div class="col-6 form-group row">
     <label for="relation_id" class="col-sm-3 col-form-label form-control-sm">Relation ID:</label>
-    <select id="relation_id" name="relationship_id" class="col-sm-6 form-control form-control-sm"
+    <select id="relation_id" name="relation_id" class="col-sm-6 form-control form-control-sm"
             required [(ngModel)]="relationID" (change)="getAttributes()">
       <option *ngFor="let relation of relationMetas"
               [value]="relation.RELATION_ID">{{relation.RELATION_ID}}</option>

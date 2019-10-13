@@ -3,6 +3,7 @@ import {AttributeBase} from './attribute-base';
 import {Attribute} from 'jor-angular';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {EntityService} from 'jor-angular';
+import {DomainValueValidator} from './attribute-validators';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,9 @@ import {EntityService} from 'jor-angular';
 export class AttributeControlService {
   private specialInputCtrls: FormControl[] = [];
 
-  constructor(private entityService: EntityService) { }
+  constructor(private entityService: EntityService,
+              private domainValueValidator: DomainValueValidator) {
+  }
 
   toAttributeControl(attributes: Attribute[]): AttributeBase[] {
     const attributeControls: AttributeBase[] = [];
@@ -22,6 +25,11 @@ export class AttributeControlService {
       attributeControl.label = attribute.LABEL_TEXT;
       attributeControl.list_label = attribute.LIST_HEADER_TEXT;
       attributeControl.relationId = attribute.RELATION_ID;
+      attributeControl.searchHelpId = attribute.SEARCH_HELP_ID;
+      attributeControl.searchHelpExportField = attribute.SEARCH_HELP_EXPORT_FIELD;
+      attributeControl.domainId = attribute.DOMAIN_ID;
+      attributeControl.domainEntityId = attribute.DOMAIN_ENTITY_ID;
+      attributeControl.domainRelationId = attribute.DOMAIN_RELATION_ID;
       switch (attribute.DATA_TYPE) {
         case 1: // Char
           if (attribute.CAPITAL_ONLY) {
@@ -101,12 +109,13 @@ export class AttributeControlService {
   }
 
   convertToFormControl(attribute: Attribute, instance: any ) {
-    let formControl: FormControl;
+    const formControl = new FormControl(instance[attribute.ATTR_NAME] || '');
     if (attribute.PRIMARY_KEY && !attribute.AUTO_INCREMENT) {
-      formControl = new FormControl(instance[attribute.ATTR_NAME] || '', Validators.required );
-    } else {
-      formControl = new FormControl(instance[attribute.ATTR_NAME] || '');
+      formControl.setValidators(Validators.required);
     }
+    // if (attribute.DOMAIN_TYPE === 2 && !attribute.PRIMARY_KEY) {
+    //   formControl.setAsyncValidators(this.domainValueValidator.validate.bind(this.domainValueValidator));
+    // }
     if (attribute.DATA_TYPE === 3 || attribute.DOMAIN_TYPE === 3) { // Checkbox and dropdown list controls
       this.specialInputCtrls.push(formControl);
     }

@@ -898,12 +898,18 @@ function saveDataElement(dataElement, userID, callback) {
       updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataElement.DECIMAL);
       syncDBTableIndicator = true;
     }
-    if (dataElement.SEARCH_HELP_ID !== undefined)
+    if (dataElement.SEARCH_HELP_ID !== undefined) {
       updateSQL += ", SEARCH_HELP_ID = " + entityDB.pool.escape(dataElement.SEARCH_HELP_ID);
-    if (dataElement.SEARCH_HELP_EXPORT_FIELD !== undefined)
+      updateRelationReloadIndicator = true;
+    }
+    if (dataElement.SEARCH_HELP_EXPORT_FIELD !== undefined) {
       updateSQL += ", SEARCH_HELP_EXPORT_FIELD = " + entityDB.pool.escape(dataElement.SEARCH_HELP_EXPORT_FIELD);
-    if (dataElement.PARAMETER_ID !== undefined)
+      updateRelationReloadIndicator = true;
+    }
+    if (dataElement.PARAMETER_ID !== undefined) {
       updateSQL += ", PARAMETER_ID = " + entityDB.pool.escape(dataElement.PARAMETER_ID);
+      updateRelationReloadIndicator = true;
+    }
     updateSQL += " where ELEMENT_ID = " + entityDB.pool.escape(dataElement.ELEMENT_ID);
     updateSQLs.push(updateSQL);
     updateSQL = '';
@@ -1053,6 +1059,7 @@ function saveDataDomain(dataDomain, userID, callback) {
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
   const updateSQLs = [];
   let syncDBTableIndicator = false;
+  let updateRelationReloadIndicator = false;
   if (dataDomain.action === 'update') {
     let updateSQL = "update DATA_DOMAIN set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
@@ -1070,21 +1077,29 @@ function saveDataDomain(dataDomain, userID, callback) {
       updateSQL += ", `DECIMAL` = " + entityDB.pool.escape(dataDomain.DECIMAL);
       syncDBTableIndicator = true;
     }
-    if (dataDomain.DOMAIN_TYPE !== undefined)
+    if (dataDomain.DOMAIN_TYPE !== undefined) {
       updateSQL += ", DOMAIN_TYPE = " + entityDB.pool.escape(dataDomain.DOMAIN_TYPE);
+      updateRelationReloadIndicator = true;
+    }
     if (dataDomain.UNSIGNED !== undefined) {
       updateSQL += ", `UNSIGNED` = " + entityDB.pool.escape(dataDomain.UNSIGNED);
       syncDBTableIndicator = true;
     }
     if (dataDomain.CAPITAL_ONLY !== undefined) {
       updateSQL += ", CAPITAL_ONLY = " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY);
-      syncDBTableIndicator = true;
+      updateRelationReloadIndicator = true;
     }
-    if (dataDomain.RELATION_ID !== undefined)
+    if (dataDomain.ENTITY_ID !== undefined) {
+      updateSQL += ", ENTITY_ID = " + entityDB.pool.escape(dataDomain.ENTITY_ID);
+      updateRelationReloadIndicator = true;
+    }
+    if (dataDomain.RELATION_ID !== undefined) {
       updateSQL += ", RELATION_ID = " + entityDB.pool.escape(dataDomain.RELATION_ID);
+      updateRelationReloadIndicator = true;
+    }
     if (dataDomain.REG_EXPR !== undefined) {
       updateSQL += ", REG_EXPR = " + entityDB.pool.escape(dataDomain.REG_EXPR);
-      syncDBTableIndicator = true;
+      updateRelationReloadIndicator = true;
     }
     updateSQL += " where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
     updateSQLs.push(updateSQL);
@@ -1140,13 +1155,13 @@ function saveDataDomain(dataDomain, userID, callback) {
     }
   }
 
-  if (syncDBTableIndicator) {
+  if (syncDBTableIndicator || updateRelationReloadIndicator) {
     _getDomainUsedRelations(dataDomain.DOMAIN_ID, function(err, relations) {
       if (err) return callback(err);
       relations.forEach( relation => updateSQLs.push(_updateRelationReloadIndicator(relation.RELATION_ID)));
       entityDB.doUpdatesParallel(updateSQLs, function (err) {
         if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
-        else {
+        else if (syncDBTableIndicator) {
           _getDomainUsedRelations(dataDomain.DOMAIN_ID, function(err, relations) {
             if (err) return callback(err);
             async.map(relations, function (relation, callback) {
@@ -1156,6 +1171,8 @@ function saveDataDomain(dataDomain, userID, callback) {
               else callback(null);
             });
           });
+        } else {
+          callback(null);
         }
       })
     });
