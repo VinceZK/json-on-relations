@@ -84,15 +84,15 @@ describe('model tests', function () {
                 ATTRIBUTES:
                   [ { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'testEntityx',
                       ATTR_NAME: 'FIELD1', LABEL_TEXT: 'FIELD1', LIST_HEADER_TEXT: 'FIELD1',
-                      DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0, UNSIGNED: null,
+                      DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null, UNSIGNED: null,
                       ORDER: 1, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
                     { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'testEntityx',
                       ATTR_NAME: 'FIELD2', LABEL_TEXT: 'FIELD2', LIST_HEADER_TEXT: 'FIELD2',
-                      DATA_TYPE: 2, DATA_LENGTH: 0, DECIMAL: 0, UNSIGNED: null,
+                      DATA_TYPE: 2, DATA_LENGTH: null, DECIMAL: null, UNSIGNED: null,
                       ORDER: 2, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
                     { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'testEntityx',
                       ATTR_NAME: 'FIELD3', LABEL_TEXT: 'FIELD3', LIST_HEADER_TEXT: 'FIELD3',
-                      DATA_TYPE: 3, DATA_LENGTH: 0, DECIMAL: 0, UNSIGNED: null,
+                      DATA_TYPE: 3, DATA_LENGTH: null, DECIMAL: null, UNSIGNED: null,
                       ORDER: 3, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 }
                      ]});
             done();
@@ -434,10 +434,10 @@ describe('model tests', function () {
               VERSION_NO: 1, RELOAD_IND: 1,
               ATTRIBUTES:
                 [ {ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_testRelationx', ORDER: 1,
-                  ATTR_NAME: 'FIELD1', ATTR_DESC: 'Field1', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0,
+                  ATTR_NAME: 'FIELD1', ATTR_DESC: 'Field1', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null,
                    PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
                   {ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_testRelationx', ORDER: 2,
-                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_TYPE: 2, DATA_LENGTH: 0, DECIMAL: 0,
+                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_TYPE: 2, DATA_LENGTH: null, DECIMAL: null,
                     PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
               ASSOCIATIONS:
                 [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1} ] }
@@ -477,13 +477,13 @@ describe('model tests', function () {
             ATTRIBUTES:
               [ { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_testRelationx', ORDER: 1,
                 ATTR_NAME: 'FIELD1', ATTR_DESC: 'Field1', DATA_ELEMENT: null,
-                  DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
+                  DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
                 { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_testRelationx',
                   ATTR_NAME: 'FIELD3', ATTR_DESC: 'Field3', DATA_ELEMENT: null, ORDER: 3,
-                  DATA_TYPE: 3, DATA_LENGTH: 0, DECIMAL: 0, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
+                  DATA_TYPE: 3, DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
                 { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_testRelationx',
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2, ORDER: 2,
-                  DATA_LENGTH: 0, DECIMAL: 0, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
+                  DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
               [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
                 { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
@@ -512,13 +512,13 @@ describe('model tests', function () {
             ATTRIBUTES:
               [ { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_testRelationx', ORDER: 1,
                 ATTR_NAME: 'FIELD1', ATTR_DESC: 'Field1', DATA_ELEMENT: null,
-                DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
+                DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
                 { ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A', RELATION_ID: 'r_testRelationx', ORDER: 3,
                   ATTR_NAME: 'FIELD30', ATTR_DESC: 'Field30', DATA_ELEMENT: null,
-                  DATA_TYPE: 3, DATA_LENGTH: 0, DECIMAL: 0, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
+                  DATA_TYPE: 3, DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
                 { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_testRelationx', ORDER: 2,
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2,
-                  DATA_LENGTH: 0, DECIMAL: 0, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
+                  DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
               [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
                 { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
@@ -554,10 +554,10 @@ describe('model tests', function () {
             ATTRIBUTES:
               [ { ATTR_GUID: '70FE080427D14BBEB18596FAFFB67C30', RELATION_ID: 'r_testRelationx', ORDER: 1,
                 ATTR_NAME: 'FIELD1', ATTR_DESC: 'Field1', DATA_ELEMENT: null,
-                  DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
+                  DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null, PRIMARY_KEY: 1, AUTO_INCREMENT: 0 },
                 { ATTR_GUID: '9E2D7D66AD7A40E8926E56AFA22F81CB', RELATION_ID: 'r_testRelationx', ORDER: 2,
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2,
-                  DATA_LENGTH: 0, DECIMAL: 0, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
+                  DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
               [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 0 },
                 { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
@@ -669,17 +669,17 @@ describe('model tests', function () {
       VALID_PERIOD: 1000000,
       ATTRIBUTES: [
         { ATTR_GUID: '3F2FA5F8C5CE461E925DEDDAFA2C254C', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'husband_INSTANCE_GUID', DATA_ELEMENT: 'INSTANCE_GUID', ORDER: 1},
+          ATTR_NAME: 'husband_INSTANCE_GUID', DATA_ELEMENT: 'INSTANCE_GUID', ORDER: 1, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: '644B30EEA6C345EB96E4C7F713412DEE', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'husband_ENTITY_ID', DATA_ELEMENT: 'ENTITY_ID', ORDER: 2},
+          ATTR_NAME: 'husband_ENTITY_ID', DATA_ELEMENT: 'ENTITY_ID', ORDER: 2, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: 'DF29FFC8EC9F4292AD0596494B681C3A', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'wife_INSTANCE_GUID', DATA_ELEMENT: 'INSTANCE_GUID', ORDER: 3},
+          ATTR_NAME: 'wife_INSTANCE_GUID', DATA_ELEMENT: 'INSTANCE_GUID', ORDER: 3, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: 'C4C1171F4D084C74879ED4816647191D', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'wife_ENTITY_ID', DATA_ELEMENT: 'ENTITY_ID', ORDER: 4},
+          ATTR_NAME: 'wife_ENTITY_ID', DATA_ELEMENT: 'ENTITY_ID', ORDER: 4, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: 'C74C52C74C214849956447B77DF12C38', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'VALID_FROM', DATA_ELEMENT: 'VALID_FROM', ORDER: 5},
+          ATTR_NAME: 'VALID_FROM', DATA_ELEMENT: 'VALID_FROM', ORDER: 5, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: 'F0423B2A5C934C858F7D0437DFA27157', RELATION_ID: 'rs_testRelationship',
-          ATTR_NAME: 'VALID_TO', DATA_ELEMENT: 'VALID_TO', ORDER: 6},
+          ATTR_NAME: 'VALID_TO', DATA_ELEMENT: 'VALID_TO', ORDER: 6, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
         { ATTR_GUID: '21891D1AA60B44329DED70533F2169C6', RELATION_ID: 'rs_testRelationship',
           ATTR_NAME: 'FIELD1', DATA_TYPE: 1, PRIMARY_KEY: 0,ATTR_DESC: null, DATA_ELEMENT: null,
           DATA_LENGTH: 32, DECIMAL: 0, AUTO_INCREMENT: 0, ORDER: 7},
@@ -705,34 +705,34 @@ describe('model tests', function () {
               {ATTR_GUID: '3F2FA5F8C5CE461E925DEDDAFA2C254C', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'husband_INSTANCE_GUID', ATTR_DESC: 'Instance GUID', DATA_ELEMENT: 'INSTANCE_GUID',
                 DOMAIN_ID: 'GUID', LABEL_TEXT: 'Instance GUID', LIST_HEADER_TEXT: 'Instance GUID', DATA_TYPE: 1,
-                DATA_LENGTH: 32, DECIMAL: null, UNSIGNED: null, ORDER: 1, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                DATA_LENGTH: 32, DECIMAL: null, UNSIGNED: null, ORDER: 1, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: '644B30EEA6C345EB96E4C7F713412DEE', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'husband_ENTITY_ID', ATTR_DESC: 'Entity ID', DATA_ELEMENT: 'ENTITY_ID', DOMAIN_ID: null,
                 LABEL_TEXT: 'Entity ID', LIST_HEADER_TEXT: 'Entity', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null,
-                UNSIGNED: null, ORDER: 2, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                UNSIGNED: null, ORDER: 2, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: 'DF29FFC8EC9F4292AD0596494B681C3A', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'wife_INSTANCE_GUID', ATTR_DESC: 'Instance GUID', DATA_ELEMENT: 'INSTANCE_GUID',
                 DOMAIN_ID: 'GUID', LABEL_TEXT: 'Instance GUID', LIST_HEADER_TEXT: 'Instance GUID', DATA_TYPE: 1,
-                DATA_LENGTH: 32, DECIMAL: null, UNSIGNED: null, ORDER: 3, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                DATA_LENGTH: 32, DECIMAL: null, UNSIGNED: null, ORDER: 3, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: 'C4C1171F4D084C74879ED4816647191D', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'wife_ENTITY_ID', ATTR_DESC: 'Entity ID', DATA_ELEMENT: 'ENTITY_ID', DOMAIN_ID: null,
                 LABEL_TEXT: 'Entity ID', LIST_HEADER_TEXT: 'Entity', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null,
-                UNSIGNED: null, ORDER: 4, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                UNSIGNED: null, ORDER: 4, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: 'C74C52C74C214849956447B77DF12C38', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'VALID_FROM', ATTR_DESC: 'Valid from timestamp', DATA_ELEMENT: 'VALID_FROM', DOMAIN_ID: null,
                 LABEL_TEXT: 'Valid from', LIST_HEADER_TEXT: 'Valid from', DATA_TYPE: 8, DATA_LENGTH: null,
-                DECIMAL: null, UNSIGNED: null, ORDER: 5, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                DECIMAL: null, UNSIGNED: null, ORDER: 5, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: 'F0423B2A5C934C858F7D0437DFA27157', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'VALID_TO', ATTR_DESC: 'Valid to', DATA_ELEMENT: 'VALID_TO', DOMAIN_ID: null,
                 LABEL_TEXT: 'Valid to', LIST_HEADER_TEXT: 'Valid to', DATA_TYPE: 8, DATA_LENGTH: null, DECIMAL: null,
-                UNSIGNED: null, ORDER: 6, PRIMARY_KEY: null, AUTO_INCREMENT: 0 },
+                UNSIGNED: null, ORDER: 6, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: '21891D1AA60B44329DED70533F2169C6', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'FIELD1', ATTR_DESC: null, DATA_ELEMENT: null, DOMAIN_ID: null,
-                LABEL_TEXT: 'FIELD1', LIST_HEADER_TEXT: 'FIELD1', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: 0,
+                LABEL_TEXT: 'FIELD1', LIST_HEADER_TEXT: 'FIELD1', DATA_TYPE: 1, DATA_LENGTH: 32, DECIMAL: null,
                 UNSIGNED: null, ORDER: 7, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
               {ATTR_GUID: '3B8209C837C9414182B5154059DA4B0E', RELATION_ID: 'rs_testRelationship',
                 ATTR_NAME: 'FIELD2', ATTR_DESC: null, DATA_ELEMENT: null, DOMAIN_ID: null,
-                LABEL_TEXT: 'FIELD2', LIST_HEADER_TEXT: 'FIELD2', DATA_TYPE: 2, DATA_LENGTH: 0, DECIMAL: 0,
+                LABEL_TEXT: 'FIELD2', LIST_HEADER_TEXT: 'FIELD2', DATA_TYPE: 2, DATA_LENGTH: null, DECIMAL: null,
                 UNSIGNED: null, ORDER: 8, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 }
                 ]});
           entityDB.checkDBConsistency(relationMeta, function (err, result) {
@@ -765,7 +765,7 @@ describe('model tests', function () {
               ATTRIBUTES: [
                 {ATTR_GUID: '417375F73E1844BCBB77A4C9B9F7BF26', RELATION_ID: 'rs_testRelationship',
                   ATTR_NAME: 'FIELD3', ATTR_DESC: null, DATA_ELEMENT: null, DOMAIN_ID: null,
-                  LABEL_TEXT: 'FIELD3', LIST_HEADER_TEXT: 'FIELD3', DATA_TYPE: 3, DATA_LENGTH: 0, DECIMAL: 0,
+                  LABEL_TEXT: 'FIELD3', LIST_HEADER_TEXT: 'FIELD3', DATA_TYPE: 3, DATA_LENGTH: null, DECIMAL: null,
                   UNSIGNED: null, ORDER: 9, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 }
               ]});
           entityDB.checkDBConsistency(relationMeta, function (err, result) {
@@ -873,7 +873,7 @@ describe('model tests', function () {
     })
   });
 
-  describe.only('Data Element', function () {
+  describe('Data Element', function () {
 
     it('should save a character data element', function (done) {
       let dataElement = {

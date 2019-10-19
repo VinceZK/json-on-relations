@@ -1,13 +1,10 @@
 import {Component, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation} from '@angular/core';
-import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
+import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInstance,
+  RelationshipMeta, AttributeBase, AttributeControlService, EntityService, SearchHelpComponent} from 'jor-angular';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
-import {AttributeBase} from '../attribute/attribute-base';
-import {AttributeControlService} from '../attribute/attribute-control.service';
-import {EntityService} from 'jor-angular';
-import {SearchHelpComponent} from 'jor-angular';
 
 @Component({
   selector: 'app-entity-relationship',

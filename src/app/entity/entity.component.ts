@@ -1,15 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import {EntityService} from 'jor-angular';
-import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta,
-  Relationship, RelationshipInstance, RelationshipMeta} from 'jor-angular';
+import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Role, Relationship,
+   RelationshipInstance, RelationshipMeta, EntityService, AttributeControlService} from 'jor-angular';
 import {forkJoin, Observable, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {AttributeControlService} from './attribute/attribute-control.service';
 import {Message, MessageService} from 'ui-message-angular';
 import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
-import {Role} from '../../../projects/jor-angular/src/lib/entity';
 import {DialogService} from '../dialog.service';
 
 @Component({

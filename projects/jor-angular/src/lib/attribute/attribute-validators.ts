@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
 import {AbstractControl, AsyncValidator, ValidationErrors} from '@angular/forms';
-import {EntityService} from 'jor-angular';
 import {Observable} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
-import {QueryObject} from 'jor-angular';
+import {EntityService} from '../entity.service';
+import {QueryObject} from '../entity';
 
 // noinspection JSAnnotator
 @Injectable({

@@ -182,6 +182,24 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
+    msgName: "NOT_UNSIGNED_INTEGER",
+    msgText: {
+      EN: {shortText: "The value '%s' of field '%s' in relation '%s' should be unsigned", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "NOT_MATCH_REGEXP",
+    msgText: {
+      EN: {shortText: "The value '%s' of field '%s' in relation '%s' should match the regexp '%s'", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
+    msgName: "INVALID_VALUE_IN_DOMAIN",
+    msgText: {
+      EN: {shortText: "The value '%s' of field '%s' in relation '%s' is invalid, check the data domain '%s'.", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
     msgName: "INSTANCE_MARKED_DELETE",
     msgText: {
       EN: {shortText: "Instance '%s' of entity '%s' is marked as deleted, thus cannot be changed", longText: "dummy"}

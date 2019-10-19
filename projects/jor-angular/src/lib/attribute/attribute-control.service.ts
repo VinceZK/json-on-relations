@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {AttributeBase} from './attribute-base';
-import {Attribute} from 'jor-angular';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {EntityService} from 'jor-angular';
 import {DomainValueValidator} from './attribute-validators';
+import {EntityService} from '../entity.service';
+import {Attribute} from '../entity';
 
 @Injectable({
   providedIn: 'root'

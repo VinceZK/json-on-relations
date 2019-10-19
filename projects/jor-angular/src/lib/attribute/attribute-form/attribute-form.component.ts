@@ -3,7 +3,7 @@ import {AttributeBase} from '../attribute-base';
 import {FormGroup} from '@angular/forms';
 
 @Component({
-  selector: 'app-attribute-form',
+  selector: 'dk-app-attribute-form',
   templateUrl: './attribute-form.component.html',
   styleUrls: ['./attribute-form.component.css']
 })

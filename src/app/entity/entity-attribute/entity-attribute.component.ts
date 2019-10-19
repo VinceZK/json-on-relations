@@ -1,8 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {AttributeBase} from '../attribute/attribute-base';
 import {FormGroup} from '@angular/forms';
-import {AttributeControlService} from '../attribute/attribute-control.service';
-import {Attribute} from 'jor-angular';
+import {Attribute, AttributeBase, AttributeControlService} from 'jor-angular';
 
 @Component({
   selector: 'app-entity-attribute',

@@ -4,22 +4,22 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   let instance =
     { ENTITY_ID: 'person',
-      person: {HEIGHT: 170, GENDER: 'male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',
-               TYPE: 'employee', SYSTEM_ACCESS: 'portal'},
+      person: {HEIGHT: 1.70, GENDER: 'Male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',
+               TYPE: 'employee', SYSTEM_ACCESS: 'PORTAL'},
       r_user: {USER_ID: 'DH999', USER_NAME:'VINCEZK', DISPLAY_NAME: 'Vincent Zhang'},
-      r_email: [{EMAIL: 'dh999@hotmail.com', TYPE: 'private', PRIMARY:1},
-                {EMAIL: 'dh999@gmail.com', TYPE: 'private important', PRIMARY:0}
+      r_email: [{EMAIL: 'dh999@hotmail.com', TYPE: 'PRIVATE', PRIMARY:1},
+                {EMAIL: 'dh999@gmail.com', TYPE: 'WORK', PRIMARY:0}
         ],
       r_address: [{COUNTRY: 'China', CITY:'Shanghai', POSTCODE: 201202,
                    ADDRESS_VALUE:'Room #402, Building #41, Dongjing Road #393',
-                   TYPE: 'Current Live', PRIMARY:1},
+                   TYPE: 'CLIVE', PRIMARY:1},
                   {COUNTRY: 'China', CITY:'Haimen', POSTCODE: 226126,
                    ADDRESS_VALUE:'Group 8 Lizhu Tangjia',
-                   TYPE: 'Born Place', PRIMARY:0}],
-      r_employee: {USER_ID: 'DH999', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Developer', GENDER:'Male'},
+                   TYPE: 'WORK', PRIMARY:0}],
+      r_employee: {USER_ID: 'DH999', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT', TITLE: 'Developer', GENDER:'Male'},
       relationships:[
          { RELATIONSHIP_ID: 'rs_user_role',
            values:[
@@ -188,13 +188,49 @@ describe('entity tests', function () {
       });
     });
 
+    it('should fail to create an instance, because of invalid gender', function (done) {
+      let instance2 = { ENTITY_ID: 'person',
+        person: {HEIGHT: 1.65, GENDER: 'invalid', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+          TYPE: 'employee'},
+        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'PRIVATE', PRIMARY:1}],
+        r_address: [],
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+      };
+      entity.createInstance(instance2, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'INVALID_VALUE_IN_DOMAIN',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
+    it('should fail to create an instance, because of invalid email', function (done) {
+      let instance2 = { ENTITY_ID: 'person',
+        person: {HEIGHT: 1.65, GENDER: 'Female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+          TYPE: 'employee'},
+        r_email: [{EMAIL: 'invalid Email', TYPE: 'PRIVATE', PRIMARY:1}],
+        r_address: [],
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+      };
+      entity.createInstance(instance2, function (err) {
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'NOT_MATCH_REGEXP',
+          msgType: 'E'
+        }]);
+        done();
+      });
+    });
+
     it('should create an instance of a female person', function (done) {
       let instance2 = { ENTITY_ID: 'person',
-        person: {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
+        person: {HEIGHT: 1.65, GENDER: 'Female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama',
                  TYPE: 'employee'},
-        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}],
+        r_email: [{EMAIL: 'dh998@hotmail.com', TYPE: 'PRIVATE', PRIMARY:1}],
         r_address: [],
-        r_employee: {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+        r_employee: {USER_ID: 'DH998', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
       };
       entity.createInstance(instance2, function (err) {
         should(err).eql(null);
@@ -207,15 +243,15 @@ describe('entity tests', function () {
       entity.getInstanceByGUID(wifeInstanceGUID, function (err, instance2) {
         should(err).eql(null);
         instance2.person.should.containDeep([
-          {HEIGHT: 165, GENDER: 'female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F',
+          {HEIGHT: 1.65, GENDER: 'Female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F',
             HOBBY:'Drama', TYPE: 'employee'}]);
         (instance2.r_user === undefined).should.true();
         (instance2.r_personalization === undefined).should.true();
         instance2.r_email.should.containDeep(
-          [{EMAIL: 'dh998@hotmail.com', TYPE: 'private', PRIMARY:1}]);
+          [{EMAIL: 'dh998@hotmail.com', TYPE: 'PRIVATE', PRIMARY:1}]);
         (instance2.r_address === undefined).should.true();
         instance2.r_employee.should.containDeep([
-          {USER_ID: 'DH998', COMPANY_ID:'Darkhouse', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'}]);
+          {USER_ID: 'DH998', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT', TITLE: 'Tester', GENDER:'Female'}]);
         done();
       })
     });
@@ -238,13 +274,13 @@ describe('entity tests', function () {
     it('should change attributes of the instance', function (done) {
       let instance3 =
         {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
-          person: {action:'update', HOBBY:'Reading, Movie, Coding, Bike', HEIGHT: 171 },
+          person: {action:'update', HOBBY:'Reading, Movie, Coding, Bike', HEIGHT: 1.71 },
           r_user : {action:'update', USER_ID: 'DH999', DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang'},
           r_email: [
             {action:'delete', EMAIL: 'dh999@hotmail.com'},
             {action:'update', EMAIL: 'dh999@gmail.com', PRIMARY:1},
-            {action:'add', EMAIL: 'dh999@sap.com', TYPE: 'work', PRIMARY:0},
-            {EMAIL: 'dh999@hotmail.com', TYPE: 'private', PRIMARY:0}],
+            {action:'add', EMAIL: 'dh999@sap.com', TYPE: 'WORK', PRIMARY:0},
+            {EMAIL: 'dh999@hotmail.com', TYPE: 'PRIVATE', PRIMARY:0}],
           relationships:[
             { RELATIONSHIP_ID: 'rs_user_role',
               values:[
@@ -264,7 +300,7 @@ describe('entity tests', function () {
           instance2.r_user.should.containDeep([instance3.r_user]);
           instance2.r_email.should.containDeep([
             {EMAIL: 'dh999@sap.com'},
-            {EMAIL: 'dh999@gmail.com', PRIMARY:1},{EMAIL: 'dh999@hotmail.com', TYPE: 'private', PRIMARY:0}]);
+            {EMAIL: 'dh999@gmail.com', PRIMARY:1},{EMAIL: 'dh999@hotmail.com', TYPE: 'PRIVATE', PRIMARY:0}]);
           delete instance3.relationships[0].values[0].action;
           instance2.relationships.should.containDeep(instance3.relationships);
           done();
@@ -300,7 +336,7 @@ describe('entity tests', function () {
 
     it('should add user personalization successfully', function (done) {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
-        r_personalization : {USER_ID: 'DH999', TIMEZONE: ' UTC+8', LANGUAGE: 'ZH'}};
+        r_personalization : {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'ZH'}};
       entity.changeInstance(instance3, function(err){
         should(err).eql(null);
         done();
@@ -309,7 +345,7 @@ describe('entity tests', function () {
 
     it('should be failed to add personalization, as it is [0..1] and already exists', function (done) {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
-        r_personalization : {USER_ID: 'DH999', TIMEZONE: ' UTC+8', LANGUAGE: 'EN', DATE_FORMAT: 'YYYY/MM/DD hh:mm:ss'}};
+        r_personalization : {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'EN', DATE_FORMAT: 3}};
       entity.changeInstance(instance3, function(err){
         err.should.containDeep([{
           msgCat: 'ENTITY',
@@ -361,6 +397,19 @@ describe('entity tests', function () {
       })
     });
 
+    it('should be failed to change to an invalid gender', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        person : {action: 'update', GENDER: 'INVALID'} };
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'INVALID_VALUE_IN_DOMAIN',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
     it('should disable the relations & relationships of role employee', function (done) {
       let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
         person : {action: 'update', SYSTEM_ACCESS: ''}};
@@ -371,7 +420,7 @@ describe('entity tests', function () {
           (instance2.r_user === undefined).should.true();
           (instance2.r_personalization === undefined).should.true();
           instance2.relationships.length.should.eql(0);
-          instance3.person.SYSTEM_ACCESS = 'portal';
+          instance3.person.SYSTEM_ACCESS = 'PORTAL';
           entity.changeInstance(instance3, function (err) {
             should(err).eql(null);
             done();
@@ -422,7 +471,7 @@ describe('entity tests', function () {
     it('should change the female person successfully', function (done) {
       let instance3 = {
         ENTITY_ID: 'person', INSTANCE_GUID: wifeInstanceGUID,
-        person: {action: 'update', SYSTEM_ACCESS: 'portal'},
+        person: {action: 'update', SYSTEM_ACCESS: 'PORTAL'},
         r_user: {USER_ID: 'DH998', USER_NAME:'Jessy', DISPLAY_NAME: 'Jessy Huang'}
       };
       entity.changeInstance(instance3, function (err) {
@@ -799,7 +848,6 @@ describe('entity tests', function () {
       };
       entity.getInstancePieceByGUID(instance.INSTANCE_GUID, piece, function (err, instancePiece) {
         should(err).eql(null);
-
         instancePiece.relationships.should.containDeep([
           { RELATIONSHIP_ID: 'rs_marriage',
             SELF_ROLE_ID: 'husband'},
@@ -1073,17 +1121,17 @@ describe('entity tests', function () {
     it('should overwrite the instance successfully', function (done) {
       let overwriteInstance = {
         INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
-        person: {GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
+        person: {GENDER: 'Male', HEIGHT: 1.80, HOBBY: 'Reading, Movie',
           FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E'},
         r_employee:
-          [{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
+          [{USER_ID: 'DH999', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'Development',
             TITLE: 'Developer', GENDER: 'Male'
           }],
         r_email:
-          [{EMAIL: 'dh999@outlook.com', TYPE: null, PRIMARY: 1},
-            {EMAIL: 'dh999@darkhouse.com', TYPE: null, PRIMARY: 0}],
+          [{EMAIL: 'dh999@outlook.com', TYPE: 'PRIVATE', PRIMARY: 1},
+            {EMAIL: 'dh999@darkhouse.com', TYPE: 'WORK', PRIMARY: 0}],
         r_user:
-          [{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
+          [{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: 0, LOCK: null,
             DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
           }],
         r_address: []
@@ -1091,14 +1139,14 @@ describe('entity tests', function () {
       entity.overwriteInstance(overwriteInstance, function (err) {
         should(err).eql(null);
         entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, newInstance) {
-          newInstance.person.should.containDeep([{GENDER: 'male', HEIGHT: 180, HOBBY: 'Reading, Movie',
-            FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', TYPE: 'employee', SYSTEM_ACCESS: 'portal' }]);
-          newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
+          newInstance.person.should.containDeep([{GENDER: 'Male', HEIGHT: 1.80, HOBBY: 'Reading, Movie',
+            FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', TYPE: 'employee', SYSTEM_ACCESS: 'PORTAL' }]);
+          newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: 0, LOCK: null,
             DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
           }]);
-          newInstance.r_email.should.containDeep([{EMAIL: 'dh999@outlook.com', TYPE: null, PRIMARY: 1},
-            {EMAIL: 'dh999@darkhouse.com', TYPE: null, PRIMARY: 0}]);
-          newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
+          newInstance.r_email.should.containDeep([{EMAIL: 'dh999@outlook.com', TYPE: 'PRIVATE', PRIMARY: 1},
+            {EMAIL: 'dh999@darkhouse.com', TYPE: 'WORK', PRIMARY: 0}]);
+          newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT',
             TITLE: 'Developer', GENDER: 'Male'}]);
           (typeof newInstance.r_address).should.be.equal('undefined');
           (typeof newInstance.r_personalization).should.be.equal('undefined');
@@ -1110,7 +1158,7 @@ describe('entity tests', function () {
     it('should only overwrite explicated attributes', function (done) {
       let overwriteInstance = {
         INSTANCE_GUID: instance.INSTANCE_GUID, ENTITY_ID: 'person',
-        person: { HEIGHT: 183},
+        person: { HEIGHT: 1.83},
         r_employee: {USER_ID: 'DH999'},
         r_email: [{EMAIL: 'dh999@outlook.com'}, {EMAIL: 'dh999@darkhouse.com'}],
         r_user: {USER_ID: 'DH999'}
@@ -1118,14 +1166,14 @@ describe('entity tests', function () {
       entity.overwriteInstance(overwriteInstance, function (err) {
         should(err).eql(null);
         entity.getInstanceByGUID(instance.INSTANCE_GUID, function (err, newInstance) {
-          newInstance.person.should.containDeep([{GENDER: 'male', HEIGHT: 183, HOBBY: 'Reading, Movie',
+          newInstance.person.should.containDeep([{GENDER: 'Male', HEIGHT: 1.83, HOBBY: 'Reading, Movie',
             FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E' }]);
-          newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: null, LOCK: null,
+          newInstance.r_user.should.containDeep([{USER_ID: 'DH999', USER_NAME: 'VINCEZK', PASSWORD: null, PWD_STATE: 0, LOCK: null,
             DISPLAY_NAME: 'Zhang Kai', FAMILY_NAME: 'Zhang',GIVEN_NAME: 'Kai', MIDDLE_NAME: null
           }]);
-          newInstance.r_email.should.containDeep([{EMAIL: 'dh999@outlook.com', TYPE: null, PRIMARY: 1},
-            {EMAIL: 'dh999@darkhouse.com', TYPE: null, PRIMARY: 0}]);
-          newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'Darkhouse', DEPARTMENT_ID: 'Development',
+          newInstance.r_email.should.containDeep([{EMAIL: 'dh999@outlook.com', TYPE: 'PRIVATE', PRIMARY: 1},
+            {EMAIL: 'dh999@darkhouse.com', TYPE: 'WORK', PRIMARY: 0}]);
+          newInstance.r_employee.should.containDeep([{USER_ID: 'DH999', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT',
             TITLE: 'Developer', GENDER: 'Male'}]);
           done();
         });

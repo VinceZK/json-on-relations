@@ -22,9 +22,9 @@
         </button>
       </td>
       <td *ngFor="let attributeControl of attributeControls">
-        <app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup" [readonly]="readonly">
+        <dk-app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup" [readonly]="readonly">
 
-        </app-attribute>
+        </dk-app-attribute>
       </td>
     </tr>
   </tbody>
@@ -41,9 +41,9 @@
         </button>
       </div>
       <div class="modal-body">
-        <app-attribute-form *ngFor="let attributeControl of attributeControls" [readonly]="readonly"
+        <dk-app-attribute-form *ngFor="let attributeControl of attributeControls" [readonly]="readonly"
                             [attributeControl]="attributeControl" [formGroup]="currentFormGroup">
-        </app-attribute-form>
+        </dk-app-attribute-form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-sm btn-primary" (click)="closeDetailModal()">OK</button>

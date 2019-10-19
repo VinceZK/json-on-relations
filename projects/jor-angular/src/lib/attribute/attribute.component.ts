@@ -1,10 +1,10 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {AttributeBase} from './attribute-base';
 import {FormGroup} from '@angular/forms';
-import {SearchHelpComponent} from 'jor-angular';
+import {SearchHelpComponent} from '../search-help/search-help.component';
 
 @Component({
-  selector: 'app-attribute',
+  selector: 'dk-app-attribute',
   templateUrl: './attribute.component.html',
   styleUrls: ['./attribute.component.css']
 })

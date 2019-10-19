@@ -4,11 +4,17 @@ import {SearchHelpComponent} from './search-help/search-help.component';
 import {CommonModule} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {AttributeComponent} from './attribute/attribute.component';
+import {AttributeFormComponent} from './attribute/attribute-form/attribute-form.component';
+import {AttributeTableComponent} from './attribute/attribute-table/attribute-table.component';
 
 @NgModule({
   declarations: [
     JorAngularComponent,
-    SearchHelpComponent
+    SearchHelpComponent,
+    AttributeComponent,
+    AttributeFormComponent,
+    AttributeTableComponent
   ],
   imports: [
     CommonModule,
@@ -18,7 +24,10 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
   ],
   exports: [
     JorAngularComponent,
-    SearchHelpComponent
+    SearchHelpComponent,
+    AttributeComponent,
+    AttributeFormComponent,
+    AttributeTableComponent
   ]
 })
 export class JorAngularModule { }

@@ -1,10 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {AbstractControl, FormArray, FormGroup} from '@angular/forms';
 import {AttributeBase} from '../attribute-base';
-import {EntityRelation} from 'jor-angular';
+import {EntityRelation} from '../../entity';
 
 @Component({
-  selector: 'app-attribute-table',
+  selector: 'dk-app-attribute-table',
   templateUrl: './attribute-table.component.html',
   styleUrls: ['./attribute-table.component.css']
 })

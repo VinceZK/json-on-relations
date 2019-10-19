@@ -333,8 +333,11 @@ function _getRelationAttributes(relation, callback) {
     if (err) return callback(err);
     relation.ATTRIBUTES = attrRows;
     relation.ATTRIBUTES.forEach( attribute => {
-      if (attribute.DATA_TYPE !== 1 && attribute.DATA_TYPE !== 4 ) {
-        attribute.DATA_LENGTH = '';
+      if (attribute.DATA_TYPE !== 4 ) {
+        attribute.DECIMAL = null;
+        if (attribute.DATA_TYPE !== 1) {
+          attribute.DATA_LENGTH = null;
+        }
       }
     });
     callback(null);
