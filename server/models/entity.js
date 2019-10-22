@@ -206,13 +206,13 @@ function createInstance(instance, callback) {
       if (key === 'ENTITY_ID' || key === 'INSTANCE_GUID') {
         callback(null);
       } else if (key === 'relationships') {
-        _generateRelationshipsSQL(value, entityMeta, instanceGUID, relationshipInstances, valueCheckDomains, instance[entityMeta.ENTITY_ID],
+        _generateRelationshipsSQL(value, entityMeta, instanceGUID, relationshipInstances, valueCheckDomains, instance,
           function (results) {
             _hasErrors(results) ? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
             callback(null);
           });
       } else {
-        _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, valueCheckDomains, instance[entityMeta.ENTITY_ID], instanceGUID,
+        _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, valueCheckDomains, instance, instanceGUID,
           function (results) {
             _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
             callback(null);
@@ -807,8 +807,8 @@ function changeInstance(instance, callback) {
               callback(null);
             });
         } else {
-          _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, instance['INSTANCE_GUID'],
-            add01Relations, delete1nRelations, valueCheckDomains, entityRelation, function (results) {
+          _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, entityRelation,
+            add01Relations, delete1nRelations, valueCheckDomains, instance, function (results) {
               _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
               callback(null);
             });
@@ -1097,15 +1097,16 @@ function _getEntityInstanceHead(instanceGUID, callback) {
  * @param instanceGUID
  * @param relationshipInstances
  * @param valueCheckDomains
- * @param entityRelation
+ * @param instance
  * @param callback
  * @returns {*}
  * @private
  */
 function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, relationshipInstances,
-                                   valueCheckDomains, entityRelation, callback) {
+                                   valueCheckDomains, instance, callback) {
   const errorMessages = [];
   const SQLs = [];
+  const entityRelation = Array.isArray(instance[instance.ENTITY_ID])? instance[instance.ENTITY_ID][0] : instance[instance.ENTITY_ID];
   async.map(relationships, function (relationship, callback) {
     const roleMeta = _checkEntityInvolvesRelationship(relationship['RELATIONSHIP_ID'], entityMeta, entityRelation);
     if(!roleMeta)
@@ -1316,17 +1317,17 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
  * @param entityMeta
  * @param foreignRelations
  * @param valueCheckDomains
- * @param entityRelation
+ * @param instance
  * @param instanceGUID
  * @param callback
  * @returns {*}
  * @private
  */
-function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, valueCheckDomains, entityRelation, instanceGUID, callback){
+function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, valueCheckDomains, instance, instanceGUID, callback){
   const errorMessages = [];
   let results;
-
-  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
+  const entityRelation = Array.isArray(instance[instance.ENTITY_ID])? instance[instance.ENTITY_ID][0] : instance[instance.ENTITY_ID];
+  const roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
   if(!roleRelationMeta){
     errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
     return callback(errorMessages);
@@ -1360,9 +1361,23 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, va
       return [];
     }
 
-    relationMeta.ASSOCIATIONS.forEach(function(association){
-      if(association.FOREIGN_KEY_CHECK === 1)
-        foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
+    relationMeta.ASSOCIATIONS.forEach( association => {
+      if (!association.FOREIGN_KEY_CHECK) return;
+      const rightRelationValue = instance[association.RIGHT_RELATION_ID];
+      if (rightRelationValue) {
+        if (Array.isArray(rightRelationValue)) {
+          if (rightRelationValue.findIndex( rightRelation => {
+            return association.FIELDS_MAPPING.findIndex(
+              fieldMap => value[fieldMap.LEFT_FIELD] !== rightRelation[fieldMap.RIGHT_FIELD]) === -1;
+          }) > -1) { return; }
+        } else {
+          if (association.FIELDS_MAPPING.findIndex(
+            fieldMap => value[fieldMap.LEFT_FIELD] !== rightRelationValue[fieldMap.RIGHT_FIELD]) === -1) {
+            return;
+          }
+        }
+      }
+      foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
     });
 
     return _generateInsertSingleRelationSQL(relationMeta, value, valueCheckDomains, instanceGUID);
@@ -1381,21 +1396,22 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, va
  * @param key
  * @param entityMeta
  * @param foreignRelations: record relations that have foreign key check associations
- * @param instanceGUID
+ * @param entityRelation: entityRelation values
  * @param add01Relations: record relations that have cardinality [0..1] and are asked for adding
  * @param delete1nRelations: record relations that have cardinality [1..n] and are asked for deletion
  * @param valueCheckDomains: record fields whose domain need value checks
- * @param entityRelation
+ * @param instance
  * @param callback(errs)
  * @returns {*}
  * @private
  */
-function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, instanceGUID,
-                                    add01Relations, delete1nRelations, valueCheckDomains, entityRelation, callback){
-  let errorMessages = [];
+function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, entityRelation,
+                                    add01Relations, delete1nRelations, valueCheckDomains, instance, callback){
+  const errorMessages = [];
   let results;
 
-  let roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
+  const instanceGUID = instance['INSTANCE_GUID'];
+  const roleRelationMeta = _checkEntityHasRelation(key, entityMeta, entityRelation);
   if(!roleRelationMeta) {
     errorMessages.push(message.report('ENTITY', 'RELATION_NOT_VALID', 'E', key, entityMeta.ENTITY_ID));
     return callback(errorMessages);
@@ -1407,9 +1423,7 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
 
     if (Array.isArray(value)){
       results = [];
-      value.forEach(function (element) {
-        _mergeResults(results, __processSingleRelation(element, valueCheckDomains, relationMeta));
-      })
+      value.forEach( element => _mergeResults(results, __processSingleRelation(element, valueCheckDomains, relationMeta)));
     } else { //Single line
       results = __processSingleRelation(value, valueCheckDomains, relationMeta);
     }
@@ -1423,11 +1437,11 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
     let results;
     switch (value['action']){
       case 'add':
-        __validateForAdd(relationMeta);
+        __validateForAdd(relationMeta, value);
         results = _generateInsertSingleRelationSQL(relationMeta, value, valueCheckDomains, instanceGUID);
         break;
       case 'update':
-        results = _generateUpdateSingleRelationSQL(relationMeta, value, entityMeta, instanceGUID, foreignRelations, valueCheckDomains);
+        results = _generateUpdateSingleRelationSQL(relationMeta, value, entityMeta, instance, instanceGUID, foreignRelations, valueCheckDomains);
         break;
       case 'delete':
         if(roleRelationMeta.CARDINALITY === '[1..1]')
@@ -1445,13 +1459,13 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
         results = _generateDeleteSingleRelationSQL(relationMeta, value);
         break;
       default:
-        __validateForAdd(relationMeta);
+        __validateForAdd(relationMeta, value);
         results = _generateInsertSingleRelationSQL(relationMeta, value, valueCheckDomains, instanceGUID);
     }
     return results;
   }
 
-  function __validateForAdd(relationMeta) {
+  function __validateForAdd(relationMeta, value) {
     // Even with cardinality [1..1], you can still not tell
     // whether it can be added or not with out checking the DB.
     // Because role is attribute-based.
@@ -1469,9 +1483,23 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, in
       else
         delete1nRelations.push({RELATION_ID:roleRelationMeta.RELATION_ID, COUNT: -1});
     }
-    relationMeta.ASSOCIATIONS.forEach(function(association){
-      if(association.FOREIGN_KEY_CHECK === 1)
-        foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
+    relationMeta.ASSOCIATIONS.forEach(association => {
+      if (!association.FOREIGN_KEY_CHECK) return;
+      const rightRelationValue = instance[association.RIGHT_RELATION_ID];
+      if (rightRelationValue) {
+        if (Array.isArray(rightRelationValue)) {
+          if (rightRelationValue.findIndex( rightRelation => {
+            return association.FIELDS_MAPPING.findIndex(
+              fieldMap => value[fieldMap.LEFT_FIELD] !== rightRelation[fieldMap.RIGHT_FIELD]) === -1;
+          }) > -1) { return; }
+        } else {
+          if (association.FIELDS_MAPPING.findIndex(
+            fieldMap => value[fieldMap.LEFT_FIELD] !== rightRelationValue[fieldMap.RIGHT_FIELD]) === -1) {
+            return;
+          }
+        }
+      }
+      foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
     });
   }
 }
@@ -1513,7 +1541,8 @@ function _generateInsertSingleRelationSQL(relationMeta, relationRow, valueCheckD
 
 function _processDomainField(key, value, attributeMeta, valueCheckDomains, errorMessages, relationId) {
   if (attributeMeta.DOMAIN_TYPE >= 2) { // Value Relation 2, Value Array 3, Value Interval 4
-    if (attributeMeta.DOMAIN_TYPE === 2 && attributeMeta.PRIMARY_KEY) {
+    if (attributeMeta.DOMAIN_TYPE === 2 &&
+      ( attributeMeta.PRIMARY_KEY || attributeMeta.DOMAIN_RELATION_ID === relationId) ) {
       return value;
     }
     valueCheckDomains.push({
@@ -1548,13 +1577,14 @@ function _processDomainField(key, value, attributeMeta, valueCheckDomains, error
  * @param relationMeta
  * @param relationRow
  * @param entityMeta
+ * @param instance
  * @param instanceGUID
  * @param foreignRelations
  * @param valueCheckDomains
  * @returns {Array}
  * @private
  */
-function _generateUpdateSingleRelationSQL(relationMeta, relationRow, entityMeta,
+function _generateUpdateSingleRelationSQL(relationMeta, relationRow, entityMeta, instance,
                                           instanceGUID, foreignRelations, valueCheckDomains) {
   let errorMessages = [];
   let updateSQLs = [];
@@ -1587,16 +1617,24 @@ function _generateUpdateSingleRelationSQL(relationMeta, relationRow, entityMeta,
       } else {
         updateColumns?updateColumns = updateColumns + "," + entityDB.pool.escapeId(key) + "=" + entityDB.pool.escape(convertedValue):
           updateColumns = entityDB.pool.escapeId(key) + "=" + entityDB.pool.escape(convertedValue);
-        const association = relationMeta.ASSOCIATIONS.find(function (association) {
-          if (association.FOREIGN_KEY_CHECK === 1) {
-            const index = association.FIELDS_MAPPING.findIndex(function (fieldMap) {
-              return fieldMap.LEFT_FIELD === key;
-            });
-            if (index !== -1) return true;
+        relationMeta.ASSOCIATIONS.forEach( association => {
+          if (!association.FOREIGN_KEY_CHECK) {return;}
+          const fieldMap = association.FIELDS_MAPPING.find( fieldMap => key === fieldMap.LEFT_FIELD );
+          if (!fieldMap) {return;}
+          const rightRelationValue = instance[association.RIGHT_RELATION_ID];
+          if (rightRelationValue) {
+            if (Array.isArray(rightRelationValue)) {
+              if ( rightRelationValue.findIndex(rightRelation => rightRelation[fieldMap.RIGHT_FIELD] === value) > -1 ) {
+                return;
+              }
+            } else {
+              if ( rightRelationValue[fieldMap.RIGHT_FIELD] === value ){
+                return;
+              }
+            }
           }
-        });
-        if (association)
           foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: relationRow, association: association});
+        });
       }
     } else {
       errorMessages.push(message.report('ENTITY','RELATION_ATTRIBUTE_NOT_EXIST', 'E', key, relationMeta.RELATION_ID));
@@ -1657,20 +1695,14 @@ function _checkEntityHasRelation(relationID, entityMeta, entityRelation) {
   if (relationID === entityMeta.ENTITY_ID) {
     return {RELATION_ID: relationID, CARDINALITY: '[1..1]'};
   }
-
-  let role = entityMeta.ROLES.find(function (element) {
-    if(_checkEntityRoleCondition(element, entityRelation)){
-      return element.RELATIONS.find(function (element) {
-        return element.RELATION_ID === relationID;
-      })
+  const role = entityMeta.ROLES.find( role => {
+    if(_checkEntityRoleCondition(role, entityRelation)){
+      return role.RELATIONS.find( relation => relation.RELATION_ID === relationID );
     } else {
       return null;
     }
   });
-
-  return role?role.RELATIONS.find(function (element) {
-    return element.RELATION_ID === relationID;
-  }):false;
+  return role ? role.RELATIONS.find( relation => relation.RELATION_ID === relationID ) : false;
 }
 /**
  * Check foreign key exist from the right relation
@@ -1728,29 +1760,41 @@ function _checkDomainValue(valueCheckDomain, callback) {
   let selectSQL = "select * from ";
   switch (valueCheckDomain.DOMAIN_TYPE) {
     case 2: // Entity Relation
-      selectSQL += entityDB.pool.escapeId(valueCheckDomain.DOMAIN_RELATION_ID) + " as A join " +
-        entityDB.pool.escapeId(valueCheckDomain.DOMAIN_ENTITY_ID) + " as B on A.INSTANCE_GUID = B.INSTANCE_GUID" +
-        " where A." + entityDB.pool.escapeId(valueCheckDomain.KEY) + " = " + entityDB.pool.escape(valueCheckDomain.VALUE);
+      entityDB.getRelationMeta(valueCheckDomain.DOMAIN_RELATION_ID, function (err, relationMeta) {
+        if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+        const domainRelationAttribute =
+          relationMeta.ATTRIBUTES.find( attribute => attribute.DOMAIN_ID === valueCheckDomain.DOMAIN_ID );
+        selectSQL += entityDB.pool.escapeId(valueCheckDomain.DOMAIN_RELATION_ID) + " as A join " +
+          entityDB.pool.escapeId(valueCheckDomain.DOMAIN_ENTITY_ID) + " as B on A.INSTANCE_GUID = B.INSTANCE_GUID" +
+          " where A." + entityDB.pool.escapeId(domainRelationAttribute.ATTR_NAME) +
+          " = " + entityDB.pool.escape(valueCheckDomain.VALUE);
+        __runCheckQuery(callback);
+      });
           break;
     case 3: // Value Array
       selectSQL += " `DATA_DOMAIN_VALUE` where DOMAIN_ID = " + entityDB.pool.escape(valueCheckDomain.DOMAIN_ID) +
         " and LOW_VALUE = " + entityDB.pool.escape(valueCheckDomain.VALUE);
+      __runCheckQuery(callback);
           break;
     case 4: // Value Interval
       selectSQL += " `DATA_DOMAIN_VALUE` where DOMAIN_ID = " + entityDB.pool.escape(valueCheckDomain.DOMAIN_ID) +
         " and LOW_VALUE <= " + entityDB.pool.escape(valueCheckDomain.VALUE) +
         " and HIGH_VALUE >= " + entityDB.pool.escape(valueCheckDomain.VALUE);
+      __runCheckQuery(callback);
           break;
     default:
   }
-  selectSQL += " limit 1";
-  entityDB.executeSQL(selectSQL, function (err, rows) {
-    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
-    if (rows.length === 0)
-      callback(null, message.report('ENTITY','INVALID_VALUE_IN_DOMAIN','E',
-        valueCheckDomain.VALUE, valueCheckDomain.KEY, valueCheckDomain.RELATION_ID, valueCheckDomain.DOMAIN_ID));
-    else callback(null, null);
-  })
+
+  function __runCheckQuery(callback) {
+    selectSQL += " limit 1";
+    entityDB.executeSQL(selectSQL, function (err, rows) {
+      if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+      if (rows.length === 0)
+        callback(null, message.report('ENTITY','INVALID_VALUE_IN_DOMAIN','E',
+          valueCheckDomain.VALUE, valueCheckDomain.KEY, valueCheckDomain.RELATION_ID, valueCheckDomain.DOMAIN_ID));
+      else callback(null, null);
+    })
+  }
 }
 
 function _checkEntityExist(relationshipInstance, callback) {

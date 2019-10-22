@@ -279,11 +279,12 @@ function loadRelation(relationID, callback) { //Get Relations and their attribut
 
 function _getRelationAssociations(relation, callback) {
   let selectSQL =
-    "select A.CARDINALITY, A.FOREIGN_KEY_CHECK, B.LEFT_RELATION_ID, B.LEFT_FIELD, B.RIGHT_RELATION_ID, B.RIGHT_FIELD" +
+    "select A.ASSOCIATION_NAME, A.RIGHT_RELATION_ID, A.CARDINALITY, A.FOREIGN_KEY_CHECK, " +
+    "B.LEFT_RELATION_ID, B.LEFT_FIELD, B.RIGHT_FIELD" +
     "  from RELATION_ASSOCIATION as A" +
     "  join RELATION_ASSOCIATION_FIELDS_MAPPING as B" +
     "    on A.LEFT_RELATION_ID = B.LEFT_RELATION_ID" +
-    "   and A.RIGHT_RELATION_ID = B.RIGHT_RELATION_ID" +
+    "   and A.ASSOCIATION_NAME = B.ASSOCIATION_NAME" +
     " where A.LEFT_RELATION_ID = " + pool.escape(relation.RELATION_ID);
 
   pool.query(selectSQL, function (err, associations) {
@@ -291,18 +292,18 @@ function _getRelationAssociations(relation, callback) {
 
     let groupedAssociations = [];
     associations.forEach(function (assoc) {
-      let idx = groupedAssociations.findIndex(function (row) {
-        return row.RIGHT_RELATION_ID === assoc.RIGHT_RELATION_ID;
-      });
-      if (idx === -1) {
+      const existAssociation = groupedAssociations.find(
+        association => association.ASSOCIATION_NAME === assoc.ASSOCIATION_NAME);
+      if (!existAssociation) {
         groupedAssociations.push({
+          ASSOCIATION_NAME: assoc.ASSOCIATION_NAME,
           RIGHT_RELATION_ID: assoc.RIGHT_RELATION_ID,
           CARDINALITY: assoc.CARDINALITY,
           FOREIGN_KEY_CHECK: assoc.FOREIGN_KEY_CHECK,
           FIELDS_MAPPING: [{LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD}]
         });
       } else {
-        groupedAssociations[idx].FIELDS_MAPPING.push({LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD});
+        existAssociation.FIELDS_MAPPING.push({LEFT_FIELD: assoc.LEFT_FIELD, RIGHT_FIELD: assoc.RIGHT_FIELD});
       }
     });
     relation.ASSOCIATIONS = groupedAssociations;

@@ -46,7 +46,7 @@
           <tbody>
           <tr *ngFor="let item of listData; let i = index">
             <td>
-              <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedItem" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
+              <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedIndex" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
               <input *ngIf="searchHelpMeta.MULTI" type="checkbox" [(ngModel)]="item.SELECTED">
             </td>
             <td *ngFor="let listField of listFields">{{item[listField.FIELD_NAME]}}</td>

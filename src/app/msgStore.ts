@@ -116,6 +116,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'MISS_RELATION_ASSOCIATION_FIELD_MAPPING',
+    msgText: {
+      EN: {shortText: 'There are no fields-mappings defined for association \'%s\'', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'RELATION_SAVED',
     msgText: {
       EN: {shortText: 'Relation "%s" is saved', longText: ''}

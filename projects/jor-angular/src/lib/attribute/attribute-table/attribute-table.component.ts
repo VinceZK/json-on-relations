@@ -29,12 +29,14 @@ export class AttributeTableComponent implements OnInit {
   get displayErrorModal() {return this.isErrorModalShown ? 'block' : 'none'; }
 
   openDetailModal(index: number): void {
-    this.currentFormGroup = this.formArray.controls[index];
+    this.currentFormGroup = this.formArray.at(index);
     this.isDetailModalShown = true;
   }
 
   closeDetailModal(): void {
-    this.currentFormGroup.setValue(this.currentFormGroup.value); // Or the value won't be updated.
+    if (!this.readonly && this.currentFormGroup.dirty) {
+      this.currentFormGroup.setValue(this.currentFormGroup.value); // Or the value won't be updated.
+    }
     this.isDetailModalShown = false;
   }
 

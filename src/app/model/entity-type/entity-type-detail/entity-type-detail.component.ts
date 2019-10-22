@@ -74,6 +74,9 @@ export class EntityTypeDetailComponent implements OnInit {
     ).subscribe(data => {
       if ( 'ENTITY_ID' in data[0]) {
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.entityMeta = <EntityMeta>data[0];
         this.attributes = 'RELATION_ID' in data[1] ? data[1]['ATTRIBUTES'] : [];
         this._generateEntityTypeForm();
@@ -360,7 +363,9 @@ export class EntityTypeDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/entity-type/' + data[0]['ENTITY_ID']]);
+        this.router.navigate(['/model/entity-type/' + data[0]['ENTITY_ID']],
+          {state: {message: this.messageService.generateMessage(
+                'MODEL', 'ENTITY_TYPE_SAVED', 'S', data[0]['ENTITY_ID'])}});
       } else {
         this.readonly = true;
         this.entityMeta = data[0];

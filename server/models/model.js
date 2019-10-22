@@ -334,12 +334,15 @@ function _generateUpdateRelationSQL(relation, updateSQLs, userID, currentTime) {
 
 function _generateUpdateAssociation(relationID, association, updateSQLs) {
   let whereStr = " where LEFT_RELATION_ID = " + entityDB.pool.escape(relationID) +
-                 " and RIGHT_RELATION_ID = " + entityDB.pool.escape(association.RIGHT_RELATION_ID);
+                 " and ASSOCIATION_NAME = " + entityDB.pool.escape(association.ASSOCIATION_NAME);
   switch (association.action) {
     case 'update':
       let updateSQL;
+      if (association.RIGHT_RELATION_ID !== undefined)
+        updateSQL = "update RELATION_ASSOCIATION set RIGHT_RELATION_ID = " + entityDB.pool.escape(association.RIGHT_RELATION_ID);
       if (association.CARDINALITY !== undefined)
-        updateSQL = "update RELATION_ASSOCIATION set CARDINALITY = " + entityDB.pool.escape(association.CARDINALITY);
+        updateSQL = updateSQL? updateSQL + ", CARDINALITY = " + entityDB.pool.escape(association.CARDINALITY)
+          :"update RELATION_ASSOCIATION set CARDINALITY = " + entityDB.pool.escape(association.CARDINALITY);
       if (association.FOREIGN_KEY_CHECK !== undefined)
         updateSQL = updateSQL? updateSQL + ", FOREIGN_KEY_CHECK = " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK)
                :"update RELATION_ASSOCIATION set FOREIGN_KEY_CHECK = " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK);
@@ -349,34 +352,35 @@ function _generateUpdateAssociation(relationID, association, updateSQLs) {
         association.FIELDS_MAPPING.forEach(function (fieldsMap) {
           if (fieldsMap.action === 'delete') {
             updateSQLs.push("delete from RELATION_ASSOCIATION_FIELDS_MAPPING where " +
-            "LEFT_RELATION_ID = " + entityDB.pool.escape(relationID) +
-            " and LEFT_FIELD = " + entityDB.pool.escape(fieldsMap.LEFT_FIELD) +
-            " and RIGHT_RELATION_ID = " + entityDB.pool.escape(association.RIGHT_RELATION_ID) +
-            " and RIGHT_FIELD = " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD));
+              "LEFT_RELATION_ID = " + entityDB.pool.escape(relationID) +
+              " and ASSOCIATION_NAME = " + entityDB.pool.escape(association.ASSOCIATION_NAME) +
+              " and LEFT_FIELD = " + entityDB.pool.escape(fieldsMap.LEFT_FIELD) +
+              " and RIGHT_FIELD = " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD));
           } else { // All add
             updateSQLs.push("insert into RELATION_ASSOCIATION_FIELDS_MAPPING" +
-            "( LEFT_RELATION_ID, LEFT_FIELD, RIGHT_RELATION_ID, RIGHT_FIELD ) values ( " +
-              entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " +
-              entityDB.pool.escape(association.RIGHT_RELATION_ID) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
+            "( LEFT_RELATION_ID, ASSOCIATION_NAME, LEFT_FIELD, RIGHT_FIELD ) values ( " +
+              entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(fieldsMap.ASSOCIATION_NAME) + ", " +
+              entityDB.pool.escape(association.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
           }
         })
       }
       break;
     case 'delete':
       updateSQLs.push("delete from RELATION_ASSOCIATION" + whereStr);
-      updateSQLs.push("delete from RELATION_ASSOCIATION_FIELDS_MAPPING where LEFT_RELATION_ID = " + entityDB.pool.escape(relationID));
+      updateSQLs.push("delete from RELATION_ASSOCIATION_FIELDS_MAPPING" + whereStr);
       break;
     case 'add':
     default:
       updateSQLs.push("insert into RELATION_ASSOCIATION " +
-        "(LEFT_RELATION_ID, RIGHT_RELATION_ID, CARDINALITY, FOREIGN_KEY_CHECK) values ( " +
-        entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.RIGHT_RELATION_ID) +
-      ", " + entityDB.pool.escape(association.CARDINALITY) + ", " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK) + ")");
+        "(LEFT_RELATION_ID, ASSOCIATION_NAME, RIGHT_RELATION_ID, CARDINALITY, FOREIGN_KEY_CHECK) values ( " +
+        entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.ASSOCIATION_NAME) +
+        ", " + entityDB.pool.escape(association.RIGHT_RELATION_ID) + ", " + entityDB.pool.escape(association.CARDINALITY)
+        + ", " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK) + ")");
       association.FIELDS_MAPPING.forEach(function (fieldsMap) {
         updateSQLs.push("insert into RELATION_ASSOCIATION_FIELDS_MAPPING" +
-          "( LEFT_RELATION_ID, LEFT_FIELD, RIGHT_RELATION_ID, RIGHT_FIELD ) values ( " +
-          entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " +
-          entityDB.pool.escape(association.RIGHT_RELATION_ID) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
+          "( LEFT_RELATION_ID, ASSOCIATION_NAME, LEFT_FIELD, RIGHT_FIELD ) values ( " +
+          entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.ASSOCIATION_NAME) + ", " +
+          entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
       })
   }
 }

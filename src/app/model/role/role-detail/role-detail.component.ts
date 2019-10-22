@@ -73,6 +73,9 @@ export class RoleDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.roleMeta = <RoleMeta>data;
         this._generateRoleForm();
       }
@@ -340,7 +343,9 @@ export class RoleDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/role/' + data['ROLE_ID']]);
+        this.router.navigate(['/model/role/' + data['ROLE_ID']],
+          {state: {message: this.messageService.generateMessage(
+                'MODEL', 'ROLE_SAVED', 'S', data['ROLE_ID'])}});
       } else {
         this.readonly = true;
         this.roleMeta = data;

@@ -94,6 +94,7 @@ export class RelationMeta {
   ASSOCIATIONS?: Association[];
 }
 export class Association {
+  ASSOCIATION_NAME: string;
   RIGHT_RELATION_ID: string;
   CARDINALITY: string;
   FOREIGN_KEY_CHECK: boolean;

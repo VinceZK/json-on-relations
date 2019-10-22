@@ -18,6 +18,29 @@ export class AttributeComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
+    const fieldCtrl = this.formGroup.get(this.attributeControl.name);
+    switch (this.attributeControl.controlType) {
+      case 'timestamp':
+        if (!this.readonly && !fieldCtrl.value) {
+          const currentTimestamp = new Date();
+          fieldCtrl.setValue(
+            currentTimestamp.getFullYear() + '-' + ('0' + (currentTimestamp.getMonth() + 1)).slice(-2) + '-'
+            + ('0' + currentTimestamp.getDate()).slice(-2) + ' ' + ('0' + currentTimestamp.getHours()).slice(-2) +
+            ':' + ('0' + currentTimestamp.getMinutes()).slice(-2) + ':' + ('0' + currentTimestamp.getSeconds()).slice(-2));
+          fieldCtrl.markAsDirty();
+        }
+        break;
+      case 'date':
+        if (!this.readonly && !fieldCtrl.value) {
+          const currentDate = new Date();
+          fieldCtrl.setValue(
+            currentDate.getFullYear() + '-' + ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-'
+            + ('0' + currentDate.getDate()).slice(-2));
+          fieldCtrl.markAsDirty();
+        }
+        break;
+      default:
+    }
   }
 
   get isValid() { return this.formGroup.controls[this.attributeControl.name].valid; }

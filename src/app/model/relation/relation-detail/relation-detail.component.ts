@@ -84,6 +84,9 @@ export class RelationDetailComponent implements OnInit {
     ).subscribe(data => {
       if ( 'RELATION_ID' in data) { // If the return data is a message
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.relationMeta = <RelationMeta>data;
         this._generateRelationForm();
       } else {
@@ -116,10 +119,11 @@ export class RelationDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, IE_FIELD_NAME: fieldName, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, IE_FIELD_NAME: fieldName,
+        LIST_POSITION: 1, FILTER_POSITION: 0},
       {FIELD_NAME: 'RELATION_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
-    searchHelpMeta.READ_ONLY = this.readonly || this.oldRightRelation(control) && control.valid;
+    searchHelpMeta.READ_ONLY = this.readonly;
 
     const afterExportFn = function (context: any, ruleIdx: number) {
       return () => context.onChangeRightRelationID(ruleIdx, true);
@@ -148,28 +152,32 @@ export class RelationDetailComponent implements OnInit {
           }));
         });
         formArray.push(this.fb.group({
+          ASSOCIATION_NAME: [association.ASSOCIATION_NAME],
           RIGHT_RELATION_ID: [association.RIGHT_RELATION_ID],
           CARDINALITY: [{value: association.CARDINALITY, disabled: this.readonly}],
-          FOREIGN_KEY_CHECK: [{value: association.FOREIGN_KEY_CHECK, disabled: this.readonly}],
+          FOREIGN_KEY_CHECK: [{
+            value: association.FOREIGN_KEY_CHECK,
+            disabled: this.readonly || association.CARDINALITY === '[0..1]' || association.CARDINALITY === '[0..N]'}],
           FIELDS_MAPPING: this.fb.array(fieldsMapArray)
         }));
       });
     }
 
     if (this.isNewMode) {
-      formArray.push(
-        this.fb.group({
-          RIGHT_RELATION_ID: [''],
-          CARDINALITY: ['[0..1]'],
-          FOREIGN_KEY_CHECK: [0],
-          FIELDS_MAPPING: this.fb.array([
-            this.fb.group({
-              LEFT_FIELD: [''],
-              RIGHT_FIELD: ['']
-            })])
-        }));
+      this._appendEmptyAssociation(formArray);
     }
     this.relationForm.addControl('ASSOCIATIONS', new FormArray(formArray));
+  }
+
+  _appendEmptyAssociation(formArray: any) {
+    formArray.push(
+      this.fb.group({
+        ASSOCIATION_NAME: [''],
+        RIGHT_RELATION_ID: [''],
+        CARDINALITY: ['[0..1]'],
+        FOREIGN_KEY_CHECK: [{value: 0, disabled: true}],
+        FIELDS_MAPPING: this.fb.array([])
+    }));
   }
 
   _validateRelationId(c: FormControl) {
@@ -222,25 +230,21 @@ export class RelationDetailComponent implements OnInit {
       this.readonly = false;
       this.associationFormArray.controls.forEach(associationFormGroup => {
         associationFormGroup.get('CARDINALITY').enable();
-        associationFormGroup.get('FOREIGN_KEY_CHECK').enable();
+        if ( associationFormGroup.get('CARDINALITY').value === '[1..1]' ||
+             associationFormGroup.get('CARDINALITY').value === '[1..N]' ) {
+          associationFormGroup.get('FOREIGN_KEY_CHECK').enable();
+        }
       });
-      this.associationFormArray.push(
-        this.fb.group({
-          RIGHT_RELATION_ID: [''],
-          CARDINALITY: ['[0..1]'],
-          FOREIGN_KEY_CHECK: [0],
-          FIELDS_MAPPING: this.fb.array([])
-        }));
+      this._appendEmptyAssociation(this.associationFormArray);
       this.attrComponent.switchEditDisplay(this.readonly);
     }
-
     this.messageService.clearMessages();
   }
 
   _switch2DisplayMode(): void {
     this.readonly = true;
     let lastIndex = this.associationFormArray.length - 1;
-    while (lastIndex >= 0 && this.associationFormArray.controls[lastIndex].get('RIGHT_RELATION_ID').value.trim() === '') {
+    while (lastIndex >= 0 && this.associationFormArray.controls[lastIndex].get('ASSOCIATION_NAME').value.trim() === '') {
       this.associationFormArray.removeAt(lastIndex);
       lastIndex--;
     }
@@ -301,31 +305,26 @@ export class RelationDetailComponent implements OnInit {
     }
   }
 
+  onChangeAssociationName(index: number): void {
+    const currentAssocFormGroup = this.associationFormArray.at(index);
+    if (this.associationFormArray.controls.findIndex((assocCtrl, i) =>
+      i !== index && assocCtrl.get('ASSOCIATION_NAME').value === currentAssocFormGroup.get('ASSOCIATION_NAME').value
+    ) !== -1) {
+      currentAssocFormGroup.get('ASSOCIATION_NAME').setErrors({message: 'Duplicate association name!'});
+      return;
+    }
+
+    if (index === this.associationFormArray.length - 1 && currentAssocFormGroup.value.ASSOCIATION_NAME.trim() !== '') {
+      this._appendEmptyAssociation(this.associationFormArray);
+    }
+  }
+
   onChangeRightRelationID(index: number, isExportedFromSH?: boolean): void {
     const currentAssocFormGroup = this.associationFormArray.controls[index];
 
     if (currentAssocFormGroup.get('RIGHT_RELATION_ID').value === this.relationMeta.RELATION_ID) {
       currentAssocFormGroup.get('RIGHT_RELATION_ID').setErrors({message: 'Self association is not allowed'});
       return;
-    }
-
-    if (this.associationFormArray.controls.findIndex((assocCtrl, i) =>
-      i !== index && assocCtrl.get('RIGHT_RELATION_ID').value === currentAssocFormGroup.get('RIGHT_RELATION_ID').value
-    ) !== -1) {
-      currentAssocFormGroup.get('RIGHT_RELATION_ID').setErrors({message: 'Duplicate associated relation'});
-      return;
-    }
-
-    if (index === this.associationFormArray.length - 1 && currentAssocFormGroup.value.RIGHT_RELATION_ID.trim() !== '') {
-      // Only work for the last New line
-      this.associationFormArray.push(
-        this.fb.group({
-          RIGHT_RELATION_ID: [''],
-          CARDINALITY: ['[0..1]'],
-          FOREIGN_KEY_CHECK: [0],
-          FIELDS_MAPPING: this.fb.array([])
-        })
-      );
     }
 
     if (!isExportedFromSH) {
@@ -335,6 +334,17 @@ export class RelationDetailComponent implements OnInit {
             currentAssocFormGroup.get('RIGHT_RELATION_ID').setErrors({message: data['msgShortText']});
           }
         });
+    }
+  }
+
+  onChangeCardinality(formGroup: FormGroup): void {
+    const cardinality = formGroup.get('CARDINALITY');
+    if ( cardinality.value === '[1..1]' || cardinality.value === '[1..N]' ) {
+      formGroup.get('FOREIGN_KEY_CHECK').enable();
+    } else {
+      formGroup.get('FOREIGN_KEY_CHECK').setValue(0);
+      formGroup.get('FOREIGN_KEY_CHECK').markAsDirty();
+      formGroup.get('FOREIGN_KEY_CHECK').disable();
     }
   }
 
@@ -387,10 +397,10 @@ export class RelationDetailComponent implements OnInit {
     }
   }
 
-  oldRightRelation(formGroup: AbstractControl): boolean {
+  oldAssociationName(formGroup: AbstractControl): boolean {
     return this.relationMeta.ASSOCIATIONS ?
       this.relationMeta.ASSOCIATIONS.findIndex(
-      association => association.RIGHT_RELATION_ID === formGroup.get('RIGHT_RELATION_ID').value ) !== -1 :
+      association => association.ASSOCIATION_NAME === formGroup.get('ASSOCIATION_NAME').value ) !== -1 :
       false;
   }
 
@@ -439,30 +449,40 @@ export class RelationDetailComponent implements OnInit {
     }
 
     this.changedRelation['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
-    this._processChangedAssociation();
+    if (!this._processChangedAssociation()) {
+      return;
+    }
 
     this.entityService.saveRelation(this.changedRelation)
       .subscribe(data => this._postActivityAfterSavingRelation(data));
   }
 
-  _processChangedAssociation(): void {
+  _processChangedAssociation(): boolean {
     const changedAssociations = [];
-    if (!this.associationFormArray.dirty) { return; }
+    const errMessages = [];
+    if (!this.associationFormArray.dirty) { return true; }
 
     this.changedRelation['ASSOCIATIONS'] = changedAssociations;
 
     this.associationFormArray.controls.forEach(associationControl => {
-      if (associationControl.get('RIGHT_RELATION_ID').value.trim() === '') { return; }
+      if (!associationControl.get('ASSOCIATION_NAME').value ||
+          !associationControl.get('RIGHT_RELATION_ID').value) { return; }
       const changedAssociation = {};
       const associationMeta = this.relationMeta.ASSOCIATIONS.find(
-        association => associationControl.get('RIGHT_RELATION_ID').value === association.RIGHT_RELATION_ID);
+        association => associationControl.get('ASSOCIATION_NAME').value === association.ASSOCIATION_NAME);
       if (!associationMeta) {// New Add Case
         changedAssociation['action'] = 'add';
+        changedAssociation['ASSOCIATION_NAME'] = associationControl.get('ASSOCIATION_NAME').value;
         changedAssociation['RIGHT_RELATION_ID'] = associationControl.get('RIGHT_RELATION_ID').value;
         changedAssociation['CARDINALITY'] = associationControl.get('CARDINALITY').value;
         changedAssociation['FOREIGN_KEY_CHECK'] = associationControl.get('FOREIGN_KEY_CHECK').value;
         changedAssociation['FIELDS_MAPPING'] = [];
         const fieldMapArray = associationControl.get('FIELDS_MAPPING') as FormArray;
+        if (fieldMapArray.length === 0) {
+          errMessages.push(this.messageService.generateMessage(
+            'MODEL', 'MISS_RELATION_ASSOCIATION_FIELD_MAPPING', 'E', changedAssociation['RIGHT_RELATION_ID']));
+          return;
+        }
         fieldMapArray.controls.forEach(fieldMap => {
           changedAssociation['FIELDS_MAPPING'].push(
             {action: 'add', RIGHT_FIELD: fieldMap.get('RIGHT_FIELD').value, LEFT_FIELD: fieldMap.get('LEFT_FIELD').value});
@@ -471,7 +491,10 @@ export class RelationDetailComponent implements OnInit {
       } else {
         if (associationControl.dirty) {// Change Case
           changedAssociation['action'] = 'update';
-          changedAssociation['RIGHT_RELATION_ID'] = associationControl.get('RIGHT_RELATION_ID').value;
+          changedAssociation['ASSOCIATION_NAME'] = associationControl.get('ASSOCIATION_NAME').value;
+          if (associationControl.get('RIGHT_RELATION_ID').dirty) {
+            changedAssociation['RIGHT_RELATION_ID'] = associationControl.get('RIGHT_RELATION_ID').value;
+          }
           if (associationControl.get('CARDINALITY').dirty) {
             changedAssociation['CARDINALITY'] = associationControl.get('CARDINALITY').value;
           }
@@ -481,6 +504,11 @@ export class RelationDetailComponent implements OnInit {
           if (associationControl.get('FIELDS_MAPPING').dirty) {
             changedAssociation['FIELDS_MAPPING'] = [];
             const fieldMapArray = associationControl.get('FIELDS_MAPPING') as FormArray;
+            if (fieldMapArray.length === 0) {
+              errMessages.push(this.messageService.generateMessage(
+                'MODEL', 'MISS_RELATION_ASSOCIATION_FIELD_MAPPING', 'E', changedAssociation['RIGHT_RELATION_ID']));
+              return;
+            }
             fieldMapArray.controls.forEach(fieldMap => {
               if (fieldMap.dirty) {
                 changedAssociation['FIELDS_MAPPING'].push(
@@ -501,17 +529,20 @@ export class RelationDetailComponent implements OnInit {
         }
       }
     });
-
+    if (errMessages.length > 0) {
+      errMessages.forEach( errMessage => this.messageService.add(errMessage));
+      return false;
+    }
     // Deletion Case
     this.relationMeta.ASSOCIATIONS.forEach(associationMeta => {
       const index = this.associationFormArray.controls.findIndex(
-        associationControl => associationControl.get('RIGHT_RELATION_ID').value === associationMeta.RIGHT_RELATION_ID);
+        associationControl => associationControl.get('ASSOCIATION_NAME').value === associationMeta.ASSOCIATION_NAME);
       if (index === -1) { // The association must be deleted
-        changedAssociations.push({action: 'delete', RIGHT_RELATION_ID: associationMeta.RIGHT_RELATION_ID});
+        changedAssociations.push({action: 'delete', ASSOCIATION_NAME: associationMeta.ASSOCIATION_NAME});
       }
     });
+    return true;
   }
-
 
   _postActivityAfterSavingRelation(data: any) {
     this.changedRelation = {};
@@ -519,12 +550,14 @@ export class RelationDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/relation/' + data['RELATION_ID']]);
+        this.router.navigate(['/model/relation/' + data['RELATION_ID']],
+          {state: {message: this.messageService.generateMessage(
+                'MODEL', 'RELATION_SAVED', 'S', data['RELATION_ID'])}});
       } else {
         this.readonly = true;
         this.relationMeta = data;
         this._generateRelationForm();
-        this.messageService.reportMessage('MODEL', 'RELATION_SAVED', 'S', this.relationMeta.RELATION_ID);
+        this.messageService.reportMessage('MODEL', 'RELATION_SAVED', 'S', data['RELATION_ID']);
       }
     } else {
       if (data instanceof Array) {

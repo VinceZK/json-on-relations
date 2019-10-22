@@ -79,6 +79,9 @@ export class RelationshipDetailComponent implements OnInit {
         this.messageService.report(<Message>data[0]);
       } else {
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.relationshipMeta = data[0];
         this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
         this._generateRelationshipForm();
@@ -158,6 +161,7 @@ export class RelationshipDetailComponent implements OnInit {
     } else {
       this.relationshipForm.get('RELATIONSHIP_ID').clearValidators();
       this.relationshipForm.get('RELATIONSHIP_ID').clearAsyncValidators();
+      this.relationshipForm.get('RELATIONSHIP_ID').updateValueAndValidity();
     }
 
     this.relationshipForm.setControl('INVOLVES', new FormArray(formArray));
@@ -483,14 +487,17 @@ export class RelationshipDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/relationship/' + data[0]['RELATIONSHIP_ID']]);
+        this.router.navigate(['/model/relationship/' + data[0]['RELATIONSHIP_ID']],
+          {state: {message: this.messageService.generateMessage(
+                'MODEL', 'RELATIONSHIP_SAVED', 'S', data[0]['RELATIONSHIP_ID'])}});
       } else {
         this.readonly = true;
         this.relationshipForm.get('TIME_DEPENDENT').disable();
         this.relationshipMeta = data[0];
         this.attributes = data[1].ATTRIBUTES;
         this._generateRelationshipForm();
-        this.messageService.reportMessage('MODEL', 'RELATIONSHIP_SAVED', 'S', this.relationshipMeta.RELATIONSHIP_ID);
+        this.messageService.reportMessage(
+          'MODEL', 'RELATIONSHIP_SAVED', 'S', this.relationshipMeta.RELATIONSHIP_ID);
       }
     } else {
       if (data instanceof Array) {

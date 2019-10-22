@@ -67,6 +67,9 @@ export class DataElementDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.dataElementMeta = <DataElementMeta>data;
         this._generateDataElementForm();
       }
@@ -103,7 +106,6 @@ export class DataElementDetailComponent implements OnInit {
   _generateDataElementForm(): void {
     if (this.dataElementForm) {
       this.dataElementForm.markAsPristine({onlySelf: false});
-      this._setNewModeState();
       this.dataElementForm.get('ELEMENT_ID').setValue(this.dataElementMeta.ELEMENT_ID);
       this.dataElementForm.get('ELEMENT_DESC').setValue(this.dataElementMeta.ELEMENT_DESC);
       this.dataElementForm.get('LABEL_TEXT').setValue(this.dataElementMeta.LABEL_TEXT);
@@ -142,9 +144,8 @@ export class DataElementDetailComponent implements OnInit {
         PARAMETER_ID: [this.dataElementMeta.PARAMETER_ID],
         USE_DOMAIN: [{value: this.dataElementMeta.DOMAIN_ID ? 1 : 0, disabled: this.readonly}]
       });
-      this._setNewModeState();
     }
-
+    this._setNewModeState();
     if (this.dataElementForm.get('USE_DOMAIN').value) {
       this.dataElementForm.get('DOMAIN_ID').setValidators(Validators.required);
       this.onChangeDataDomain(this.dataElementForm);
@@ -166,7 +167,8 @@ export class DataElementDetailComponent implements OnInit {
       this.dataElementForm.get('DATA_LENGTH').markAsDirty(); // Default value mark as dirty
     } else {
       this.dataElementForm.get('ELEMENT_ID').clearValidators();
-      this.dataElementForm.get('ELEMENT_ID').clearAsyncValidators();
+      this.dataElementForm.get('ELEMENT_ID').clearAsyncValidators() ;
+      this.dataElementForm.get('ELEMENT_ID').updateValueAndValidity();
     }
   }
 
@@ -279,14 +281,15 @@ export class DataElementDetailComponent implements OnInit {
     } else {
       this._invalidField(formGroup.get('DOMAIN_ID'), markAsDirty);
       formGroup.get('DATA_TYPE').enable();
+      formGroup.get('DATA_TYPE').markAsDirty();
       formGroup.get('DATA_LENGTH').enable();
+      formGroup.get('DATA_LENGTH').markAsDirty();
       formGroup.get('DECIMAL').enable();
+      formGroup.get('DECIMAL').markAsDirty();
       if (!formGroup.get('DATA_TYPE').value) {
         formGroup.get('DATA_TYPE').setValue(1);
-        formGroup.get('DATA_TYPE').markAsDirty();
         if (!formGroup.get('DATA_LENGTH').value) {
           formGroup.get('DATA_LENGTH').setValue(10);
-          formGroup.get('DATA_LENGTH').markAsDirty();
         }
       }
       this._updateLengthAndDecimal(formGroup);
@@ -413,12 +416,15 @@ export class DataElementDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/data-element/' + data['ELEMENT_ID']]);
+        this.router.navigate(['/model/data-element/' + data['ELEMENT_ID']],
+          {state: {message: this.messageService.generateMessage(
+            'MODEL', 'DATA_ELEMENT_SAVED', 'S', data['ELEMENT_ID'])}});
       } else {
         this._switch2DisplayMode();
         this.dataElementMeta = data;
         this._generateDataElementForm();
-        this.messageService.reportMessage('MODEL', 'DATA_ELEMENT_SAVED', 'S', this.dataElementMeta.ELEMENT_ID);
+        this.messageService.reportMessage(
+          'MODEL', 'DATA_ELEMENT_SAVED', 'S', data['ELEMENT_ID']);
       }
     } else {
       if (data instanceof Array) {

@@ -45,7 +45,7 @@
       </div>
 
       <div class="ml-0 row">
-        <div class="form-group col-sm-4 col-lg-2"
+        <div class="form-group col-8 col-sm-4 col-lg-2"
              [class.dk-invalid]="dataDomainForm.get('DATA_LENGTH').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
           <label class="col-form-label col-form-label-sm" for="data-length">Length:
             <span class="dk-invalid-feedback">{{dataDomainForm.get('DATA_LENGTH').errors?.message}}</span>
@@ -54,7 +54,7 @@
                  class="form-control form-control-sm" [readonly]="readonly" >
         </div>
 
-        <div class="form-group col-sm-4 col-lg-2"
+        <div class="form-group col-8 col-sm-4 col-lg-2"
              [class.dk-invalid]="dataDomainForm.get('DECIMAL').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
           <label class="col-form-label col-form-label-sm" for="decimal-place">Decimal Place:
             <span class="dk-invalid-feedback">{{dataDomainForm.get('DECIMAL').errors?.message}}</span>
@@ -104,7 +104,7 @@
         </div>
       </div>
 
-      <div *ngIf="enableValueRelation" class="card mb-3">
+      <div *ngIf="enableValueRelation" class="card mb-2">
         <div class="ml-2 mt-2 custom-control custom-radio"
              [class.dk-invalid]="dataDomainForm.get('RELATION_ID').invalid && (dataDomainForm.touched || dataDomainForm.dirty)">
           <input type="radio" class="custom-control-input" id="value-relation" name="DOMAIN_TYPE"
@@ -116,7 +116,7 @@
           </label>
         </div>
         <div class="card-body row">
-          <div class="input-group col-4">
+          <div class="input-group col-lg-4 ml-2 mb-3">
             <input type="text" formControlName="ENTITY_ID" id="ENTITY_ID" name="ENTITY_ID" placeholder="Entity Type"
                    class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeEntityID(dataDomainForm)">
             <div class="input-group-append">
@@ -125,7 +125,7 @@
               </button>
             </div>
           </div>
-          <select formControlName="RELATION_ID" class="form-control form-control-sm col-4">
+          <select formControlName="RELATION_ID" class="form-control form-control-sm col-lg-4 ml-4 mr-3">
             <option *ngFor="let relation of relationsOfEntity" [value]="relation">{{relation}}</option>
           </select>
         </div>

@@ -63,7 +63,10 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
 
   deleteAttribute(index: number): void {
     if (index !== this.formArray.length - 1) {
-      this.deletedAttributes.push(this.formArray.at(index).get('ATTR_GUID').value);
+      this.deletedAttributes.push({
+        ATTR_GUID: this.formArray.at(index).get('ATTR_GUID').value,
+        ATTR_NAME: this.formArray.at(index).get('ATTR_NAME').value
+      });
       this.formArray.removeAt(index);
       this.formArray.markAsDirty();
     }
@@ -83,6 +86,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
       DATA_TYPE: [{value: '', disabled: true}],
       DATA_LENGTH: [{value: '', disabled: true}],
       DECIMAL: [null],
+      ORDER: [null],
       PRIMARY_KEY: [false],
       AUTO_INCREMENT: [{value: false, disabled: true}]
     });
@@ -180,15 +184,16 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     const changedAttributes = [];
     let changedAttribute;
     let order = 0;
-    let lastOrder = 0;
     if (this.formArray.dirty) {
       this.formArray.controls.forEach((attribute, index) => {
-        order = attribute.get('ORDER') ? attribute.get('ORDER').value : index;
-        if (order < lastOrder) { order = lastOrder + 1; }
-        lastOrder = order;
         if (attribute.get('ATTR_NAME').value.trim() === '') { return; }
+        order = index + 1;
+        if (order !== attribute.get('ORDER').value) {
+          attribute.get('ORDER').setValue(order);
+          attribute.get('ORDER').markAsDirty();
+        }
         if (attribute.dirty) {
-          changedAttribute = { ORDER: order };
+          changedAttribute = {};
           if (attribute.get('ATTR_GUID').value) { // Update Case
             changedAttribute['action'] = 'update';
             changedAttribute['ATTR_GUID'] = attribute.get('ATTR_GUID').value;
@@ -216,8 +221,8 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
       });
 
       // Deletion Case
-      this.deletedAttributes.forEach(attributeGUID => {
-        changedAttribute = {action: 'delete', ATTR_GUID: attributeGUID};
+      this.deletedAttributes.forEach(attribute => {
+        changedAttribute = {action: 'delete', ATTR_GUID: attribute.ATTR_GUID, ATTR_NAME: attribute.ATTR_NAME};
         changedAttributes.push(changedAttribute);
       });
 
@@ -254,10 +259,12 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   }
 
   switchEditDisplay(readonly: boolean) {
-    if (!readonly) { // Edit Mode
+    if (!readonly) { // To Edit Mode
       this.formArray.controls.forEach(attrFormGroup => {
         if (!this.isFieldGray(attrFormGroup.value)) {
-          attrFormGroup.get('DATA_TYPE').enable();
+          if (!attrFormGroup.get('DATA_ELEMENT').value) {
+            attrFormGroup.get('DATA_TYPE').enable();
+          }
           attrFormGroup.get('PRIMARY_KEY').enable();
           if (attrFormGroup.get('DATA_TYPE').value === 2) {
             attrFormGroup.get('AUTO_INCREMENT').enable();
@@ -267,7 +274,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         }
       });
       this.formArray.push(this._createAnAttributeFormCtrl());
-    } else { // Display Mode
+    } else { // To Display Mode
       let lastIndex = this.formArray.length - 1;
       while (lastIndex >= 0 && this.formArray.controls[lastIndex].get('ATTR_NAME').value.trim() === '') {
         this.formArray.removeAt(lastIndex);

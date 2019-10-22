@@ -181,17 +181,7 @@ Content-Type: application/json
                                    dateStrings: true,
                                    port: 3306           // replaced by your DB port.
                                  });
-   entityDB.executeSQL("select ENTITY_ID from ENTITY", function (err, rows) {
-     if(err) debug("bootstrap: get entities==> %s", err);
-     else {
-       const entities = [];
-       rows.forEach( row => entities.push(row.ENTITY_ID));
-       entityDB.loadEntities(entities, function (err) {
-         if(err) debug("bootstrap: load entities==> %s", err);
-         else app.listen(3001, () => console.log('Example app listening on port 3001!'));
-       })
-     }
-   });
+   app.listen(3000, () => console.log('Example app listening on port 3000!'));
    ```
 
    You should also install following involved packages: express, path, cors, body-parse, and compression.
@@ -202,8 +192,8 @@ Content-Type: application/json
    ```
    
 5. Open the links:
-   + [Modeling](http://localhost:3001/model)
-   + [Entity Browser](http://localhost:3001/entity/list)
+   + [Modeling](http://localhost:3000/model)
+   + [Entity Browser](http://localhost:3000/entity/list)
    
 *If you are using Angular for UI development, you can install the package 'npm i jor-angular' for the types.*  
    
@@ -582,7 +572,6 @@ For example, data domain "Country" contains all the country codes in the world s
 while a data element can be assigned with a data domain, and adding more business semantics like labels, documentations, and so on. 
 
 ## Planned Features
-+ Data Domain and Data Element. 
 + Entity orchestration: combined operations on multiple entities together.
 + Version management of data modeling.
 + Introduce DB view concept and a report painter tool.

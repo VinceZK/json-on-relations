@@ -77,7 +77,7 @@ export class AttributeControlService {
           attributeControl.controlType = 'date';
           break;
         case 8: // Timestamp
-          attributeControl.controlType = 'datetime-local';
+          attributeControl.controlType = 'timestamp';
           break;
         default:
           attributeControl.controlType = 'text';

@@ -79,9 +79,12 @@ export class DataDomainDetailComponent implements OnInit {
         this.messageService.report(<Message>data);
       } else {
         this.messageService.clearMessages();
+        if (history.state.message) {
+          this.messageService.report(history.state.message);
+        }
         this.dataDomainMeta = <DataDomainMeta>data;
         this._generateDataDomainForm();
-        this._getRelationsOfEntity(false);
+        this._getRelationsOfEntity( this.dataDomainForm, false);
       }
     });
 
@@ -96,7 +99,6 @@ export class DataDomainDetailComponent implements OnInit {
   _generateDataDomainForm(): void {
     if (this.dataDomainForm) {
       this.dataDomainForm.markAsPristine({onlySelf: false});
-      this._setNewModeState(); // To make sure the validators are cleared
       this.dataDomainForm.get('DOMAIN_ID').setValue(this.dataDomainMeta.DOMAIN_ID);
       this.dataDomainForm.get('DOMAIN_DESC').setValue(this.dataDomainMeta.DOMAIN_DESC);
       this.dataDomainForm.get('DATA_TYPE').setValue(this.dataDomainMeta.DATA_TYPE);
@@ -128,8 +130,8 @@ export class DataDomainDetailComponent implements OnInit {
         RELATION_ID: [{value: this.dataDomainMeta.RELATION_ID, disabled: this.readonly}],
         DOMAIN_VALUES: this.fb.array([])
       });
-      this._setNewModeState();
     }
+    this._setNewModeState();
     if (this.dataDomainMeta.DOMAIN_TYPE >= 3 && this.dataDomainMeta.DOMAIN_VALUES) { // Value Array/Interval
       this.dataDomainMeta.DOMAIN_VALUES.forEach( domainValue => {
         this.domainValueFormArray.push(
@@ -158,6 +160,7 @@ export class DataDomainDetailComponent implements OnInit {
     } else {
       this.dataDomainForm.get('DOMAIN_ID').clearValidators();
       this.dataDomainForm.get('DOMAIN_ID').clearAsyncValidators();
+      this.dataDomainForm.get('DOMAIN_ID').updateValueAndValidity();
     }
   }
 
@@ -288,16 +291,19 @@ export class DataDomainDetailComponent implements OnInit {
   }
 
   onChangeEntityID(formGroup: AbstractControl): void {
-    this._getRelationsOfEntity(true);
+    this._getRelationsOfEntity(formGroup, true);
   }
 
-  _getRelationsOfEntity(setDefault: boolean): void {
-    this.entityService.getRelationMetaOfEntity(this.dataDomainForm.get('ENTITY_ID').value)
+  _getRelationsOfEntity(dataDomainForm: AbstractControl, setDefault: boolean): void {
+    const domainEntityID = dataDomainForm.get('ENTITY_ID').value;
+    if (!domainEntityID) { return; }
+    this.entityService.getRelationMetaOfEntity(domainEntityID)
       .subscribe(entityRelations => {
         this.relationsOfEntity = entityRelations.map(relationMeta => relationMeta.RELATION_ID )
           .filter(relationId => relationId.substr(0, 2) !== 'rs' );
         if (setDefault) {
-          this.dataDomainForm.get('RELATION_ID').setValue(this.relationsOfEntity[0]);
+          dataDomainForm.get('RELATION_ID').setValue(this.relationsOfEntity[0]);
+          dataDomainForm.get('RELATION_ID').markAsDirty();
         }
       });
   }
@@ -581,12 +587,14 @@ export class DataDomainDetailComponent implements OnInit {
       if (this.isNewMode) {
         this.isNewMode = false;
         this.bypassProtection = true;
-        this.router.navigate(['/model/data-domain/' + data['DOMAIN_ID']]);
+        this.router.navigate(['/model/data-domain/' + data['DOMAIN_ID']],
+          {state: {message: this.messageService.generateMessage(
+                'MODEL', 'DATA_DOMAIN_SAVED', 'S', data['DOMAIN_ID'])}});
       } else {
         this._switch2DisplayMode();
         this.dataDomainMeta = data;
         this._generateDataDomainForm();
-        this.messageService.reportMessage('MODEL', 'DATA_DOMAIN_SAVED', 'S', this.dataDomainMeta.DOMAIN_ID);
+        this.messageService.reportMessage('MODEL', 'DATA_DOMAIN_SAVED', 'S', data['DOMAIN_ID']);
       }
     } else {
       if (data instanceof Array) {

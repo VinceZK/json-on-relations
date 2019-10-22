@@ -39,12 +39,12 @@
     <div class="card-body">
       <div class="ml-2 mb-3 row"
            [class.dk-invalid]="dataElementForm.get('DOMAIN_ID').invalid && (dataElementForm.touched || dataElementForm.dirty)">
-        <div class="col-sm-4 col-lg-2 custom-control custom-radio">
+        <div class="col-8 col-lg-3 custom-control custom-radio">
           <input type="radio" class="custom-control-input" id="use-domain" name="USE_DOMAIN"
                  [value]="1" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
           <label class="custom-control-label" for="use-domain">Data Domain</label>
         </div>
-        <div class="input-group col-sm-4 col-lg-4">
+        <div class="input-group col-8 col-lg-4">
           <input type="text" class="form-control form-control-sm" id="data-domain" (change)="onChangeDataDomain(dataElementForm)"
                  [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
           <div class="input-group-append">
@@ -61,12 +61,12 @@
       </div>
 
       <div class="ml-2 mb-2 row">
-        <div class="col-sm-4 col-lg-2 custom-control custom-radio">
+        <div class="col-8 col-lg-3 custom-control custom-radio">
           <input type="radio" class="custom-control-input" id="use-data-type" name="USE_DOMAIN"
                  [value]="0" formControlName="USE_DOMAIN" (change)="onChangeUseDomain(dataElementForm)" required>
           <label class="custom-control-label" for="use-data-type">Elementary Type</label>
         </div>
-        <div class="input-group col-sm-4 col-lg-4">
+        <div class="input-group col-8 col-lg-4">
           <select formControlName="DATA_TYPE" (change)="onChangeDataType(dataElementForm)"
                   class="form-control form-control-sm">
             <option *ngFor="let opt of dataTypes" [value]="opt.key">{{opt.value}}</option>
@@ -74,9 +74,9 @@
         </div>
       </div>
 
-      <div class="ml-0 row">
-        <div class="col-sm-4 col-lg-2"></div>
-        <div class="form-group col-sm-4 col-lg-2"
+      <div class="ml-2 row">
+        <div class="col-lg-3"></div>
+        <div class="form-group col-4 col-lg-2"
              [class.dk-invalid]="dataElementForm.get('DATA_LENGTH').invalid && (dataElementForm.touched || dataElementForm.dirty)">
           <label class="col-form-label col-form-label-sm" for="data-length">Length:
             <span class="dk-invalid-feedback">{{dataElementForm.get('DATA_LENGTH').errors?.message}}</span>
@@ -84,8 +84,7 @@
           <input type="number" formControlName="DATA_LENGTH" id="data-length" name="data-length" class="form-control form-control-sm"
                  [readonly]="readonly" >
         </div>
-
-        <div class="form-group col-sm-4 col-lg-2"
+        <div class="form-group col-4 col-lg-2"
              [class.dk-invalid]="dataElementForm.get('DECIMAL').invalid && (dataElementForm.touched || dataElementForm.dirty)">
           <label class="col-form-label col-form-label-sm" for="decimal-place">Decimal Place:
             <span class="dk-invalid-feedback">{{dataElementForm.get('DECIMAL').errors?.message}}</span>
@@ -100,14 +99,14 @@
   <div class="card mt-2">
     <div class="card-header">Texts</div>
     <div class="card-body">
-      <div class="form-group row">
-        <label class="col-form-label col-form-label-sm col-md-2" for="label-text">Label Text</label>
+      <div class="ml-4 form-group row">
+        <label class="col-form-label col-form-label-sm col-lg-3" for="label-text">Label Text</label>
         <input type="text" formControlName="LABEL_TEXT" id="label-text" name="label-text"
                class="form-control form-control-sm col-md-6" [readonly]="readonly">
       </div>
 
-      <div class="form-group row">
-        <label class="col-form-label col-form-label-sm col-md-2" for="list-header-text">List Header Text</label>
+      <div class="ml-4 form-group row">
+        <label class="col-form-label col-form-label-sm col-lg-3" for="list-header-text">List Header Text</label>
         <input type="text" formControlName="LIST_HEADER_TEXT" id="list-header-text" name="list-header-text"
                class="form-control form-control-sm col-md-6" [readonly]="readonly">
       </div>
@@ -117,20 +116,20 @@
   <div class="card mt-2">
     <div class="card-header">Additional Attribute</div>
     <div class="card-body">
-      <div class="form-group row">
-        <label class="col-form-label col-form-label-sm col-md-2" for="search-help">Search Help</label>
+      <div class="ml-4 form-group row">
+        <label class="col-form-label col-form-label-sm col-lg-3" for="search-help">Search Help</label>
         <input type="text" formControlName="SEARCH_HELP_ID" id="search-help" name="search-help"
                class="form-control form-control-sm col-md-4" [readonly]="readonly">
       </div>
 
-      <div class="form-group row">
-        <label class="col-form-label col-form-label-sm col-md-2" for="sh-export-field">Export Field</label>
+      <div class="ml-4 form-group row">
+        <label class="col-form-label col-form-label-sm col-lg-3" for="sh-export-field">Export Field</label>
         <input type="text" formControlName="SEARCH_HELP_EXPORT_FIELD" id="sh-export-field" name="sh-export-field"
                class="form-control form-control-sm col-md-4" [readonly]="readonly">
       </div>
 
-      <div class="form-group row">
-        <label class="col-form-label col-form-label-sm col-md-2" for="parameter">Parameter</label>
+      <div class="ml-4 form-group row">
+        <label class="col-form-label col-form-label-sm col-lg-3" for="parameter">Parameter</label>
         <input type="text" formControlName="PARAMETER_ID" id="parameter" name="parameter"
                class="form-control form-control-sm col-md-4" [readonly]="readonly">
       </div>

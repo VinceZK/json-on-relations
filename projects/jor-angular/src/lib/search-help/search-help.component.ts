@@ -43,7 +43,7 @@ export class SearchHelpComponent implements OnInit {
     this.filterFields.forEach( fieldMeta => {
       if (fieldMeta.IMPORT) {
         const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
-        if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(fieldMeta.FIELD_NAME).value;  }
+        if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(ieFieldName).value;  }
       }
       this.filterFieldsFormGroup.addControl(fieldMeta.FIELD_NAME, this.fb.control(fieldMeta.DEFAULT_VALUE));
     });
@@ -80,7 +80,7 @@ export class SearchHelpComponent implements OnInit {
         relationMeta.ATTRIBUTES.forEach( attribute =>
           searchHelpMeta.FIELDS.push({
             FIELD_NAME: attribute.ATTR_NAME,
-            FIELD_DESC: attribute.ATTR_DESC,
+            FIELD_DESC: attribute.LIST_HEADER_TEXT,
             IE_FIELD_NAME: attribute.DOMAIN_ID === domainID ? exportField : null,
             IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
             EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
@@ -176,6 +176,7 @@ export class SearchHelpComponent implements OnInit {
     });
 
     if (this.afterExportFn) { this.afterExportFn(); }
+    this.listData = [];
     this.isSearchHelpModalShown = false;
   }
 
