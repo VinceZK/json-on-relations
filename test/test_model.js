@@ -420,7 +420,7 @@ describe('model tests', function () {
             DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
         ],
         ASSOCIATIONS: [
-          {RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1,
+          {ASSOCIATION_NAME: 'r_user', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1,
             FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'USER_ID'} ]
           }
         ]
@@ -440,7 +440,7 @@ describe('model tests', function () {
                    ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_TYPE: 2, DATA_LENGTH: null, DECIMAL: null,
                     PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
               ASSOCIATIONS:
-                [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1} ] }
+                [ { ASSOCIATION_NAME: 'r_user', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 1} ] }
           );
           done();
         });
@@ -458,11 +458,11 @@ describe('model tests', function () {
             DATA_LENGTH: 0, DECIMAL: 0, AUTO_INCREMENT: 0}
         ],
         ASSOCIATIONS: [
-          {action: 'update', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0,
+          {action: 'update', ASSOCIATION_NAME: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0,
             FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_NAME'} ]
           },
           {
-            RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0,
+            ASSOCIATION_NAME: 'r_employee', RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0,
             FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_ID'} ]
           }
         ]
@@ -485,8 +485,8 @@ describe('model tests', function () {
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2, ORDER: 2,
                   DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
-              [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
-                { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
+              [ { ASSOCIATION_NAME: 'r_user', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
+                { ASSOCIATION_NAME: 'r_employee',RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
           });
           done();
         });
@@ -520,8 +520,8 @@ describe('model tests', function () {
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2,
                   DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
-              [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
-                { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
+              [ { ASSOCIATION_NAME: 'r_user', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..n]', FOREIGN_KEY_CHECK: 0 },
+                { ASSOCIATION_NAME: 'r_employee', RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[1..0]', FOREIGN_KEY_CHECK: 0} ]
           });
           done();
         });
@@ -536,9 +536,9 @@ describe('model tests', function () {
           { action: 'delete', ATTR_GUID: '97CCD1AD046A4D39A96C25823839AE8A' }
         ],
         ASSOCIATIONS: [
-          { action: 'update', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 0},
+          { action: 'update', ASSOCIATION_NAME: 'r_user', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 0},
           {
-            action: 'update', RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]',
+            action: 'update', ASSOCIATION_NAME: 'r_employee', CARDINALITY: '[0..1]',
             FIELDS_MAPPING: [ {action: 'delete', LEFT_FIELD: 'FIELD2', RIGHT_FIELD: 'USER_ID'},
                               {action: 'add', LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'USER_NAME'}]
           }
@@ -559,8 +559,8 @@ describe('model tests', function () {
                   ATTR_NAME: 'FIELD2', ATTR_DESC: 'Field2', DATA_ELEMENT: null, DATA_TYPE: 2,
                   DATA_LENGTH: null, DECIMAL: null, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 } ],
             ASSOCIATIONS:
-              [ { RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 0 },
-                { RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
+              [ { ASSOCIATION_NAME: 'r_user', RIGHT_RELATION_ID: 'r_user', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 0 },
+                { ASSOCIATION_NAME: 'r_employee', RIGHT_RELATION_ID: 'r_employee', CARDINALITY: '[0..1]', FOREIGN_KEY_CHECK: 0,
                   FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'USER_NAME'} ]} ]
           });
           done();
@@ -591,7 +591,7 @@ describe('model tests', function () {
             ATTR_NAME: 'FIELD8', DATA_ELEMENT: 'TIMESTAMP'}
         ],
         ASSOCIATIONS: [
-          {RIGHT_RELATION_ID: 'r_role', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
+          { ASSOCIATION_NAME: 'r_role', RIGHT_RELATION_ID: 'r_role', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1,
             FIELDS_MAPPING: [ {LEFT_FIELD: 'FIELD1', RIGHT_FIELD: 'NAME'} ]
           }
         ]
@@ -621,7 +621,7 @@ describe('model tests', function () {
                   { ATTR_GUID: '0ED8A57E9A8349E49993332FE67FFC4C', RELATION_ID: 'r_testRelationy', ORDER: 8,
                     ATTR_NAME: 'FIELD8', DATA_ELEMENT: 'TIMESTAMP'}],
               ASSOCIATIONS:
-                [ { RIGHT_RELATION_ID: 'r_role', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1} ] }
+                [ { ASSOCIATION_NAME: 'r_role', RIGHT_RELATION_ID: 'r_role', CARDINALITY: '[1..1]', FOREIGN_KEY_CHECK: 1} ] }
           );
           entityDB.checkDBConsistency(relationMeta, function (err, result) {
             should(err).eql(null);

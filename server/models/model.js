@@ -297,9 +297,8 @@ function saveRelation(relation, userID, callback) {
 
   if (relation.ASSOCIATIONS && Array.isArray(relation.ASSOCIATIONS)) {
     updateReloadIndicator = true;
-    relation.ASSOCIATIONS.forEach(function (association) {
-      _generateUpdateAssociation(relation.RELATION_ID, association, updateSQLs);
-    })
+    relation.ASSOCIATIONS.forEach( association =>
+      _generateUpdateAssociation(relation.RELATION_ID, association, updateSQLs) );
   }
 
   if (updateReloadIndicator) {
@@ -359,8 +358,8 @@ function _generateUpdateAssociation(relationID, association, updateSQLs) {
           } else { // All add
             updateSQLs.push("insert into RELATION_ASSOCIATION_FIELDS_MAPPING" +
             "( LEFT_RELATION_ID, ASSOCIATION_NAME, LEFT_FIELD, RIGHT_FIELD ) values ( " +
-              entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(fieldsMap.ASSOCIATION_NAME) + ", " +
-              entityDB.pool.escape(association.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
+              entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.ASSOCIATION_NAME) + ", " +
+              entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
           }
         })
       }
@@ -376,12 +375,11 @@ function _generateUpdateAssociation(relationID, association, updateSQLs) {
         entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.ASSOCIATION_NAME) +
         ", " + entityDB.pool.escape(association.RIGHT_RELATION_ID) + ", " + entityDB.pool.escape(association.CARDINALITY)
         + ", " + entityDB.pool.escape(association.FOREIGN_KEY_CHECK) + ")");
-      association.FIELDS_MAPPING.forEach(function (fieldsMap) {
+      association.FIELDS_MAPPING.forEach( fieldsMap =>
         updateSQLs.push("insert into RELATION_ASSOCIATION_FIELDS_MAPPING" +
           "( LEFT_RELATION_ID, ASSOCIATION_NAME, LEFT_FIELD, RIGHT_FIELD ) values ( " +
           entityDB.pool.escape(relationID) + ", " + entityDB.pool.escape(association.ASSOCIATION_NAME) + ", " +
-          entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )");
-      })
+          entityDB.pool.escape(fieldsMap.LEFT_FIELD) + ", " + entityDB.pool.escape(fieldsMap.RIGHT_FIELD) + " )") );
   }
 }
 

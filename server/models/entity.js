@@ -201,12 +201,13 @@ function createInstance(instance, callback) {
     });
     if(errorMessages.length > 0) return callback(errorMessages);
 
+    const entityRelation = Array.isArray(instance[instance.ENTITY_ID])? instance[instance.ENTITY_ID][0] : instance[instance.ENTITY_ID];
     //Parse the given instance JSON and convert it to SQLs
     async.forEachOfSeries(instance, function (value, key, callback) {
       if (key === 'ENTITY_ID' || key === 'INSTANCE_GUID') {
         callback(null);
       } else if (key === 'relationships') {
-        _generateRelationshipsSQL(value, entityMeta, instanceGUID, relationshipInstances, valueCheckDomains, instance,
+        _generateRelationshipsSQL(value, entityMeta, instanceGUID, relationshipInstances, valueCheckDomains, entityRelation,
           function (results) {
             _hasErrors(results) ? _mergeResults(errorMessages, results) : _mergeResults(insertSQLs, results);
             callback(null);
@@ -1097,16 +1098,15 @@ function _getEntityInstanceHead(instanceGUID, callback) {
  * @param instanceGUID
  * @param relationshipInstances
  * @param valueCheckDomains
- * @param instance
+ * @param entityRelation
  * @param callback
  * @returns {*}
  * @private
  */
 function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, relationshipInstances,
-                                   valueCheckDomains, instance, callback) {
+                                   valueCheckDomains, entityRelation, callback) {
   const errorMessages = [];
   const SQLs = [];
-  const entityRelation = Array.isArray(instance[instance.ENTITY_ID])? instance[instance.ENTITY_ID][0] : instance[instance.ENTITY_ID];
   async.map(relationships, function (relationship, callback) {
     const roleMeta = _checkEntityInvolvesRelationship(relationship['RELATIONSHIP_ID'], entityMeta, entityRelation);
     if(!roleMeta)

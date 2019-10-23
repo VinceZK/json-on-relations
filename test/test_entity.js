@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe.only('entity tests', function () {
+describe('entity tests', function () {
   let instance =
     { ENTITY_ID: 'person',
       person: {HEIGHT: 1.70, GENDER: 'Male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',

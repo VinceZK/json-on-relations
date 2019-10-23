@@ -40,9 +40,9 @@ describe('query tests', function () {
       should(errs).eql(null);
       rows.should.containDeep([
         { USER_ID: 'DH001', USER_NAME: 'VINCEZK', GIVEN_NAME: 'Vincent',
-          Company: 'Darkhouse', INSTANCE_GUID: '2FBE7490E10F11E8A90957FA46F2CECA' },
+          Company: 'DARKHOUSE', INSTANCE_GUID: '2FBE7490E10F11E8A90957FA46F2CECA' },
         { USER_ID: 'DH002', USER_NAME: 'Eleven', GIVEN_NAME: 'Eleven',
-          Company: 'darkhouse', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ]);
+          Company: 'DARKHOUSE', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ]);
       done();
     });
   });

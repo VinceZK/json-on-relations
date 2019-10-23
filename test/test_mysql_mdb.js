@@ -72,9 +72,11 @@ describe('mysql connections tests', function () {
         should(err).eql(null);
         personEntity.ENTITY_ID.should.eql('person');
         personEntity.ROLES.should.containDeep(
-          [ { ROLE_ID: 'system_user',
+          [{
+            ROLE_ID: 'system_user',
+            ROLE_DESC: 'System user for login',
             CONDITIONAL_ATTR: 'SYSTEM_ACCESS',
-            CONDITIONAL_VALUE: 'portal',
+            CONDITIONAL_VALUE: 'PORTAL',
             RELATIONS: [
               { RELATION_ID: 'r_personalization', CARDINALITY: '[0..1]' },
               { RELATION_ID: 'r_user', CARDINALITY: '[1..1]' }
@@ -91,6 +93,7 @@ describe('mysql connections tests', function () {
             ]
           },
             { ROLE_ID: 'employee',
+              ROLE_DESC: 'Company Employee',
               CONDITIONAL_ATTR: 'TYPE',
               CONDITIONAL_VALUE: 'employee',
               RELATIONS: [
