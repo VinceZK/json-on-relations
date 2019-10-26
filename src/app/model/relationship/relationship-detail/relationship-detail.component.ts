@@ -278,6 +278,7 @@ export class RelationshipDetailComponent implements OnInit {
         DATA_TYPE: [{value: 8, disabled: true}],
         DATA_LENGTH: [null],
         DECIMAL: [null],
+        ORDER: [null],
         PRIMARY_KEY: [false],
         AUTO_INCREMENT: [false]
       });
@@ -292,6 +293,7 @@ export class RelationshipDetailComponent implements OnInit {
         DATA_TYPE: [{value: 8, disabled: true}],
         DATA_LENGTH: [null],
         DECIMAL: [null],
+        ORDER: [null],
         PRIMARY_KEY: [false],
         AUTO_INCREMENT: [false]
       });
@@ -367,6 +369,7 @@ export class RelationshipDetailComponent implements OnInit {
           DATA_TYPE: [{value: 1, disabled: true}],
           DATA_LENGTH: [32],
           DECIMAL: [null],
+          ORDER: [null],
           PRIMARY_KEY: [false],
           AUTO_INCREMENT: [false]
         });
@@ -381,6 +384,7 @@ export class RelationshipDetailComponent implements OnInit {
           DATA_TYPE: [{value: 1, disabled: true}],
           DATA_LENGTH: [32],
           DECIMAL: [null],
+          ORDER: [null],
           PRIMARY_KEY: [false],
           AUTO_INCREMENT: [false]
         });

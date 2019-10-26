@@ -430,8 +430,9 @@ export class DataDomainDetailComponent implements OnInit {
       case 4: // decimal
         if (!this.readonly) { formGroup.get('DATA_LENGTH').enable(); }
         if (!this.readonly) { formGroup.get('DECIMAL').enable(); }
+        if (!this.readonly) { formGroup.get('UNSIGNED').enable(); }
         this._invalidField(formGroup.get('CAPITAL_ONLY'), markAsDirty);
-        this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
+        // this._invalidField(formGroup.get('UNSIGNED'), markAsDirty);
         formGroup.get('DOMAIN_TYPE').setValue(0);
         this._setDomainType(formGroup, markAsDirty);
         this.enableGeneralType = true;

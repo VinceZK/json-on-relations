@@ -116,6 +116,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'RELATION_PRIMARY_KEY_MISSING',
+    msgText: {
+      EN: {shortText: 'Relation must have at least one attribute as the primary key', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'MISS_RELATION_ASSOCIATION_FIELD_MAPPING',
     msgText: {
       EN: {shortText: 'There are no fields-mappings defined for association \'%s\'', longText: ''}

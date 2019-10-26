@@ -448,6 +448,11 @@ export class RelationDetailComponent implements OnInit {
       this.changedRelation['RELATION_DESC'] = this.relationForm.controls['RELATION_DESC'].value;
     }
 
+    const checkErrs = this.attrComponent.checkAttributes();
+    if (checkErrs.length > 0) {
+      checkErrs.forEach( errMsg => this.messageService.add( errMsg ) );
+      return;
+    }
     this.changedRelation['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();
     if (!this._processChangedAssociation()) {
       return;

@@ -4,6 +4,8 @@ import {Attribute} from 'jor-angular';
 import {ModelService} from '../model.service';
 import {Observable} from 'rxjs';
 import {SearchHelpMethod, SearchHelp, EntityService, SearchHelpComponent} from 'jor-angular';
+import {MessageService, Message} from 'ui-message-angular';
+import {msgStore} from '../../msgStore';
 
 @Component({
   selector: 'app-attribute-meta',
@@ -17,8 +19,10 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
 
   constructor(private fb: FormBuilder,
               private entityService: EntityService,
+              private messageService: MessageService,
               private modelService: ModelService) {
     this.dataTypes = modelService.dataTypes;
+    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   @Input() parentForm: FormGroup;
@@ -178,6 +182,15 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         }
       }
     });
+  }
+
+  checkAttributes(): Message[] {
+    const Messages: Message[] = [];
+    if ( this.formArray.controls.findIndex( control => control.get('PRIMARY_KEY').value ) === -1 ) {
+      Messages.push(this.messageService.generateMessage(
+        'MODEL', 'RELATION_PRIMARY_KEY_MISSING', 'E'));
+    }
+    return Messages;
   }
 
   processChangedAttributes(): any[] {

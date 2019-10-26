@@ -103,8 +103,9 @@ export class AttributeControlService {
     attributeControl.step = '0.' + zeroPadding.substr(0, attribute.DECIMAL - 1 ) + '1';
     attributeControl.placeholder = '0.' + zeroPadding.substr(0, attribute.DECIMAL - 1 ) + '0';
     const integerPlace = attribute.DATA_LENGTH - attribute.DECIMAL;
-    attributeControl.pattern = '^\\d{1,' + integerPlace.toString() +
-      '}(\\.\\d{1,' + attribute.DECIMAL + '})?$';
+    attributeControl.pattern = attribute.UNSIGNED ? '^(' : '^(\\-?';
+    attributeControl.pattern += integerPlace ? '\\d{1,' + integerPlace.toString() + '})' : '0)';
+    attributeControl.pattern += '(\\.\\d{1,' + attribute.DECIMAL + '})?$';
     attributeControl.maxLength = attribute.DATA_LENGTH;
   }
 
