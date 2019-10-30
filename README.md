@@ -577,8 +577,7 @@ while a data element can be assigned with a data domain, and adding more busines
 + Introduce DB view concept and a report painter tool.
 
 ## License
-[The Apache-2.0 License](https://opensource.org/licenses/Apache-2.0) + 
-[Common Development and Distribution License 1.0](https://opensource.org/licenses/CDDL-1.0)
+[The Apache-2.0 License](https://opensource.org/licenses/Apache-2.0)
 
    Copyright 2019 VinceZK
 
