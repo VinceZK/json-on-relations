@@ -28,8 +28,9 @@ It is both a framework and toolset that facilitates both modeling and consuming.
 It acts more like a bridge which connects enterprise applications to the modern web technologies.
 
 Here also gives an [example](https://vincezk.github.io/Portal/) 
-on how to build a CRUD App with JSON-On-Relations. And there are [videos](https://www.bilibili.com/video/av73399543/) on how-to-use.
-
+on how to build a CRUD App with JSON-On-Relations. Also check the videos:
++ [youtube](https://youtu.be/oVYHgGtREbI)
++ [bilibili](https://www.bilibili.com/video/av73399543/)
 ## First Glance
 ### Define Your Entity
 Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if his gender is male, 
