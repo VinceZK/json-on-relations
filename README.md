@@ -29,7 +29,7 @@ It acts more like a bridge which connects enterprise applications to the modern 
 
 Here also gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. Also check the videos:
-+ [youtube](https://youtu.be/oVYHgGtREbI)
++ [youtube](https://www.youtube.com/playlist?list=PLYO0p46tFifM51zhDNtapS99pF2ysUdvy)
 + [bilibili](https://www.bilibili.com/video/av73399543/)
 ## First Glance
 ### Define Your Entity
