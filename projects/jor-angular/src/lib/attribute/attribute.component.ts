@@ -12,6 +12,8 @@ export class AttributeComponent implements OnInit {
   @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
+  @Input() isSmallSize: boolean;
+  @Input() noErrorMsg: boolean;
   @ViewChild(SearchHelpComponent, {static: false})
   private searchHelpComponent !: SearchHelpComponent;
 

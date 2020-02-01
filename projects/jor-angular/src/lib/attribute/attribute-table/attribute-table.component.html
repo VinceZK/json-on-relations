@@ -1,4 +1,6 @@
-<table class="table table-bordered table-sm relation-table" [formGroup]="parentFormGroup">
+<table class="table table-bordered relation-table"
+       [class.table-sm]="isSmallSize"
+       [formGroup]="parentFormGroup">
   <thead class="thead-light">
   <tr>
     <th scope="col">
@@ -13,16 +15,17 @@
   <tbody [formArrayName]="entityRelation.RELATION_ID">
     <tr *ngFor="let formGroup of formArray.controls; let i = index">
       <td class="actions">
-        <button class="btn btn-sm" type="button" (click)="openDetailModal(i)" title="Detail">
+        <button class="btn" [class.btn-sm]="isSmallSize" type="button" (click)="openDetailModal(i)" title="Detail">
           <span *ngIf="readonly" class="fas fa-search"></span>
           <span *ngIf="!readonly" class="fas fa-pen"></span>
         </button>
-        <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)" title="Delete">
+        <button class="btn" [class.btn-sm]="isSmallSize" type="button" [disabled]="readonly" (click)="deleteRelationInstance(i)" title="Delete">
           <span class="far fa-trash-alt"></span>
         </button>
       </td>
       <td *ngFor="let attributeControl of attributeControls">
-        <dk-app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup" [readonly]="readonly">
+        <dk-app-attribute [attributeControl]="attributeControl" [isSmallSize] = "isSmallSize"
+                          [formGroup]="formGroup" [readonly]="readonly">
 
         </dk-app-attribute>
       </td>
@@ -41,12 +44,13 @@
         </button>
       </div>
       <div class="modal-body">
-        <dk-app-attribute-form *ngFor="let attributeControl of attributeControls" [readonly]="readonly"
+        <dk-app-attribute-form *ngFor="let attributeControl of attributeControls"
+                               [readonly]="readonly" [isSmallSize]="isSmallSize"
                             [attributeControl]="attributeControl" [formGroup]="currentFormGroup">
         </dk-app-attribute-form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-sm btn-primary" (click)="closeDetailModal()">OK</button>
+        <button type="button" class="btn btn-primary" [class.btn-sm]="isSmallSize" (click)="closeDetailModal()">OK</button>
       </div>
     </div>
   </div>
@@ -66,7 +70,7 @@
         <p>{{errorDescription}}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-sm btn-primary" (click)="closeErrorModal()">OK</button>
+        <button type="button" class="btn btn-primary" [class.btn-sm]="isSmallSize" (click)="closeErrorModal()">OK</button>
       </div>
     </div>
   </div>

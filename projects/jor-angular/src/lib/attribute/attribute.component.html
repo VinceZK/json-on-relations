@@ -1,19 +1,22 @@
 <div [formGroup]="formGroup">
   <div [ngSwitch]="attributeControl.controlType">
     <div class="input-group">
-      <input *ngSwitchCase="'text'" type="text" class="form-control form-control-sm"
+      <input *ngSwitchCase="'text'" type="text" class="form-control"
+             [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"
              [id]="attributeControl.key"
              [maxlength]="attributeControl.maxLength"
              [pattern]="attributeControl.pattern"
              [readonly]="isReadonly" >
-      <input *ngSwitchCase="'text_capital'" type="text" class="form-control form-control-sm"
+      <input *ngSwitchCase="'text_capital'" type="text" class="form-control"
+             [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"
              [id]="attributeControl.key"
              [maxlength]="attributeControl.maxLength"
              (keyup)="onKeyup(attributeControl.name)"
              [readonly]="isReadonly" >
-      <input *ngSwitchCase="'integer'" type="number" class="form-control form-control-sm"
+      <input *ngSwitchCase="'integer'" type="number" class="form-control"
+             [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"
              [id]="attributeControl.key"
              [pattern]="attributeControl.pattern"
@@ -24,40 +27,47 @@
         </button>
       </div>
     </div>
-    <input *ngSwitchCase="'decimal'" type="number" class="form-control form-control-sm"
+    <input *ngSwitchCase="'decimal'" type="number" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
            [step]="attributeControl.step"
            [placeholder]="attributeControl.placeholder"
            [pattern]="attributeControl.pattern"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'checkbox'" type="checkbox" class="form-control form-control-sm"
+    <input *ngSwitchCase="'checkbox'" type="checkbox" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key">
-    <input *ngSwitchCase="'textarea'" type="textarea" class="form-control form-control-sm"
+    <input *ngSwitchCase="'textarea'" type="textarea" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'file'" type="file" class="form-control form-control-sm"
+    <input *ngSwitchCase="'file'" type="file" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'date'" type="date" class="form-control form-control-sm"
+    <input *ngSwitchCase="'date'" type="date" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'timestamp'" type="text" class="form-control form-control-sm"
+    <input *ngSwitchCase="'timestamp'" type="text" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
            [readonly]="isReadonly" >
-    <select *ngSwitchCase="'dropdown'" class="form-control form-control-sm"
+    <select *ngSwitchCase="'dropdown'" class="form-control"
+            [class.form-control-sm] = "isSmallSize"
             [formControlName]="attributeControl.name"
             [id]="attributeControl.key">
       <option *ngFor="let opt of attributeControl.dropdownList" [value]="opt.key">{{opt.value}}</option>
     </select>
   </div>
 
-  <div class="errorMessage" *ngIf="!isValid">{{errorMessage}}</div>
+  <div class="errorMessage" *ngIf="!noErrorMsg && !isValid">{{errorMessage}}</div>
 </div>
 
 <dk-app-search-help></dk-app-search-help>

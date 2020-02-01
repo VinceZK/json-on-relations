@@ -11,5 +11,6 @@ export * from './lib/attribute/attribute-base';
 export * from './lib/attribute/attribute-control.service';
 export * from './lib/attribute/attribute.component';
 export * from './lib/attribute/attribute-form/attribute-form.component';
+export * from './lib/attribute/attribute-form2/attribute-form2.component';
 export * from './lib/attribute/attribute-table/attribute-table.component';
 export * from './lib/jor-angular.module';

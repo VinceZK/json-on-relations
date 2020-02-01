@@ -22,8 +22,9 @@
   <div *ngIf="!entityRelation.EMPTY && !entityRelation.DISABLED &&
               (entityRelation.CARDINALITY === '[0..1]' || entityRelation.CARDINALITY === '[1..1]')"
        class="card-body row" [formGroup]="formGroup" [id]="entityRelation.ROLE_ID + '_' + entityRelation.RELATION_ID">
-    <dk-app-attribute-form class="col-6" *ngFor="let attributeControl of attributeControls" [formGroup]="formGroup"
-                        [readonly]="readonly || entityRelation.DISABLED" [attributeControl]="attributeControl">
+    <dk-app-attribute-form class="col-6" *ngFor="let attributeControl of attributeControls"
+                           [formGroup]="formGroup" [isSmallSize] = true [readonly]="readonly || entityRelation.DISABLED"
+                           [attributeControl]="attributeControl">
     </dk-app-attribute-form>
   </div>
 
@@ -32,7 +33,7 @@
     class="card-body">
 
     <dk-app-attribute-table class="mt-2 mb-4" [formArray]="formGroup" [parentFormGroup]="parentFormGroup"
-                         [readonly]="readonly || entityRelation.DISABLED"
+                         [readonly]="readonly || entityRelation.DISABLED" [isSmallSize] = true
                          [attributeControls]="attributeControls" [entityRelation]="entityRelation">
     </dk-app-attribute-table>
   </div>

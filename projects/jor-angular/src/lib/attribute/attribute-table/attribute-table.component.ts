@@ -21,6 +21,7 @@ export class AttributeTableComponent implements OnInit {
   @Input() formArray: FormArray;
   @Input() parentFormGroup: FormGroup;
   @Input() entityRelation: EntityRelation;
+  @Input() isSmallSize: boolean;
   @Input() readonly: boolean;
   ngOnInit() {
   }

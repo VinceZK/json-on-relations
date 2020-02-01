@@ -27,10 +27,11 @@ It is not a black box, instead, it tries to make data model more understandable.
 It is both a framework and toolset that facilitates both modeling and consuming.
 It acts more like a bridge which connects enterprise applications to the modern web technologies.
 
-Here also gives an [example](https://vincezk.github.io/Portal/) 
+Here gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. Also check the videos:
 + [youtube](https://www.youtube.com/playlist?list=PLYO0p46tFifM51zhDNtapS99pF2ysUdvy)
 + [bilibili](https://www.bilibili.com/video/av73399543/)
+
 ## First Glance
 ### Define Your Entity
 Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if his gender is male, 
@@ -196,7 +197,8 @@ Content-Type: application/json
    + [Modeling](http://localhost:3000/model)
    + [Entity Browser](http://localhost:3000/entity/list)
    
-*If you are using Angular for UI development, you can install the package 'npm i jor-angular' for the types.*  
+**If you are using Angular for UI development, you are encouraged to install the package 
+[JOR-Angular](https://github.com/VinceZK/json-on-relations/tree/master/projects/jor-angular) for some useful libraries.**  
    
 ## RESTful API
 Following APIs are opened in the default route table. These examples are also listed in the 'test/test_api.http'. 

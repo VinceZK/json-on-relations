@@ -1,0 +1,13 @@
+<div class="form-group" [formGroup]="formGroup">
+  <label class="col-form-label"
+         [class.form-control-sm]="isSmallSize"
+         [attr.for]="attributeControl.key">
+    {{attributeControl.label}}<strong *ngIf="attributeControl.primaryKey" class="primaryKey">*</strong>:
+    <span class="errorMessage" *ngIf="!isValid">{{errorMessage}}</span>
+  </label>
+
+  <dk-app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup"
+                    [isSmallSize]="isSmallSize" [readonly]="readonly" [noErrorMsg]="true">
+  </dk-app-attribute>
+
+</div>

@@ -14,6 +14,7 @@ export class AttributeFormComponent implements OnInit {
   @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
+  @Input() isSmallSize: boolean;
   ngOnInit() {
 
   }

@@ -166,8 +166,9 @@
             </tbody>
           </table>
 
-          <dk-app-attribute-form *ngFor="let attributeControl of attributeControls" [readonly]="readonlyAttribute"
-                              [attributeControl]="attributeControl" [formGroup]="relationshipFormGroup">
+          <dk-app-attribute-form *ngFor="let attributeControl of attributeControls"
+                                 [readonly]="readonlyAttribute" [isSmallSize] = true
+                                 [attributeControl]="attributeControl" [formGroup]="relationshipFormGroup">
           </dk-app-attribute-form>
         </form>
       </div>

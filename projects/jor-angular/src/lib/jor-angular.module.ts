@@ -7,6 +7,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {AttributeComponent} from './attribute/attribute.component';
 import {AttributeFormComponent} from './attribute/attribute-form/attribute-form.component';
 import {AttributeTableComponent} from './attribute/attribute-table/attribute-table.component';
+import { AttributeForm2Component } from './attribute/attribute-form2/attribute-form2.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import {AttributeTableComponent} from './attribute/attribute-table/attribute-tab
     SearchHelpComponent,
     AttributeComponent,
     AttributeFormComponent,
-    AttributeTableComponent
+    AttributeTableComponent,
+    AttributeForm2Component
   ],
   imports: [
     CommonModule,
@@ -27,6 +29,7 @@ import {AttributeTableComponent} from './attribute/attribute-table/attribute-tab
     SearchHelpComponent,
     AttributeComponent,
     AttributeFormComponent,
+    AttributeForm2Component,
     AttributeTableComponent
   ]
 })

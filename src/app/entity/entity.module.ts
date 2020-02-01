@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {MessageModule} from 'ui-message-angular';
 import {EntityComponent} from './entity.component';
-import {EntityAttributeComponent} from './entity-attribute/entity-attribute.component';
 import {EntityRelationComponent} from './entity-relation/entity-relation.component';
 import {EntityRelationshipComponent} from './entity-relationship/entity-relationship.component';
 import {ListComponent} from './entity-list/list.component';
@@ -27,7 +26,6 @@ import {JorAngularModule} from 'jor-angular';
   ],
   declarations: [
     EntityComponent,
-    EntityAttributeComponent,
     EntityRelationComponent,
     EntityRelationshipComponent,
     ListComponent
