@@ -582,7 +582,7 @@ while a data element can be assigned with a data domain, and adding more busines
 ## License
 [The Apache-2.0 License](https://opensource.org/licenses/Apache-2.0)
 
-   Copyright 2019 VinceZK
+   Copyright 2020 VinceZK
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
