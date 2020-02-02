@@ -329,11 +329,14 @@ export class DataElementDetailComponent implements OnInit {
     switch (+formGroup.get('DATA_TYPE').value) {
       case 1: // char
         formGroup.get('DATA_LENGTH').enable();
+        formGroup.get('DATA_LENGTH').setValidators(this._validateDataLength);
         formGroup.get('DECIMAL').disable();
         break;
       case 4: // decimal
         formGroup.get('DATA_LENGTH').enable();
+        formGroup.get('DATA_LENGTH').setValidators(this._validateDataLength);
         formGroup.get('DECIMAL').enable();
+        formGroup.get('DATA_LENGTH').setValidators(this._validateDecimal);
         break;
       default:
         formGroup.get('DATA_LENGTH').disable();

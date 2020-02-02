@@ -45,7 +45,7 @@ export class AttributeComponent implements OnInit {
     }
   }
 
-  get isValid() { return this.formGroup.controls[this.attributeControl.name].valid; }
+  get invalid() { return this.formGroup.controls[this.attributeControl.name].invalid; }
   get errorMessage() {
     const fieldCtrl = this.formGroup.get(this.attributeControl.name);
     if (fieldCtrl.getError('pattern')) {

@@ -17,9 +17,9 @@
 
 <dk-message></dk-message>
 <form *ngIf="roleMeta" [formGroup]="roleForm">
-  <div class="form-group" [class.dk-invalid]="roleForm.get('ROLE_ID').invalid && (roleForm.touched || roleForm.dirty)" >
+  <div class="form-group">
     <label for="role" class="col-form-label form-control-sm">Role:
-      <span class="dk-invalid-feedback">
+      <span [class.ng-invalid]="roleForm.get('ROLE_ID').invalid" class="dk-invalid-feedback">
         {{roleForm.get('ROLE_ID').errors?.message}}
       </span>
     </label>
@@ -52,8 +52,7 @@
               <span class="far fa-trash-alt"></span>
             </button>
           </td>
-          <td [formGroup]="relationFormGroup"
-              [class.dk-invalid]="relationFormGroup.get('RELATION_ID').invalid && (relationFormGroup.touched || relationFormGroup.dirty)">
+          <td [formGroup]="relationFormGroup">
             <div class="input-group">
               <input class="form-control form-control-sm" type="text" formControlName="RELATION_ID"
                      [readonly]="readonly || oldRelation(relationFormGroup) && relationFormGroup.valid" (change)="onChangeRelationID(i)">

@@ -17,9 +17,9 @@
 
 <dk-message></dk-message>
 <form *ngIf="relationMeta" [formGroup]="relationForm">
-  <div class="form-group" [class.dk-invalid]="relationForm.get('RELATION_ID').invalid && (relationForm.touched || relationForm.dirty)">
+  <div class="form-group">
     <label for="relation" class="col-form-label form-control-sm">Relation:
-      <span class="dk-invalid-feedback">
+      <span [class.ng-invalid]="relationForm.get('RELATION_ID').invalid" class="dk-invalid-feedback">
         {{relationForm.get('RELATION_ID').errors?.message}}
       </span>
     </label>
@@ -60,8 +60,7 @@
               <span class="fas fa-map-signs"></span>
             </button>
           </td>
-          <td [formGroup]="associationFormGroup"
-              [class.dk-invalid]="associationFormGroup.get('ASSOCIATION_NAME').invalid && (associationFormGroup.touched || associationFormGroup.dirty)">
+          <td [formGroup]="associationFormGroup">
             <div class="input-group">
               <input class="form-control form-control-sm" type="text" formControlName="ASSOCIATION_NAME"
                      [readonly]="readonly || oldAssociationName(associationFormGroup) && associationFormGroup.valid"
@@ -71,8 +70,7 @@
               </div>
             </div>
           </td>
-          <td [formGroup]="associationFormGroup"
-              [class.dk-invalid]="associationFormGroup.get('RIGHT_RELATION_ID').invalid && (associationFormGroup.touched || associationFormGroup.dirty)">
+          <td [formGroup]="associationFormGroup">
             <div class="input-group">
               <input class="form-control form-control-sm" type="text" formControlName="RIGHT_RELATION_ID"
                      [readonly]="readonly" (change)="onChangeRightRelationID(i)">
@@ -128,8 +126,7 @@
                           <span class="far fa-trash-alt"></span>
                         </button>
                       </td>
-                      <td [formGroup]="fieldMapFormGroup"
-                          [class.dk-invalid]="fieldMapFormGroup.get('LEFT_FIELD').invalid && (fieldMapFormGroup.touched || fieldMapFormGroup.dirty)">
+                      <td [formGroup]="fieldMapFormGroup">
                         <div class="input-group">
                           <input class="form-control form-control-sm" type="text" formControlName="LEFT_FIELD"
                                  [readonly]="readonly || oldFieldMap(fieldMapFormGroup) && fieldMapFormGroup.valid" (change)="onChangeLeftField(i)">
@@ -138,8 +135,7 @@
                           </div>
                         </div>
                       </td>
-                      <td [formGroup]="fieldMapFormGroup"
-                          [class.dk-invalid]="fieldMapFormGroup.get('RIGHT_FIELD').invalid && (fieldMapFormGroup.touched || fieldMapFormGroup.dirty)">
+                      <td [formGroup]="fieldMapFormGroup">
                         <div class="input-group">
                           <input class="form-control form-control-sm" type="text" formControlName="RIGHT_FIELD"
                                  [readonly]="readonly || oldFieldMap(fieldMapFormGroup) && fieldMapFormGroup.valid" (change)="onChangeRightField(i)">

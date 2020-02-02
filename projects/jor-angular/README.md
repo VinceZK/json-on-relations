@@ -11,6 +11,7 @@ So far, it contains:
 
 Please check this [example](https://darkhouse.com.cn/portal/users) which is developed using JOR-Angular.
 Its source code can be found in this [GIT Repo](https://github.com/VinceZK/Portal/tree/master/src/app/user)
+![Example CRUD App](./assets/appExample.png)
 
 ## Attribute UI Controls
 Following UI is composed using the attribute UI control **dk-app-attribute-form2**. 
@@ -76,6 +77,34 @@ Besides UI control **dk-app-attribute-form2**, there are other 3 UI controls pro
 1. **dk-app-attribute-form**: Similar to **dk-app-attribute-form2**, except the label is displayed in the same row with the input field.
 2. **dk-app-attribute-table**: Display as an editable table for multi-tuples attributes.
 3. **dk-app-attribute**: Display only the field without label.
+
+*Notice*: You need also import following CSS into the `./src/style.css` file:
+``` css
+@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+
+input.ng-invalid,
+select.ng-invalid{
+  border-color: #dc3545;
+}
+.ng-invalid + .invalid-tooltip {
+  display: block;
+  max-width: inherit;
+}
+.ng-invalid.dk-invalid-feedback,
+.ng-invalid + .dk-invalid-feedback{
+  display: inline;
+}
+.dk-invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: .25rem;
+  font-size: 80%;
+  color: #dc3545;
+}
+.primaryKey {
+  color:red;
+}
+```
 
 ## Search Help
 The magnifier button right close to every "Role" field is the search help button.

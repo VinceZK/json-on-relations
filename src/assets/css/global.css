@@ -1,14 +1,27 @@
-.dk-invalid input,
-.dk-invalid select{
+input.ng-invalid,
+select.ng-invalid{
   border-color: #dc3545;
 }
-.dk-invalid .invalid-tooltip {
+.ng-invalid + .invalid-tooltip {
   display: block;
+  max-width: inherit;
+}
+.ng-invalid.dk-invalid-feedback,
+.ng-invalid + .dk-invalid-feedback{
+  display: inline;
 }
 .dk-invalid-feedback {
-  display: inline;
+  display: none;
   width: 100%;
   margin-top: .25rem;
   font-size: 80%;
   color: #dc3545;
 }
+.primaryKey {
+  color:red;
+}
+.errorMessage{
+  color:red;
+  font-size: .8rem;
+}
+

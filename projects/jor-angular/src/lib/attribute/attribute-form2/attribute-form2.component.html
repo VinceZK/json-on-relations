@@ -3,7 +3,7 @@
          [class.form-control-sm]="isSmallSize"
          [attr.for]="attributeControl.key">
     {{attributeControl.label}}<strong *ngIf="attributeControl.primaryKey" class="primaryKey">*</strong>:
-    <span class="errorMessage" *ngIf="!isValid">{{errorMessage}}</span>
+    <span [class.ng-invalid]="invalid" class="dk-invalid-feedback">{{errorMessage}}</span>
   </label>
 
   <dk-app-attribute [attributeControl]="attributeControl" [formGroup]="formGroup"

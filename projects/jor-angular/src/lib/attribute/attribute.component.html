@@ -67,7 +67,9 @@
     </select>
   </div>
 
-  <div class="errorMessage" *ngIf="!noErrorMsg && !isValid">{{errorMessage}}</div>
+  <div *ngIf="!noErrorMsg" [class.ng-invalid]="invalid" class="dk-invalid-feedback">
+    {{errorMessage}}
+  </div>
 </div>
 
 <dk-app-search-help></dk-app-search-help>

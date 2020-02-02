@@ -40,8 +40,7 @@
             <input type="text" formControlName="ATTR_DESC" class="form-control form-control-sm dk-description"
                    [readonly]="readonly || isFieldGray(attrFormGroup.value)">
           </td>
-          <td [formGroup]="attrFormGroup"
-              [class.dk-invalid]="attrFormGroup.get('DATA_ELEMENT').invalid && (attrFormGroup.touched || attrFormGroup.dirty)">
+          <td [formGroup]="attrFormGroup">
             <div class="input-group dk-dataElement">
               <input type="text" formControlName="DATA_ELEMENT" [readonly]="readonly || isFieldGray(attrFormGroup.value)"
                      class="form-control form-control-sm" (change)="onChangeDataElement(i)">
