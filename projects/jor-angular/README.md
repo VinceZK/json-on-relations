@@ -78,7 +78,7 @@ Besides UI control **dk-app-attribute-form2**, there are other 3 UI controls pro
 2. **dk-app-attribute-table**: Display as an editable table for multi-tuples attributes.
 3. **dk-app-attribute**: Display only the field without label.
 
-*Notice*: You need also import following CSS into the `./src/style.css` file:
+*Notice*: You need also import [Bootstrap](https://getbootstrap.com/) and following CSS into the `./src/style.css` file:
 ``` css
 @import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
@@ -103,6 +103,10 @@ select.ng-invalid{
 }
 .primaryKey {
   color:red;
+}
+.errorMessage{
+  color:red;
+  font-size: .8rem;
 }
 ```
 

@@ -1,13 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit, ViewEncapsulation} from '@angular/core';
 
 @Component({
   selector: 'dk-jor-angular',
-  template: `
-    <p>
-      jor-angular works!
-    </p>
-  `,
-  styles: []
+  templateUrl: './jor-angular.component.html',
+  styleUrls: ['./jor-angular.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class JorAngularComponent implements OnInit {
 
