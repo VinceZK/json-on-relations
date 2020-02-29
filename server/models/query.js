@@ -1,7 +1,6 @@
 /*
 Created by VinceZK on 2018.09.02
  */
-
 const entityDB = require('./connections/sql_mdb.js');
 const async = require('async');
 const Message = require('ui-message').Message;
@@ -329,9 +328,23 @@ function run(queryObject, callback) {
     joinString = ' join `ENTITY_INSTANCES` on ' +  entityDB.pool.escapeId(queryObject.RELATION_ID) +
       '.`INSTANCE_GUID` = `ENTITY_INSTANCES`.`INSTANCE_GUID`';
     joinRelations.forEach( joinRelation => {
-      const association = factRelationMeta.ASSOCIATIONS.find(function (assoc) {
-        return assoc.RIGHT_RELATION_ID === joinRelation;
-      });
+      let association;
+      if (joinRelation === queryObject.ENTITY_ID) {
+        association =  {
+          ASSOCIATION_NAME: 'Entity master table',
+          RIGHT_RELATION_ID: queryObject.ENTITY_ID,
+          CARDINALITY: '[1..1]',
+          FOREIGN_KEY_CHECK: false,
+          FIELDS_MAPPING: [{
+            LEFT_FIELD: 'INSTANCE_GUID',
+            RIGHT_FIELD: 'INSTANCE_GUID'
+          }]
+        }
+      } else {
+        association = factRelationMeta.ASSOCIATIONS.find(function (assoc) {
+          return assoc.RIGHT_RELATION_ID === joinRelation;
+        });
+      }
       if (!association) return;
       joinString += ' left join ' + entityDB.pool.escapeId(joinRelation) + ' on ';
       association.FIELDS_MAPPING.forEach(function (fieldsMapping, i) {

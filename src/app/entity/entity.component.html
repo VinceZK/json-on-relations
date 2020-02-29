@@ -6,6 +6,10 @@
 
   <div class="flex-row-reverse">
     <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-info mr-2" type="button"
+            (click)="return2List()" title="Return to List">
+      <span class="fas fa-list-ul"> To List</span>
+    </button>
+    <button *ngIf="entity?.INSTANCE_GUID" class="btn btn-sm btn-outline-info mr-2" type="button"
             (click)="openEntityJSONModal()" title="Display in JSON">
       <span class="fab fa-js"> Display in JSON </span>
     </button>

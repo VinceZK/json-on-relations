@@ -8,6 +8,7 @@ import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {DialogService} from '../dialog.service';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-entity',
@@ -168,7 +169,7 @@ export class EntityComponent implements OnInit {
   }
 
   newEntity(): void {
-    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'new'}]);
+    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'new', navID: uuid()}]);
   }
 
   copyEntity(): void {
@@ -202,7 +203,7 @@ export class EntityComponent implements OnInit {
       });
     });
 
-    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'copy'}]);
+    this.router.navigate(['/entity/new', {entityID: this.entityMeta.ENTITY_ID, action: 'copy', navID: uuid()}]);
   }
 
   deleteEntity(): void {
@@ -221,11 +222,14 @@ export class EntityComponent implements OnInit {
         messages.forEach( msg => this.messageService.add(msg));
       } else {
         this.messageService.reportMessage('ENTITY', 'ENTITY_DELETED', 'S');
-        this.router.navigate(['/entity/list']);
+        this.router.navigate(['/entity/list', {action: 'refresh', navID: uuid()}]);
       }
     });
   }
 
+  return2List(): void {
+    this.router.navigate(['/entity/list', {action: 'refresh', navID: uuid()}]);
+  }
   openAddRelationshipModal(): void {
     this.messageService.clearMessages();
     this.toBeAddRelationship = new Relationship();

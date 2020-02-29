@@ -5,7 +5,6 @@ import {HttpClientModule} from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import {RouteReuseStrategy} from '@angular/router';
 import {CustomReuseStrategy} from './custom.reuse.strategy';
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {JorAngularModule} from 'jor-angular';
 
 @NgModule({
@@ -15,7 +14,6 @@ import {JorAngularModule} from 'jor-angular';
   imports: [
     HttpClientModule,
     AppRoutingModule,
-    NgbModule.forRoot(),
     BrowserModule,
     JorAngularModule
   ],

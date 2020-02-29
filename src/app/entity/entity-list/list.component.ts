@@ -1,10 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import * as Handsontable from 'handsontable';
-import {Observable} from 'rxjs';
-import {EntityService, Attribute, QueryObject, RelationMeta, Selection} from 'jor-angular';
+import {Observable, of} from 'rxjs';
+import {EntityService, Attribute, QueryObject, RelationMeta, Selection, Entity} from 'jor-angular';
 import {HotTableRegisterer} from '@handsontable/angular';
-import {Router} from '@angular/router';
+import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {MessageService} from 'ui-message-angular';
+import {switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-list',
@@ -39,6 +40,7 @@ export class ListComponent implements OnInit {
   constructor(private entityService: EntityService,
               private messageService: MessageService,
               private router: Router,
+              private route: ActivatedRoute,
               private hotRegisterer: HotTableRegisterer) { }
 
   ngOnInit() {
@@ -66,6 +68,12 @@ export class ListComponent implements OnInit {
       },
       licenseKey: 'non-commercial-and-evaluation'
     };
+
+    this.route.paramMap.subscribe( (params: ParamMap) => {
+      if (params.get('action') === 'refresh') {
+        this.search();
+      }
+    });
   }
 
   getRelationIDs() {
@@ -113,6 +121,7 @@ export class ListComponent implements OnInit {
     this.queryObject.PROJECTION = [];
     this.columns = [{data: 'INSTANCE_GUID', renderer: 'html'}];
     this.colHeaders = ['ENTITY_UUID'];
+    if (!this.attributes) { return; }
     this.attributes.forEach(attribute => {
       this.queryObject.PROJECTION.push(attribute.ATTR_NAME);
       this.columns.push(this._attributeColumnDisplay(attribute));

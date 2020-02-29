@@ -1,6 +1,6 @@
 {
   "name": "json-on-relations",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "A data model that leverages the merits of both JSON and Relations",
   "main": "index.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e --dev-server-target= --webdriverUpdate=false",
     "prod": "node server.js",
+    "postinstall": "ngcc --properties es2015 browser module main --first-only --create-ivy-entry-points",
     "webdriver-update": "webdriver-manager update"
   },
   "private": false,
@@ -24,6 +25,7 @@
     "@angular/core": "^9.0.0-rc.13",
     "@angular/forms": "^9.0.0-rc.13",
     "@angular/http": "^7.2.15",
+    "@angular/localize": "^9.0.0-rc.0",
     "@angular/platform-browser": "^9.0.0-rc.13",
     "@angular/platform-browser-dynamic": "^9.0.0-rc.13",
     "@angular/router": "^9.0.0-rc.13",
@@ -37,6 +39,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "handsontable": "^7.1.1",
+    "jor-angular": "latest",
     "mysql": "^2.17.1",
     "node-authorization": "^2.0.2",
     "node-uuid": "^1.4.8",
@@ -47,13 +50,12 @@
     "ui-message": "^1.2.0",
     "ui-message-angular": "^1.2.0",
     "underscore": "^1.9.1",
-    "zone.js": "^0.10.2",
-    "jor-angular": "latest"
+    "zone.js": "^0.10.2"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.900.0-rc.12",
-    "@angular-devkit/build-ng-packagr": "~0.900.0-rc.12",
-    "@angular/cli": "~9.0.0-rc.12",
+    "@angular-devkit/build-angular": "~0.803.24",
+    "@angular-devkit/build-ng-packagr": "~0.803.24",
+    "@angular/cli": "~8.3.24",
     "@angular/compiler-cli": "^9.0.0-rc.13",
     "@angular/language-service": "^9.0.0-rc.13",
     "@types/jasmine": "^3.3.16",

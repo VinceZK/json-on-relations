@@ -14,7 +14,8 @@ describe('query tests', function () {
         'USER_ID',
         'USER_NAME',
         'GIVEN_NAME',
-        {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'}
+        {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'},
+        {FIELD_NAME: 'HEIGHT', RELATION_ID: 'person'}
       ],
 
       FILTER: [
@@ -39,9 +40,9 @@ describe('query tests', function () {
     query.run(queryObject, function (errs, rows) {
       should(errs).eql(null);
       rows.should.containDeep([
-        { USER_ID: 'DH001', USER_NAME: 'VINCEZK', GIVEN_NAME: 'Vincent',
+        { USER_ID: 'DH001', USER_NAME: 'VINCEZK', GIVEN_NAME: 'Vincent', HEIGHT: 1.7,
           Company: 'DARKHOUSE', INSTANCE_GUID: '2FBE7490E10F11E8A90957FA46F2CECA' },
-        { USER_ID: 'DH002', USER_NAME: 'Eleven', GIVEN_NAME: 'Eleven',
+        { USER_ID: 'DH002', USER_NAME: 'Eleven', GIVEN_NAME: 'Eleven', HEIGHT: 1.64,
           Company: 'DARKHOUSE', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' } ]);
       done();
     });
@@ -179,6 +180,24 @@ describe('query tests', function () {
     });
   });
 
+  it('should filter on attributes of entity relation', function(done){
+    queryObject.FILTER = [
+      {
+        FIELD_NAME: 'HEIGHT',
+        OPERATOR: 'GT',
+        RELATION_ID: 'person',
+        LOW: 1.65
+      }
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      rows.should.not.containDeep([
+        { USER_ID: 'DH002', USER_NAME: 'Eleven', GIVEN_NAME: 'Eleven', HEIGHT: 1.64,
+          Company: 'DARKHOUSE', INSTANCE_GUID: '430C8BB0E1C611E8877F9D5C9668A7A3' }]);
+      done();
+    });
+  });
+
   it('should report INVALID_SORT', function(done){
     queryObject.FILTER = [];
     queryObject.SORT = [
@@ -232,13 +251,29 @@ describe('query tests', function () {
     });
   });
 
-  it('should return query result with sorting', function(done){
+  it('should return query result with sorting on attribute of another relation', function(done){
     queryObject.FILTER = [];
     queryObject.SORT = [
       {
         FIELD_NAME: 'LANGUAGE',
         RELATION_ID: 'r_personalization',
         ORDER: 'DESC'
+      }
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      console.log(rows);
+      done();
+    });
+  });
+
+  it('should return query result with sorting on attribute of master relation', function(done){
+    queryObject.FILTER = [];
+    queryObject.SORT = [
+      {
+        FIELD_NAME: 'HEIGHT',
+        RELATION_ID: 'person',
+        ORDER: 'ASC'
       }
     ];
     query.run(queryObject, function (errs, rows) {
