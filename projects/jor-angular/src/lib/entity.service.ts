@@ -14,7 +14,7 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class EntityService {
-  private originalHost: string;
+  private originalHost = '';
   private fakeUUIDs = [];
 
   constructor(private http: HttpClient,
@@ -320,6 +320,15 @@ export class EntityService {
   saveDataDomain(domain: any): Observable<any> {
     return this.http.post<any>(this.originalHost + `/api/model/data-domains`, domain, httpOptions).pipe(
       catchError(this.handleError<any>('saveDataDomain')));
+  }
+
+  /**
+   * Get data element meta
+   * @param elementID
+   */
+  getElementMeta(elementID: string): Observable<any> {
+    return this.http.get<string>( this.originalHost + `/api/model/element-meta/${elementID}`).pipe(
+      catchError(this.handleError<any>('getElementMeta')));
   }
 
   /**

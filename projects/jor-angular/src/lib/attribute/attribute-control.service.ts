@@ -9,7 +9,6 @@ import {Attribute} from '../entity';
   providedIn: 'root'
 })
 export class AttributeControlService {
-  private specialInputCtrls: FormControl[] = [];
 
   constructor(private entityService: EntityService,
               private domainValueValidator: DomainValueValidator) {
@@ -18,73 +17,75 @@ export class AttributeControlService {
   toAttributeControl(attributes: Attribute[]): AttributeBase[] {
     const attributeControls: AttributeBase[] = [];
     if (!attributes) { return attributeControls; }
-    attributes.forEach(attribute => {
-      const attributeControl = new AttributeBase();
-      attributeControl.key = attribute.ATTR_GUID;
-      attributeControl.name = attribute.ATTR_NAME;
-      attributeControl.label = attribute.LABEL_TEXT;
-      attributeControl.list_label = attribute.LIST_HEADER_TEXT;
-      attributeControl.relationId = attribute.RELATION_ID;
-      attributeControl.searchHelpId = attribute.SEARCH_HELP_ID;
-      attributeControl.searchHelpExportField = attribute.SEARCH_HELP_EXPORT_FIELD;
-      attributeControl.domainId = attribute.DOMAIN_ID;
-      attributeControl.domainEntityId = attribute.DOMAIN_ENTITY_ID;
-      attributeControl.domainRelationId = attribute.DOMAIN_RELATION_ID;
-      switch (attribute.DATA_TYPE) {
-        case 1: // Char
-          if (attribute.CAPITAL_ONLY) {
-            attributeControl.controlType = 'text_capital';
-            // onkeyup="this.value = this.value.toUpperCase();"
-          } else {
-            if (attribute.DOMAIN_TYPE === 3) {
-              attributeControl.controlType = 'dropdown';
-              this._generateDropdownList(attribute.DOMAIN_ID, attributeControl);
-            } else {
-              attributeControl.controlType = 'text';
-              attributeControl.pattern = attribute.REG_EXPR;
-            }
-          }
-          attributeControl.maxLength = attribute.DATA_LENGTH;
-          attributeControl.primaryKey = attribute.PRIMARY_KEY;
-          break;
-        case 2: // Integer
+    attributes.forEach(attribute => attributeControls.push( this.toSingleAttributeControl(attribute)));
+    return attributeControls;
+  }
+
+  toSingleAttributeControl(attribute: Attribute): AttributeBase {
+    const attributeControl = new AttributeBase();
+    attributeControl.key = attribute.ATTR_GUID;
+    attributeControl.name = attribute.ATTR_NAME;
+    attributeControl.label = attribute.LABEL_TEXT;
+    attributeControl.list_label = attribute.LIST_HEADER_TEXT;
+    attributeControl.relationId = attribute.RELATION_ID;
+    attributeControl.searchHelpId = attribute.SEARCH_HELP_ID;
+    attributeControl.searchHelpExportField = attribute.SEARCH_HELP_EXPORT_FIELD;
+    attributeControl.domainId = attribute.DOMAIN_ID;
+    attributeControl.domainEntityId = attribute.DOMAIN_ENTITY_ID;
+    attributeControl.domainRelationId = attribute.DOMAIN_RELATION_ID;
+    switch (attribute.DATA_TYPE) {
+      case 1: // Char
+        if (attribute.CAPITAL_ONLY) {
+          attributeControl.controlType = 'text_capital';
+          // onkeyup="this.value = this.value.toUpperCase();"
+        } else {
           if (attribute.DOMAIN_TYPE === 3) {
             attributeControl.controlType = 'dropdown';
             this._generateDropdownList(attribute.DOMAIN_ID, attributeControl);
           } else {
-            attributeControl.controlType = 'integer';
-            if (attribute.UNSIGNED) {
-              attributeControl.pattern = '^\\d+([^.,])?$';
-            }
-            attributeControl.autoIncrement = attribute.AUTO_INCREMENT;
+            attributeControl.controlType = 'text';
+            attributeControl.pattern = attribute.REG_EXPR;
           }
-          attributeControl.primaryKey = attribute.PRIMARY_KEY;
-          break;
-        case 3: // Boolean
-          attributeControl.controlType = 'checkbox';
-          break;
-        case 4: // Decimal
-          attributeControl.controlType = 'decimal';
-          this._setDecimalPattern(attributeControl, attribute);
-          break;
-        case 5: // String
-          attributeControl.controlType = 'textarea';
-          break;
-        case 6: // Binary
-          attributeControl.controlType = 'file';
-          break;
-        case 7: // Date
-          attributeControl.controlType = 'date';
-          break;
-        case 8: // Timestamp
-          attributeControl.controlType = 'timestamp';
-          break;
-        default:
-          attributeControl.controlType = 'text';
-      }
-      attributeControls.push(attributeControl);
-    });
-    return attributeControls;
+        }
+        attributeControl.maxLength = attribute.DATA_LENGTH;
+        attributeControl.primaryKey = attribute.PRIMARY_KEY;
+        break;
+      case 2: // Integer
+        if (attribute.DOMAIN_TYPE === 3) {
+          attributeControl.controlType = 'dropdown';
+          this._generateDropdownList(attribute.DOMAIN_ID, attributeControl);
+        } else {
+          attributeControl.controlType = 'integer';
+          if (attribute.UNSIGNED) {
+            attributeControl.pattern = '^\\d+([^.,])?$';
+          }
+          attributeControl.autoIncrement = attribute.AUTO_INCREMENT;
+        }
+        attributeControl.primaryKey = attribute.PRIMARY_KEY;
+        break;
+      case 3: // Boolean
+        attributeControl.controlType = 'checkbox';
+        break;
+      case 4: // Decimal
+        attributeControl.controlType = 'decimal';
+        this._setDecimalPattern(attributeControl, attribute);
+        break;
+      case 5: // String
+        attributeControl.controlType = 'textarea';
+        break;
+      case 6: // Binary
+        attributeControl.controlType = 'file';
+        break;
+      case 7: // Date
+        attributeControl.controlType = 'date';
+        break;
+      case 8: // Timestamp
+        attributeControl.controlType = 'timestamp';
+        break;
+      default:
+        attributeControl.controlType = 'text';
+    }
+    return attributeControl;
   }
 
   _generateDropdownList(domainID: string, attributeControl: AttributeBase) {
@@ -117,9 +118,6 @@ export class AttributeControlService {
     // if (attribute.DOMAIN_TYPE === 2 && !attribute.PRIMARY_KEY) {
     //   formControl.setAsyncValidators(this.domainValueValidator.validate.bind(this.domainValueValidator));
     // }
-    if (attribute.DATA_TYPE === 3 || attribute.DOMAIN_TYPE === 3) { // Checkbox and dropdown list controls
-      this.specialInputCtrls.push(formControl);
-    }
     return formControl;
   }
 
@@ -130,13 +128,5 @@ export class AttributeControlService {
       if (instance[attribute.ATTR_NAME] && isDirty) { group[attribute.ATTR_NAME].markAsDirty(); }
     });
     return new FormGroup(group);
-  }
-
-  switch2EditMode4SpecialCtrls() {
-    this.specialInputCtrls.forEach( specialCtrl => specialCtrl.enable());
-  }
-
-  switch2DisplayMode4SpecialCtrls() {
-    this.specialInputCtrls.forEach( specialCtrl => specialCtrl.disable());
   }
 }

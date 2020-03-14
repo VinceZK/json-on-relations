@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import {AttributeBase} from './attribute-base';
 import {FormGroup} from '@angular/forms';
 import {SearchHelpComponent} from '../search-help/search-help.component';
@@ -8,7 +8,7 @@ import {SearchHelpComponent} from '../search-help/search-help.component';
   templateUrl: './attribute.component.html',
   styleUrls: ['./attribute.component.css']
 })
-export class AttributeComponent implements OnInit {
+export class AttributeComponent implements OnInit, OnChanges{
   @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
@@ -42,6 +42,14 @@ export class AttributeComponent implements OnInit {
         }
         break;
       default:
+    }
+  }
+
+  ngOnChanges(): void {
+    if (this.attributeControl.controlType === 'dropdown' ||
+      this.attributeControl.controlType === 'checkbox') {
+      this.readonly ? this.formGroup.get(this.attributeControl.name).disable() :
+        this.formGroup.get(this.attributeControl.name).enable();
     }
   }
 

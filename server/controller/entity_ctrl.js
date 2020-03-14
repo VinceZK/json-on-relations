@@ -68,7 +68,7 @@ module.exports = {
       res.json(results);
     })
   },
-  
+
   createInstance: function (req, res, next) {
     entity.createInstance(req.body, function (err) {
       if(err) res.json(err);

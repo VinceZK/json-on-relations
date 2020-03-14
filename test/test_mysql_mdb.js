@@ -728,6 +728,78 @@ describe('mysql connections tests', function () {
     });
   });
 
+  describe('#getElementMeta()', function () {
+    it('return data element ENTITY_ID', function (done) {
+      entityDB.getElementMeta('ENTITY_ID', function (err, elementMeta) {
+        should(err).eql(null);
+        elementMeta.should.containDeep([{
+          ELEMENT_ID: 'ENTITY_ID',
+          ELEMENT_DESC: 'Entity ID',
+          DOMAIN_ID: null,
+          LABEL_TEXT: 'Entity ID',
+          LIST_HEADER_TEXT: 'Entity',
+          DATA_TYPE: 1,
+          DATA_LENGTH: 32,
+          DECIMAL: null,
+          SEARCH_HELP_ID: null,
+          SEARCH_HELP_EXPORT_FIELD: null,
+          DOMAIN_TYPE: null,
+          UNSIGNED: null,
+          CAPITAL_ONLY: null,
+          REG_EXPR: null,
+          DOMAIN_ENTITY_ID: null,
+          DOMAIN_RELATION_ID: null }]);
+        done();
+      });
+    });
+    it('return data element ACTION', function (done) {
+      entityDB.getElementMeta('ACTION', function (err, elementMeta) {
+        should(err).eql(null);
+        elementMeta.should.containDeep([{
+          ELEMENT_ID: 'ACTION',
+          ELEMENT_DESC: 'Action to an object. ',
+          DOMAIN_ID: 'ACTION',
+          LABEL_TEXT: 'Action',
+          LIST_HEADER_TEXT: 'Action',
+          DATA_TYPE: 1,
+          DATA_LENGTH: 30,
+          DECIMAL: null,
+          SEARCH_HELP_ID: null,
+          SEARCH_HELP_EXPORT_FIELD: null,
+          DOMAIN_TYPE: 3,
+          UNSIGNED: null,
+          CAPITAL_ONLY: null,
+          REG_EXPR: null,
+          DOMAIN_ENTITY_ID: null,
+          DOMAIN_RELATION_ID: null }]);
+        done();
+      });
+    });
+    it('return data element USER_ID', function (done) {
+      entityDB.getElementMeta('USER_ID', function (err, elementMeta) {
+        should(err).eql(null);
+        elementMeta.should.containDeep([{
+          ELEMENT_ID: 'USER_ID',
+          ELEMENT_DESC: 'User ID',
+          DOMAIN_ID: 'USER_ID',
+          LABEL_TEXT: 'User ID',
+          LIST_HEADER_TEXT: 'User ID',
+          DATA_TYPE: 1,
+          DATA_LENGTH: 10,
+          DECIMAL: null,
+          SEARCH_HELP_ID: null,
+          SEARCH_HELP_EXPORT_FIELD: null,
+          DOMAIN_TYPE: 2,
+          UNSIGNED: null,
+          CAPITAL_ONLY: null,
+          REG_EXPR: null,
+          DOMAIN_ENTITY_ID: 'person',
+          DOMAIN_RELATION_ID: 'r_user' } ]);
+        done();
+      });
+    });
+  });
+
   after('Close the MDB', function (done) {
     entityDB.closeMDB(done);
   })

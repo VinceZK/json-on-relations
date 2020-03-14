@@ -155,8 +155,7 @@
 
             <tbody formArrayName="DOMAIN_VALUES">
             <tr *ngFor="let domainValueForm of domainValueFormArray.controls; let i = index">
-              <td [formGroup]="domainValueForm"
-              >
+              <td [formGroup]="domainValueForm">
                 <div class="input-group">
                   <input class="form-control" type="text" formControlName="LOW_VALUE" maxlength="10"
                          [readonly]="readonly" (change)="onChangeDomainValue(i)">
@@ -176,7 +175,7 @@
               </td>
               <td [formGroup]="domainValueForm" class="dk-description">
                 <input  class="form-control" type="text" formControlName="LOW_VALUE_TEXT" maxlength="100"
-                        [readonly]="readonly" (change)="onChangeDomainValue(i)">
+                        [readonly]="readonly">
               </td>
               <td class="dk-actions">
                 <button class="btn btn-sm" type="button" id="add" [disabled]="readonly" (click)="insertDomainValue(i)" title="Insert">

@@ -88,6 +88,7 @@ router.get('/api/model/data-domains', model.listDataDomain);
 router.get('/api/model/data-domains/:domainID', model.getDataDomain);
 router.get('/api/model/data-domains/:domainID/desc', model.getDataDomainDesc);
 router.post('/api/model/data-domains', model.saveDataDomain);
+router.get('/api/model/element-meta/:elementID', model.getElementMeta);
 
 // User Functions
 router.post('/api/function/:functionName', userFunction.execute);

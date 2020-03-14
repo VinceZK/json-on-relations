@@ -349,5 +349,9 @@ Content-Type: application/json
 {"ENTITY_ID":"blog", "RELATION_ID":"blog", "PROJECTION":["AUTHOR","ID","NUM_READS","PUBLISHED","PUBLISH_TIME","TITLE","ABSTRACT","NAME"],"SORT":["PUBLISH_TIME"]}
 
 ###
+GET http://localhost: 3000//api/model/element-meta/USER_ID
+Accept: */*
+Cache-Control: no-cache
 
+###
 

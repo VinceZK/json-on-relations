@@ -41,6 +41,7 @@ module.exports = {
   // loadRelation: loadRelation,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
+  getElementMeta: getElementMeta,
   checkDBConsistency: checkDBConsistency,
   syncDBTable: syncDBTable,
   createDBTable: createDBTable,
@@ -345,6 +346,32 @@ function _getRelationAttributes(relation, callback) {
   })
 }
 
+function getElementMeta(elementID, callback) {
+  let selectSQL =
+    "select B.ELEMENT_ID, B.ELEMENT_DESC, B.DOMAIN_ID, " +
+    "coalesce(C.LABEL_TEXT, B.ELEMENT_ID) as LABEL_TEXT, " +
+    "coalesce(C.LIST_HEADER_TEXT, B.ELEMENT_ID) as LIST_HEADER_TEXT, " +
+    "coalesce(E.DATA_TYPE, B.DATA_TYPE) as DATA_TYPE, " +
+    "coalesce(E.DATA_LENGTH, B.DATA_LENGTH) as DATA_LENGTH, " +
+    "coalesce(E.`DECIMAL`, B.`DECIMAL`) as `DECIMAL`, B.SEARCH_HELP_ID, B.SEARCH_HELP_EXPORT_FIELD, " +
+    "E.DOMAIN_TYPE, E.`UNSIGNED`, E.CAPITAL_ONLY, E.REG_EXPR, " +
+    "E.ENTITY_ID as DOMAIN_ENTITY_ID, E.RELATION_ID as DOMAIN_RELATION_ID " +
+    "from DATA_ELEMENT as B " +
+    "left join DATA_ELEMENT_TEXT as C " +
+    "  on B.ELEMENT_ID = C.ELEMENT_ID" +
+    " and C.LANGU = 'EN' " +
+    "left join DATA_DOMAIN as E " +
+    "  on B.DOMAIN_ID = E.DOMAIN_ID " +
+    "where B.ELEMENT_ID = " + pool.escape(elementID);
+  pool.query(selectSQL, function (err, elementMeta) {
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, elementMeta);
+    }
+  })
+}
+
 function _getRelationships(role, callback) {
   let selectSQL =
     "select A.RELATIONSHIP_ID, A.VALID_PERIOD" +
@@ -501,7 +528,7 @@ function checkDBConsistency(relation, callback) {
       changedAttributes: []
     };
 
-    if (columns.length === 0) { 
+    if (columns.length === 0) {
       return callback(null, result) // Table doesn't exist
     }
 

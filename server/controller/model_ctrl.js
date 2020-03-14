@@ -209,4 +209,11 @@ module.exports = {
       }
     })
   },
+
+  getElementMeta: function (req, res) {
+    model.getElementMeta(req.params['elementID'], function (errs, elementMeta) {
+      if(errs) res.json(errs);
+      else res.json(elementMeta);
+    })
+  }
 };

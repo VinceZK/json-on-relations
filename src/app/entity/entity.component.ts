@@ -79,7 +79,7 @@ export class EntityComponent implements OnInit {
         } else {
           errMessages$ = of(<any[]>data);
         }
-        return forkJoin(entityMeta$, relationMetas$, errMessages$);
+        return forkJoin([entityMeta$, relationMetas$, errMessages$]);
       })
     ).subscribe(data => {
         if (data[2].length > 0) {
@@ -88,8 +88,6 @@ export class EntityComponent implements OnInit {
           this.entityMeta = <EntityMeta>data[0];
           this.relationMetas = <RelationMeta[]>data[1];
           this._createFormFromMeta();
-          this.readonly ? this.attributeControlService.switch2DisplayMode4SpecialCtrls() :
-            this.attributeControlService.switch2EditMode4SpecialCtrls();
         }
         this.messageService.clearMessages();
     });
@@ -124,12 +122,7 @@ export class EntityComponent implements OnInit {
       this._switch2EditMode();
     } else {
       if (this.formGroup.dirty) {
-        this.dialogService.confirm('Discard changes?').subscribe(confirm => {
-          if (confirm) {
-            // this.entity.INSTANCE_GUID should always be there, as in new or copy mode, switching button is disabled.
-            this.router.navigate(['entity', this.entity.INSTANCE_GUID, {action: 'display'}]);
-          }
-        });
+        this.router.navigate(['entity', this.entity.INSTANCE_GUID, {action: 'display', navID: uuid()}]);
       } else {
         this._switch2DisplayMode();
       }
@@ -139,13 +132,11 @@ export class EntityComponent implements OnInit {
 
   _switch2EditMode(): void {
     this.readonly = false;
-    this.attributeControlService.switch2EditMode4SpecialCtrls();
     window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=change`);
   }
 
   _switch2DisplayMode(): void {
     this.readonly = true;
-    this.attributeControlService.switch2DisplayMode4SpecialCtrls();
     this.formGroup.markAsPristine();
     window.history.replaceState({}, '', `/entity/${this.entity.INSTANCE_GUID};action=display`);
   }
@@ -357,7 +348,6 @@ export class EntityComponent implements OnInit {
   }
 
   _composeChangedPropertyValue(key, control: FormControl) {
-    // const attributeMeta = this.entityAttributes.find(attribute => attribute.ATTR_NAME === key);
     this.changedEntity[key] = control.value;
   }
 

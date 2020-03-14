@@ -34,7 +34,8 @@ module.exports = {
   listDataDomain: listDataDomain,
   getDataDomain: getDataDomain,
   getDataDomainDesc: getDataDomainDesc,
-  saveDataDomain: saveDataDomain
+  saveDataDomain: saveDataDomain,
+  getElementMeta: getElementMeta
 };
 
 function listEntityType(term, callback) {
@@ -1192,5 +1193,21 @@ function _getDomainUsedRelations(domainID, callback) {
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     else callback(null, rows);
+  });
+}
+
+/**
+ * Get data element meta
+ * @param elementID
+ * @param callback
+ */
+function getElementMeta(elementID, callback) {
+  entityDB.getElementMeta(elementID, function(err, elementMeta) {
+    if (err) return callback([message.report('MODEL', 'GENERAL_ERROR', 'E', err)]);
+    if (elementMeta.length > 0) {
+      callback(elementMeta[0]);
+    } else {
+      callback([message.report('MODEL', 'DATA_ELEMENT_NOT_EXIST', 'E', elementID)]);
+    }
   });
 }
