@@ -58,6 +58,7 @@ export class RelationshipDetailComponent implements OnInit {
           relationship.RELATIONSHIP_ID = 'rs_';
           relationship.RELATIONSHIP_DESC = '';
           relationship.VALID_PERIOD = 0;
+          relationship.SINGLETON = false;
           relationship.INVOLVES = [];
           this.isNewMode = true;
           this.readonly = false;
@@ -66,9 +67,10 @@ export class RelationshipDetailComponent implements OnInit {
         } else {
           this.readonly = true;
           this.isNewMode = false;
-          return forkJoin(
+          return forkJoin([
             this.entityService.getRelationship(relationshipID),
-            this.entityService.getRelationMeta(relationshipID));
+            this.entityService.getRelationMeta(relationshipID)
+          ]);
         }
       })
     ).subscribe(data => {
@@ -85,7 +87,10 @@ export class RelationshipDetailComponent implements OnInit {
         this.relationshipMeta = data[0];
         this.attributes = 'msgName' in data[1] ? [] : data[1]['ATTRIBUTES'];
         this._generateRelationshipForm();
-        if (this.readonly) { this.relationshipForm.get('TIME_DEPENDENT').disable(); }
+        if (this.readonly) {
+          this.relationshipForm.get('TIME_DEPENDENT').disable();
+          this.relationshipForm.get('SINGLETON').disable();
+        }
       }
     });
 
@@ -125,13 +130,15 @@ export class RelationshipDetailComponent implements OnInit {
       this.relationshipForm.get('RELATIONSHIP_DESC').setValue(this.relationshipMeta.RELATIONSHIP_DESC);
       this.relationshipForm.get('TIME_DEPENDENT').setValue(this.relationshipMeta.VALID_PERIOD > 0);
       this.relationshipForm.get('VALID_PERIOD').setValue(this.relationshipMeta.VALID_PERIOD);
+      this.relationshipForm.get('SINGLETON').setValue(this.relationshipMeta.SINGLETON);
       this.relationshipForm.removeControl('ATTRIBUTES');
     } else {
       this.relationshipForm = this.fb.group({
         RELATIONSHIP_ID: [this.relationshipMeta.RELATIONSHIP_ID, {updateOn: 'blur'}],
         RELATIONSHIP_DESC: [this.relationshipMeta.RELATIONSHIP_DESC],
         TIME_DEPENDENT: [this.relationshipMeta.VALID_PERIOD > 0],
-        VALID_PERIOD: [this.relationshipMeta.VALID_PERIOD, this._validateValidPeriod]
+        VALID_PERIOD: [this.relationshipMeta.VALID_PERIOD, this._validateValidPeriod],
+        SINGLETON: [this.relationshipMeta.SINGLETON]
       });
     }
 
@@ -225,6 +232,7 @@ export class RelationshipDetailComponent implements OnInit {
     } else { // In Display Mode -> Change Mode
       this.readonly = false;
       this.relationshipForm.get('TIME_DEPENDENT').enable();
+      this.relationshipForm.get('SINGLETON').enable();
       this.attrComponent.switchEditDisplay(this.readonly);
       this.involveFormArray.controls.forEach(involveFormGroup => {
         involveFormGroup.get('CARDINALITY').enable();
@@ -245,6 +253,7 @@ export class RelationshipDetailComponent implements OnInit {
   _switch2DisplayMode(): void {
     this.readonly = true;
     this.relationshipForm.get('TIME_DEPENDENT').disable();
+    this.relationshipForm.get('SINGLETON').disable();
     this.attrComponent.switchEditDisplay(this.readonly);
     let lastIndex = this.involveFormArray.length - 1;
     while (lastIndex >= 0 && this.involveFormArray.controls[lastIndex].get('ROLE_ID').value.trim() === '') {
@@ -436,6 +445,9 @@ export class RelationshipDetailComponent implements OnInit {
     }
     if (this.isNewMode || this.relationshipForm.controls['VALID_PERIOD'].dirty) {
       this.changedRelationship['VALID_PERIOD'] = this.relationshipForm.controls['VALID_PERIOD'].value;
+    }
+    if (this.isNewMode || this.relationshipForm.controls['SINGLETON'].dirty) {
+      this.changedRelationship['SINGLETON'] = this.relationshipForm.controls['SINGLETON'].value;
     }
 
     this.changedRelationship['ATTRIBUTES'] = this.attrComponent.processChangedAttributes();

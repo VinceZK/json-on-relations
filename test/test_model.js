@@ -667,6 +667,7 @@ describe('model tests', function () {
       RELATIONSHIP_ID: 'rs_testRelationship',
       RELATIONSHIP_DESC: 'description of relationship',
       VALID_PERIOD: 1000000,
+      SINGLETON: false,
       ATTRIBUTES: [
         { ATTR_GUID: '3F2FA5F8C5CE461E925DEDDAFA2C254C', RELATION_ID: 'rs_testRelationship',
           ATTR_NAME: 'husband_INSTANCE_GUID', DATA_ELEMENT: 'INSTANCE_GUID', ORDER: 1, PRIMARY_KEY: 0, AUTO_INCREMENT: 0 },
@@ -793,8 +794,10 @@ describe('model tests', function () {
         action: 'update',
         RELATIONSHIP_ID: 'rs_testRelationship',
         VALID_PERIOD: 2000000,
+        SINGLETON: true,
         INVOLVES: [
-          { action:'update', ROLE_ID: 'wife', CARDINALITY: '[1..N]', DIRECTION: 'are wives of' }
+          { action:'update', ROLE_ID: 'wife', CARDINALITY: '[1..N]', DIRECTION: 'are wives of' },
+          { action:'update', ROLE_ID: 'husband', CARDINALITY: '[1..N]', DIRECTION: 'are husbands of' }
         ]
       };
       model.saveRelationship(relationship, 'DH003', function(errs) {
@@ -807,16 +810,16 @@ describe('model tests', function () {
               ROLES: [
                 { ROLE_ID: 'husband', CONDITIONAL_ATTR: null, CONDITIONAL_VALUE: null,
                   RELATIONSHIPS: [
-                    { RELATIONSHIP_ID: 'rs_testRelationship', VALID_PERIOD: 2000000,
+                    { RELATIONSHIP_ID: 'rs_testRelationship', VALID_PERIOD: 2000000, SINGLETON: 1,
                       INVOLVES: [
-                        { ROLE_ID: 'husband', CARDINALITY: '[1..1]' },
+                        { ROLE_ID: 'husband', CARDINALITY: '[1..N]' },
                         { ROLE_ID: 'wife', CARDINALITY: '[1..N]' }
                         ]}]},
                 { ROLE_ID: 'wife', CONDITIONAL_ATTR: null, CONDITIONAL_VALUE: null,
                   RELATIONSHIPS: [
-                    { RELATIONSHIP_ID: 'rs_testRelationship', VALID_PERIOD: 2000000,
+                    { RELATIONSHIP_ID: 'rs_testRelationship', VALID_PERIOD: 2000000, SINGLETON: 1,
                       INVOLVES: [
-                        { ROLE_ID: 'husband', CARDINALITY: '[1..1]' },
+                        { ROLE_ID: 'husband', CARDINALITY: '[1..N]' },
                         { ROLE_ID: 'wife', CARDINALITY: '[1..N]' }
                         ]}]}]});
           done();
@@ -831,8 +834,9 @@ describe('model tests', function () {
           RELATIONSHIP_ID: 'rs_testRelationship',
           RELATIONSHIP_DESC: 'description of relationship changed',
           VALID_PERIOD: 2000000,
+          SINGLETON: 1,
           INVOLVES: [
-            { ROLE_ID: 'husband', CARDINALITY: '[1..1]', DIRECTION: 'is husband of' },
+            { ROLE_ID: 'husband', CARDINALITY: '[1..N]', DIRECTION: 'are husbands of' },
             { ROLE_ID: 'wife', CARDINALITY: '[1..N]', DIRECTION: 'are wives of' }
           ]
         });

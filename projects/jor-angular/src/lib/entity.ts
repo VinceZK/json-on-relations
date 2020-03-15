@@ -74,6 +74,7 @@ export class RelationshipMeta {
   RELATIONSHIP_ID: string;
   RELATIONSHIP_DESC?: string;
   VALID_PERIOD?: number;
+  SINGLETON?: boolean;
   CREATE_BY?: string;
   CREATE_TIME?: string;
   LAST_CHANGE_BY?: string;

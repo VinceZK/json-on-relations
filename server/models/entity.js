@@ -286,7 +286,7 @@ function _condenseErrorMessages(results) {
 }
 
 function _checkEntityRoleCondition(role, entityRelation) {
-  return (!role.CONDITIONAL_ATTR || 
+  return (!role.CONDITIONAL_ATTR ||
     (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE.split(',').includes(entityRelation[role.CONDITIONAL_ATTR])));
 }
 /**
@@ -1113,12 +1113,13 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
       return callback([message.report('ENTITY', 'RELATIONSHIP_NOT_VALID', 'E', relationship['RELATIONSHIP_ID'], entityMeta.ENTITY_ID)]);
 
     entityDB.getRelationMeta(relationship.RELATIONSHIP_ID, function (err, relationMeta) {
-      if (err || !relationMeta) 
+      if (err || !relationMeta)
         return callback([message.report('ENTITY', 'RELATION_META_NOT_EXIST', 'E', relationship.RELATIONSHIP_ID)]);
       const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
       const relationshipMeta = roleMeta.RELATIONSHIPS.find(function (element) {
         return element.RELATIONSHIP_ID === relationship['RELATIONSHIP_ID'];
       });
+
       relationship['values'].forEach( value => {
         switch (value.action) {
           case 'update':
@@ -1208,7 +1209,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             updateSQL = updateSQL + " where INSTANCE_GUID = " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID);
             SQLs.push(updateSQL);
           }
-        } 
+        }
         else if (value.action === 'add'){
           let insertFields = " ( `INSTANCE_GUID`" ;
           let insertValues = " ( " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID);
@@ -1250,6 +1251,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             { RELATIONSHIP_ID: relationship['RELATIONSHIP_ID'],
               RELATIONSHIP_INSTANCE_GUID: value['RELATIONSHIP_INSTANCE_GUID'],
               IS_TIME_DEPENDENT: relationshipMeta.VALID_PERIOD > 0, // For time-dependency relationship (VALID_PERIOD is set and larger than 0)
+              SINGLETON: relationshipMeta.SINGLETON,
               VALID_FROM: value['VALID_FROM'],
               VALID_TO: value['VALID_TO'],
               action: value.action
@@ -1277,14 +1279,23 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
       }); // Loop values end
       if (errorMessages.length > 0) return callback(errorMessages);
 
-      const groupByCardinality = _.groupBy(relationshipInstances, 'PARTNER_ROLE_CARDINALITY');
-      _.each(groupByCardinality, function (value, key) {
+      // Check Cardinality:
+      // [1..1] means the entity instance can only be involved in one such kind of relationship instance.
+      // [1..n] means the entity instance can be involved in multiple such kind of relationship instances.
+      const groupBySelfCardinality = _.groupBy(relationshipInstances, 'SELF_ROLE_CARDINALITY');
+      _.each(groupBySelfCardinality, function (value, key) {
         if(key === '[1..1]') __checkOverlap(value);
-        else if(key === '[1..n]'){
+      });
+      if (errorMessages.length > 0) return callback(errorMessages);
+
+      const groupByPartnerCardinality = _.groupBy(relationshipInstances, 'PARTNER_ROLE_CARDINALITY');
+      _.each(groupByPartnerCardinality, function (value, key) {
+        if(key === '[1..1]') __checkOverlap(value);
+        else if(key === '[1..n]' && relationshipMeta.SINGLETON) {
+          // Singleton relationship only allows one pair
           const groupByPartnerInstanceGUID = _.groupBy(value, 'PARTNER_INSTANCE_GUID');
           _.each(groupByPartnerInstanceGUID, function (groupedValue) {
-            __checkOverlap(groupedValue);
-          })
+            __checkOverlap(groupedValue);});
         }
       });
       if (errorMessages.length > 0) callback(errorMessages);
@@ -1828,11 +1839,14 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
     } else if (relationship.PARTNER_ROLE_CARDINALITY === '[1..n]'
                && relationship.SELF_ROLE_CARDINALITY === '[1..n]') {
       // Both the entity itself and its partner entities can exist in multiple such type of relationships.
-      // Then we should check if the pair already exists in the DB.
-      selectSQL += " where " + entityDB.pool.escapeId(relationship.SELF_ROLE_ID + "_INSTANCE_GUID") +
-        " = " + entityDB.pool.escape(selfGUID) + " and " +
-        entityDB.pool.escapeId(relationship.PARTNER_ROLE_ID + "_INSTANCE_GUID") + " = " +
-        entityDB.pool.escape(relationship.PARTNER_INSTANCE_GUID);
+      if (relationship.SINGLETON) { // In case singleton, only one relationship instance is allowed for a pair.
+        selectSQL += " where " + entityDB.pool.escapeId(relationship.SELF_ROLE_ID + "_INSTANCE_GUID") +
+          " = " + entityDB.pool.escape(selfGUID) + " and " +
+          entityDB.pool.escapeId(relationship.PARTNER_ROLE_ID + "_INSTANCE_GUID") + " = " +
+          entityDB.pool.escape(relationship.PARTNER_INSTANCE_GUID);
+      } else { // Then there is no need to check overlaps.
+        selectSQL += " where 1 != 1 ";
+      }
     }
   } else {
     selectSQL += " where INSTANCE_GUID = " + entityDB.pool.escape(relationship.RELATIONSHIP_INSTANCE_GUID);

@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   let instance =
     { ENTITY_ID: 'person',
       person: {HEIGHT: 1.70, GENDER: 'Male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',
@@ -1054,9 +1054,9 @@ describe('entity tests', function () {
             .RELATIONSHIP_INSTANCE_GUID;
           done();
         });
-      })    
+      })
     });
-    
+
     it('should delete an app from the category successfully', function (done) {
       instance4.relationships = [
         { RELATIONSHIP_ID: 'rs_app_category',

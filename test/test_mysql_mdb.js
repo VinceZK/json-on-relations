@@ -71,8 +71,8 @@ describe('mysql connections tests', function () {
       entityDB.getEntityMeta('person', function (err, personEntity) {
         should(err).eql(null);
         personEntity.ENTITY_ID.should.eql('person');
-        personEntity.ROLES.should.containDeep(
-          [{
+        personEntity.ROLES.should.containDeep([
+          {
             ROLE_ID: 'system_user',
             ROLE_DESC: 'System user for login',
             CONDITIONAL_ATTR: 'SYSTEM_ACCESS',
@@ -85,6 +85,7 @@ describe('mysql connections tests', function () {
               {
                 RELATIONSHIP_ID: 'rs_user_role',
                 VALID_PERIOD: 0,
+                SINGLETON: null,
                 INVOLVES: [
                   { ROLE_ID: 'system_role', CARDINALITY: '[1..n]' },
                   { ROLE_ID: 'system_user', CARDINALITY: '[1..n]' }
@@ -92,14 +93,14 @@ describe('mysql connections tests', function () {
               }
             ]
           },
-            { ROLE_ID: 'employee',
-              ROLE_DESC: 'Company Employee',
-              CONDITIONAL_ATTR: 'TYPE',
-              CONDITIONAL_VALUE: 'employee',
-              RELATIONS: [
-                { RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
-                { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
-                { RELATION_ID: 'r_employee', CARDINALITY: '[1..1]' }]},
+          { ROLE_ID: 'employee',
+            ROLE_DESC: 'Company Employee',
+            CONDITIONAL_ATTR: 'TYPE',
+            CONDITIONAL_VALUE: 'employee',
+            RELATIONS: [
+              { RELATION_ID: 'r_address', CARDINALITY: '[0..n]' },
+              { RELATION_ID: 'r_email', CARDINALITY: '[1..n]' },
+              { RELATION_ID: 'r_employee', CARDINALITY: '[1..1]' }]},
           ]);
         done();
       });

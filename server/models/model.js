@@ -542,12 +542,16 @@ function saveRelationship(relationship, userID, callback) {
       updateSQL += ", VALID_PERIOD = " + entityDB.pool.escape(relationship.VALID_PERIOD);
       updateEntityReloadIndicator = true;
     }
+    if (relationship.SINGLETON !== null && relationship.SINGLETON !== undefined) {
+      updateSQL += ", SINGLETON = " + entityDB.pool.escape(relationship.SINGLETON);
+      updateEntityReloadIndicator = true;
+    }
     updateSQL += " where RELATIONSHIP_ID = " + entityDB.pool.escape(relationship.RELATIONSHIP_ID);
     updateSQLs.push(updateSQL);
   } else if (relationship.action === undefined || relationship.action === 'add') {
-    let insertSQL = "insert into RELATIONSHIP ( RELATIONSHIP_ID, RELATIONSHIP_DESC, VALID_PERIOD, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+    let insertSQL = "insert into RELATIONSHIP ( RELATIONSHIP_ID, RELATIONSHIP_DESC, VALID_PERIOD, SINGLETON, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(relationship.RELATIONSHIP_ID) + ", " +
-      entityDB.pool.escape(relationship.RELATIONSHIP_DESC) + ", " + entityDB.pool.escape(relationship.VALID_PERIOD) +
+      entityDB.pool.escape(relationship.RELATIONSHIP_DESC) + ", " + entityDB.pool.escape(relationship.VALID_PERIOD) + ", " + entityDB.pool.escape(relationship.SINGLETON) +
       ", 1, " + entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) + ", " + entityDB.pool.escape(userID) +
       ", "  + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);

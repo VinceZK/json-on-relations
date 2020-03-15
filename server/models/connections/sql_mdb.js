@@ -36,9 +36,7 @@ module.exports = {
   entities: entities,
   relations: relations,
   setConnPool: setConnPool,
-  // loadEntity: loadEntity,
   loadEntities: loadEntities,
-  // loadRelation: loadRelation,
   getEntityMeta: getEntityMeta,
   getRelationMeta: getRelationMeta,
   getElementMeta: getElementMeta,
@@ -82,7 +80,6 @@ function loadEntities(entities, done) {
   })
 }
 
-// TODO: Add a reload indicator in ENTITY and RELATION table
 /**
  * Load a specific entity's meta into cache
  *
@@ -374,7 +371,7 @@ function getElementMeta(elementID, callback) {
 
 function _getRelationships(role, callback) {
   let selectSQL =
-    "select A.RELATIONSHIP_ID, A.VALID_PERIOD" +
+    "select A.RELATIONSHIP_ID, A.VALID_PERIOD, A.SINGLETON" +
     "  from RELATIONSHIP as A" +
     "  join RELATIONSHIP_INVOLVES as B" +
     "    on A.RELATIONSHIP_ID = B.RELATIONSHIP_ID " +
@@ -386,7 +383,7 @@ function _getRelationships(role, callback) {
     async.map(relationships, function(ele, callback){
       let relationship = {
         RELATIONSHIP_ID: ele.RELATIONSHIP_ID,
-        // RELATIONSHIP_DESC: ele.RELATIONSHIP_DESC,
+        SINGLETON: ele.SINGLETON,
         VALID_PERIOD: ele.VALID_PERIOD
       };
 

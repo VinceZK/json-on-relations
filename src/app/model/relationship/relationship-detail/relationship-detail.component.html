@@ -46,6 +46,11 @@
       <input type="number" class="form-control form-control-sm" id="valid_period" [readonly]="readonly"
              name="valid_period" formControlName="VALID_PERIOD">
     </div>
+    <div class="col-3 form-group row ml-3" >
+      <label for="singleton" class="col-form-label form-control-sm">Singleton: </label>
+      <input type="checkbox" class="form-control ml-2" id="singleton" name="singleton"
+             formControlName="SINGLETON">
+    </div>
   </div>
 
   <app-attribute-meta [readonly]="readonly" [parentForm]="relationshipForm" [attributes]="attributes"
