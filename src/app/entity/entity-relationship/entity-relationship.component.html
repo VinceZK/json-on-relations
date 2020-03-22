@@ -127,7 +127,7 @@
             </div>
           </div>
 
-          <table class="table table-bordered table-sm">
+          <table *ngIf="partnerInstanceFA" class="table table-bordered table-sm">
             <thead class="thead-light">
             <tr>
               <th scope="col">Partner Role</th>
@@ -137,26 +137,26 @@
             </thead>
 
             <tbody>
-            <tr *ngFor="let partnerInstance of detailValue.PARTNER_INSTANCES">
-              <td>
+            <tr *ngFor="let partnerInstanceCtrl of partnerInstanceFA.controls">
+              <td [formGroup]="partnerInstanceCtrl">
                 <input type="text" class="form-control form-control-sm" name="partner_role_id"
-                       readonly [(ngModel)]="partnerInstance.ROLE_ID">
+                       formControlName="ROLE_ID" readonly >
               </td>
-              <td>
-                <select name="partner_entity_id" class="form-control form-control-sm" [disabled]="readonlyPartner"
-                        required [(ngModel)]="partnerInstance.ENTITY_ID" (change)="partnerInstance.INSTANCE_GUID = ''">
-                  <option *ngFor="let entityID of entityIDsByRole[partnerInstance.ROLE_ID] | async" [value]="entityID">
+              <td [formGroup]="partnerInstanceCtrl">
+                <select name="partner_entity_id" class="form-control form-control-sm" formControlName="ENTITY_ID"
+                        required (change)="partnerInstanceCtrl.get('INSTANCE_GUID').setValue('')">
+                  <option *ngFor="let entityID of entityIDsByRole[partnerInstanceCtrl.get('ROLE_ID').value] | async" [value]="entityID">
                     {{entityID}}
                   </option>
                 </select>
               </td>
-              <td class="dk-guid">
+              <td [formGroup]="partnerInstanceCtrl" class="dk-guid">
                 <div class="input-group">
                   <input class="form-control form-control-sm" type="text" name="partner_instance_guid"
-                         required [(ngModel)]="partnerInstance.INSTANCE_GUID" [readonly]="readonlyPartner">
+                         formControlName="INSTANCE_GUID" required [readonly]="readonlyPartner">
                   <div class="input-group-append">
                     <button class="btn btn-outline-secondary btn-sm" type="button" name="searchInstanceGUID"
-                            (click)="onSearchHelp(partnerInstance.ENTITY_ID, partnerInstance)">
+                            (click)="onSearchHelp(partnerInstanceCtrl.get('ENTITY_ID').value, partnerInstanceCtrl)">
                       <span class="fas fa-search"></span>
                     </button>
                   </div>
@@ -168,7 +168,7 @@
 
           <dk-app-attribute-form *ngFor="let attributeControl of attributeControls"
                                  [readonly]="readonlyAttribute" [isSmallSize] = true
-                                 [attributeControl]="attributeControl" [formGroup]="relationshipFormGroup">
+                                 [attributeControl]="attributeControl" [formGroup]="relationshipAttributeFG">
           </dk-app-attribute-form>
         </form>
       </div>

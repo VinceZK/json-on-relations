@@ -61,7 +61,8 @@ module.exports = {
   restoreInstanceByGUID: restoreInstanceByGUID,
   restoreInstanceByID: restoreInstanceByID,
   hardDeleteByGUID: hardDeleteByGUID,
-  hardDeleteByID: hardDeleteByID
+  hardDeleteByID: hardDeleteByID,
+  orchestrate: orchestrate
 };
 
 /**
@@ -170,9 +171,10 @@ function listEntityIDbyRole(roleID, callback) {
         ]}
        ]}]
  * }
- * @param callback(err,result), result is the JSON of the instance created
+ * @param callback(errs, result, insertSQLs), result is the JSON of the instance created
+ * @param noCommit: If true, the transaction will not be submitted to DB.
  */
-function createInstance(instance, callback) {
+function createInstance(instance, callback, noCommit) {
   const instanceGUID = guid.genTimeBased();
   const insertSQLs = [];
   const errorMessages = [];
@@ -260,19 +262,23 @@ function createInstance(instance, callback) {
           });
         },
         function (callback) {//Run all insert SQLs parallel
-          entityDB.doUpdatesParallel(insertSQLs, function (err) {
-            if (err) {
-              callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
-            } else {
-              callback(null);
-            }
-          });
+          if (noCommit) {
+            callback(null);
+          } else {
+            entityDB.doUpdatesParallel(insertSQLs, function (err) {
+              if (err) {
+                callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+              } else {
+                callback(null);
+              }
+            });
+          }
         }
       ],function (errs) {
         if(errs) callback(errs); //The err should already be error messages
         else {
           instance['INSTANCE_GUID'] = instanceGUID;
-          callback(null,instance);
+          callback(null,instance,insertSQLs);
         }
       });
     });
@@ -304,10 +310,11 @@ function softDeleteInstanceByID(idAttr, callback) {
 /**
  * Soft delete an entity instance by set the DEL flag to 1 through instance GUID
  * @param instanceGUID
- * @param callback(err)
+ * @param callback(err, updateSQLs)
  */
-function softDeleteInstanceByGUID(instanceGUID, callback) {
+function softDeleteInstanceByGUID(instanceGUID, callback, noCommit) {
   let updateSQL = "update ENTITY_INSTANCES set DEL = 1 where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
+  if (noCommit) return callback(null, [ updateSQL ]);
   entityDB.executeSQL(updateSQL, function (err) {
     if(err) callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
     else callback(null);
@@ -352,9 +359,10 @@ function hardDeleteByID(idAttr, callback) {
 /**
  * Delete the object from the DB by INSTANCE_GUID
  * @param instanceGUID
- * @param callback(errs)
+ * @param callback(errs, deleteSQLs)
+ * @param noCommit
  */
-function hardDeleteByGUID(instanceGUID, callback) {
+function hardDeleteByGUID(instanceGUID, callback, noCommit) {
   _getEntityInstanceHead(instanceGUID, function (err, instanceHead) {
     if(err)return callback(err); //Already message instance
 
@@ -386,6 +394,8 @@ function hardDeleteByGUID(instanceGUID, callback) {
       });
 
       deleteSQLs.push("delete from ENTITY_INSTANCES where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID));
+
+      if (noCommit) return callback(null, deleteSQLs);
 
       entityDB.doUpdatesParallel(deleteSQLs, function (err) {
         if (err) {
@@ -758,9 +768,10 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
  *               VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2030-12-31 00:00:00'}]
  *     }]
  * }
- * @param callback(errs)
+ * @param callback(errs, updateSQLs)
+ * @param noCommit: If true, the transaction will not be submitted to DB.
  */
-function changeInstance(instance, callback) {
+function changeInstance(instance, callback, noCommit) {
   const errorMessages = [];
   if(!instance['ENTITY_ID']){
     errorMessages.push(message.report('ENTITY', 'ENTITY_ID_MISSING', 'E'));
@@ -878,17 +889,21 @@ function changeInstance(instance, callback) {
             })
           },
           function (callback) {//Run all insert SQLs parallel
-            entityDB.doUpdatesParallel(updateSQLs, function (err) {
-              if (err) {
-                callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
-              } else {
-                callback(null);
-              }
-            });
+            if (noCommit) {
+              callback(null)
+            } else {
+              entityDB.doUpdatesParallel(updateSQLs, function (err) {
+                if (err) {
+                  callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+                } else {
+                  callback(null);
+                }
+              });
+            }
           }
         ],function (errs) {
           if(errs) callback(errs); // Already message array
-          else callback(null);
+          else callback(null, updateSQLs);
         }); // End of async.series
       }); // End of parsing entity instance
     }) // Get instance head
@@ -903,9 +918,9 @@ function changeInstance(instance, callback) {
  *   relation1: [{a: '1', b: '2'}, {a: '3', b: '4'}],
  *   relation2: {c: '3', b: '4'}, ...
  * }
- * @param callback(errs)
+ * @param callback(errs, updateSQLs)
  */
-function overwriteInstance(instance, callback) {
+function overwriteInstance(instance, callback, noCommit) {
   const errorMessages = [];
   if (!instance['ENTITY_ID']) {
     errorMessages.push(message.report('ENTITY', 'ENTITY_ID_MISSING', 'E'));
@@ -977,7 +992,7 @@ function overwriteInstance(instance, callback) {
         }, function (errs) {
           if (errs) return callback(errs);
           // Finally, change the instance
-          changeInstance(instance, callback);
+          changeInstance(instance, callback, noCommit);
         }); // Second async.forEachOfSeries
       }); // First async.forEachOfSeries
     }); // getInstanceByGUID
@@ -1227,7 +1242,8 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
           });
 
           _.each(value, function (attrValue, attrKey) { // Relationship attributes
-            if(attrKey === 'action' || attrKey === 'RELATIONSHIP_INSTANCE_GUID' || attrKey === 'PARTNER_INSTANCES') return;
+            if(attrKey === 'action' || attrKey === 'RELATIONSHIP_INSTANCE_GUID' ||
+              attrKey === 'PARTNER_INSTANCES') return;
 
             const attributeMeta = relationMeta.ATTRIBUTES.find( attribute => attribute.ATTR_NAME === attrKey );
             if(attributeMeta){
@@ -1264,6 +1280,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
               relationshipInstanceClone.PARTNER_ENTITY_ID = partnerInstance.ENTITY_ID;
               relationshipInstanceClone.PARTNER_ROLE_ID = partnerInstance.ROLE_ID;
               relationshipInstanceClone.PARTNER_INSTANCE_GUID = partnerInstance.INSTANCE_GUID;
+              relationshipInstanceClone.noExistingCheck = partnerInstance.NO_EXISTING_CHECK;
               let involveMeta = relationshipMeta.INVOLVES.find(
                 function (involve) {return involve.ROLE_ID === partnerInstance.ROLE_ID;});
               if (involveMeta) relationshipInstanceClone.PARTNER_ROLE_CARDINALITY = involveMeta.CARDINALITY;
@@ -1809,7 +1826,7 @@ function _checkDomainValue(valueCheckDomain, callback) {
 }
 
 function _checkEntityExist(relationshipInstance, callback) {
-  if (relationshipInstance.action !== 'add') return callback(null, null);
+  if (relationshipInstance.action !== 'add' || relationshipInstance.noExistingCheck) return callback(null, null);
   let selectSQL = "select * from ENTITY_INSTANCES where INSTANCE_GUID = "
     + entityDB.pool.escape(relationshipInstance.PARTNER_INSTANCE_GUID)
     + " and ENTITY_ID = " + entityDB.pool.escape(relationshipInstance.PARTNER_ENTITY_ID);
@@ -1934,3 +1951,132 @@ function _getGUIDFromBusinessID(idAttr, callback) {
     })
   })
 }
+
+/**
+ * Combine multiple operations in one transaction
+ * @param operations
+ * [
+ * {
+ *   action: 'createInstance',
+ *   replacements: [],
+ *   noCommit: true,
+ *   instance: {} // An instance object
+ *   result: {instance, updateSQLs} // Return Object
+ * },
+ * {
+ *   action: 'createInstance',
+ *   replacements: [
+ *   {movePath: [0, 'result', 'instance', 'INSTANCE_GUID'],
+ *    toPath: ['relationships', 0, 'values', 0, 'PARTNER_INSTANCES', 0, 'INSTANCE_GUID']}
+ *    ],
+ *    noCommit: true,
+ *   instance: {} // An instance object
+ *   result: {instance, updateSQLs} // Return Object
+ * },
+ * {
+ *   action: 'changeInstance',
+ *   replacements: [],
+ *   instance: {},
+ *   result: {updateSQLs}
+ * }
+ * ...
+ * ]
+ * @param callback(errs, results)
+ */
+function orchestrate(operations, callback) {
+  async.mapSeries(operations, function (operation, callback) {
+    switch (operation.action) {
+      case 'createInstance':
+        _replaceValue( operation.replacements, operation.instance, operations);
+        createInstance(operation.instance, function (errs, instance, insertSQLs) {
+          if (errs) {
+            callback(errs);
+          } else {
+            operation.result = {instance: instance, updateSQLs: insertSQLs };
+            callback(null);
+          }
+        }, operation.noCommit);
+        break;
+      case 'changeInstance':
+        _replaceValue( operation.replacements, operation.instance, operations);
+        changeInstance(operation.instance, function (errs, updateSQLs) {
+          if (errs) {
+            callback(errs);
+          } else {
+            operation.result = {updateSQLs: updateSQLs };
+            callback(null);
+          }
+        }, operation.noCommit);
+        break;
+      case 'softDeleteInstanceByGUID':
+        softDeleteInstanceByGUID(operation.instance.INSTANCE_GUID, function (errs, updateSQLs) {
+          if (errs) {
+            callback(errs);
+          } else {
+            operation.result = {updateSQLs: updateSQLs };
+            callback(null);
+          }
+        }, operation.noCommit);
+        break;
+      case 'hardDeleteByGUID':
+        hardDeleteByGUID(operation.instance.INSTANCE_GUID, function (errs, deleteSQLs) {
+          if (errs) {
+            callback(errs);
+          } else {
+            operation.result = {updateSQLs: deleteSQLs };
+            callback(null);
+          }
+        }, operation.noCommit);
+        break;
+      case 'getInstancePieceByGUID':
+        _replaceValue( operation.replacements, operation.instance, operations);
+        getInstancePieceByGUID(operation.instance.INSTANCE_GUID, operation.instance,function (errs, instance) {
+          if (errs) {
+            callback(errs);
+          } else {
+            operation.result = {instance: instance };
+            callback(null);
+          }
+        });
+        break;
+      default:
+        callback(null);
+    }
+  }, function (errs) {
+    if (errs) return callback(errs);
+    let updateSQLs = [];
+    operations.forEach( operation => {
+      if ( ( operation.action === 'createInstance' ||
+             operation.action === 'changeInstance' ||
+             operation.action === 'softDeleteInstanceByGUID' ||
+             operation.action === 'hardDeleteByGUID')  && operation.noCommit ) {
+        updateSQLs = updateSQLs.concat(operation.result.updateSQLs);
+      }
+    });
+    entityDB.doUpdatesParallel(updateSQLs, function (err) {
+      if (err) {
+        callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+      } else {
+        callback(null, operations);
+      }
+    });
+  });
+}
+
+function _replaceValue(replacements, currentInstance, operations) {
+  if (!replacements || replacements.length === 0) return;
+  let source = operations;
+  let target = currentInstance;
+
+  replacements.forEach( replacement => {
+     replacement.movePath.forEach( node => source = source[node] );
+     replacement.toPath.forEach( (node, idx) => {
+       if (idx === replacement.toPath.length - 1) {
+         target[node] = source;
+       } else {
+         target = target[node];
+       }
+     });
+  });
+}
+

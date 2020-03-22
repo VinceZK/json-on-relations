@@ -3,7 +3,7 @@ import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInst
   RelationshipMeta, AttributeBase, AttributeControlService, EntityService, SearchHelpComponent} from 'jor-angular';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {NgbPopover} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
@@ -17,7 +17,8 @@ export class EntityRelationshipComponent implements OnInit {
   currentTime: string;
   detailValue: RelationshipInstance;
   attributeControls: AttributeBase[];
-  relationshipFormGroup: FormGroup;
+  partnerInstanceFA: FormArray;
+  relationshipAttributeFG: FormGroup;
   relationshipAttributes: Attribute[] = [];
   readonlyValidFrom: boolean;
   readonlyValidTo: boolean;
@@ -30,7 +31,7 @@ export class EntityRelationshipComponent implements OnInit {
               private entityService: EntityService,
               private attributeControlService: AttributeControlService) {
     this.messageService.setMessageStore(msgStore, 'EN');
-    this.relationshipFormGroup = this.fb.group({});
+    this.relationshipAttributeFG = this.fb.group({});
   }
 
   @Input() relationship: Relationship;
@@ -57,7 +58,7 @@ export class EntityRelationshipComponent implements OnInit {
           && attribute.ATTR_NAME.substr(-14, 14) !== '_INSTANCE_GUID'
           && attribute.ATTR_NAME.substr(-10, 10) !== '_ENTITY_ID') {
         this.relationshipAttributes.push(attribute);
-        this.relationshipFormGroup.addControl(attribute.ATTR_NAME,
+        this.relationshipAttributeFG.addControl(attribute.ATTR_NAME,
           this.attributeControlService.convertToFormControl(attribute, this.detailValue));
       }
     });
@@ -73,6 +74,10 @@ export class EntityRelationshipComponent implements OnInit {
 
   showModalAdd(): void {
     this.isModalShown = true;
+    this.readonlyValidFrom = false;
+    this.readonlyValidTo = false;
+    this.readonlyPartner = false;
+    this.readonlyAttribute = false;
     this.detailValue = new RelationshipInstance();
     this.detailValue.action = 'add';
     this.detailValue.RELATIONSHIP_INSTANCE_GUID = this.entityService.generateFakeRelationshipUUID();
@@ -80,25 +85,18 @@ export class EntityRelationshipComponent implements OnInit {
       this.detailValue.VALID_FROM = 'now';
       this.detailValue.VALID_TO = EntityRelationshipComponent._getFormattedDate(this.relationshipMeta.VALID_PERIOD);
     }
-    this.detailValue.PARTNER_INSTANCES = [];
     const involves = this.relationshipMeta.INVOLVES.filter(involve => involve.ROLE_ID !== this.relationship.SELF_ROLE_ID);
-    involves.forEach(involve => {
-      const partnerInstance = new PartnerInstance();
-      partnerInstance.ROLE_ID = involve.ROLE_ID;
-      this.detailValue.PARTNER_INSTANCES.push(partnerInstance);
+    this.partnerInstanceFA = this.fb.array( involves.map( involve =>
+      this.fb.group({
+        ROLE_ID: [involve.ROLE_ID],
+        ENTITY_ID: [{value: '', disabled: this.readonlyPartner}],
+        INSTANCE_GUID: ['']}) ));
+    involves.forEach( involve => {
+      if (!this.entityIDsByRole[involve.ROLE_ID]) {
+        this.entityIDsByRole[involve.ROLE_ID] = this.entityService.listEntityIDbyRole(involve.ROLE_ID); }
     });
-    this.detailValue.PARTNER_INSTANCES.forEach(
-      partnerInstance => {
-        if (!this.entityIDsByRole[partnerInstance.ROLE_ID]) {
-          this.entityIDsByRole[partnerInstance.ROLE_ID] = this.entityService.listEntityIDbyRole(partnerInstance.ROLE_ID);
-        }
-      });
     this.relationshipAttributes.forEach(attribute =>
-      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
-    this.readonlyValidFrom = false;
-    this.readonlyValidTo = false;
-    this.readonlyPartner = false;
-    this.readonlyAttribute = false;
+      this.relationshipAttributeFG.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   onSearchHelp(entityID: string, exportObject: object): void {
@@ -106,29 +104,29 @@ export class EntityRelationshipComponent implements OnInit {
   }
 
   showModalForDisplay(index: number): void {
-    this._getRelationshipDetailValue(index);
     this.readonlyValidFrom = true;
     this.readonlyValidTo = true;
     this.readonlyPartner = true;
     this.readonlyAttribute = true;
+    this._getRelationshipDetailValue(index);
   }
 
   showModalForChange(index: number): void {
-    this._getRelationshipDetailValue(index);
     this.detailValue.action = 'update';
     this.readonlyValidFrom = true;
     this.readonlyValidTo = true;
     this.readonlyPartner = true;
     this.readonlyAttribute = false;
+    this._getRelationshipDetailValue(index);
   }
 
   showModalForExtend(index: number): void {
-    this._getRelationshipDetailValue(index);
     this.detailValue.action = 'extend';
     this.readonlyValidFrom = true;
     this.readonlyValidTo = false;
     this.readonlyPartner = true;
     this.readonlyAttribute = true;
+    this._getRelationshipDetailValue(index);
   }
 
   _getRelationshipDetailValue(index: number) {
@@ -140,8 +138,14 @@ export class EntityRelationshipComponent implements OnInit {
           this.entityIDsByRole[partnerInstance.ROLE_ID] = this.entityService.listEntityIDbyRole(partnerInstance.ROLE_ID);
         }
       });
+    this.partnerInstanceFA = this.fb.array( this.detailValue.PARTNER_INSTANCES.map( partnerInstance =>
+      this.fb.group({
+        ROLE_ID: [partnerInstance.ROLE_ID],
+        ENTITY_ID: [{value: partnerInstance.ENTITY_ID, disabled: this.readonlyPartner}],
+        INSTANCE_GUID: [partnerInstance.INSTANCE_GUID]
+      })) );
     this.relationshipAttributes.forEach(attribute =>
-      this.relationshipFormGroup.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
+      this.relationshipAttributeFG.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   confirm(): void {
@@ -162,6 +166,7 @@ export class EntityRelationshipComponent implements OnInit {
 
   _addRelationshipInstance(): void {
     let hasError = false;
+    this.detailValue.PARTNER_INSTANCES = this.partnerInstanceFA.getRawValue();
     this.detailValue.PARTNER_INSTANCES.forEach(partnerInstance => {
       if (!partnerInstance.ENTITY_ID) {
         this.messageService.reportMessage('RELATIONSHIP', 'PARTNER_ENTITY_ID_MISSING', 'E');
@@ -188,7 +193,7 @@ export class EntityRelationshipComponent implements OnInit {
       return;
     }
 
-    if (!this.relationshipFormGroup.valid) {
+    if (!this.relationshipAttributeFG.valid) {
       this.messageService.reportMessage('RELATIONSHIP', 'MANDATORY_ATTRIBUTE_MISSING', 'E');
       return;
     }
@@ -207,8 +212,8 @@ export class EntityRelationshipComponent implements OnInit {
 
   _changedRelationshipAttributes(): boolean {
     let hasChangedAttribute = false;
-    Object.keys(this.relationshipFormGroup.controls).forEach(key => {
-      const control = this.relationshipFormGroup.controls[key];
+    Object.keys(this.relationshipAttributeFG.controls).forEach(key => {
+      const control = this.relationshipAttributeFG.controls[key];
       if (control.dirty) {
         this.detailValue[key] = control.value;
         hasChangedAttribute = true;

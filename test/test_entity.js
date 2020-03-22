@@ -24,7 +24,8 @@ describe.only('entity tests', function () {
          { RELATIONSHIP_ID: 'rs_user_role',
            values:[
              {action:'add', SYNCED:0,
-               PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role', INSTANCE_GUID:'391E75B02A1811E981F3C33C6FB0A7C1'}]}
+               PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role',
+                 INSTANCE_GUID:'391E75B02A1811E981F3C33C6FB0A7C1', NO_EXISTING_CHECK: false}]}
            ]
            }]
     };
@@ -1253,6 +1254,189 @@ describe.only('entity tests', function () {
         })
       })
     })
+  });
+
+  describe( 'orchestration', function () {
+    const instance1 = { ENTITY_ID: 'person',
+      person: {HEIGHT: 1.75, GENDER: 'Male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Game', TYPE: 'employee'},
+      r_email: [{EMAIL: 'DH999@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY:1}],
+      r_employee: {USER_ID: 'DH999', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Developer', GENDER:'Male'}
+    };
+    const instance2 = { ENTITY_ID: 'person',
+      person: {HEIGHT: 1.65, GENDER: 'Female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F', HOBBY:'Drama', TYPE: 'employee'},
+      r_email: [{EMAIL: 'DH998@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY:1}],
+      r_employee: {USER_ID: 'DH998', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Tester', GENDER:'Female'},
+      relationships: [{ RELATIONSHIP_ID: 'rs_marriage',  values:[
+        { action: 'add', VALID_FROM:'', VALID_TO:'2030-12-31 00:00:00', REG_PLACE: 'SH',
+          PARTNER_INSTANCES:[{ENTITY_ID:'person',ROLE_ID:'husband',INSTANCE_GUID: '', NO_EXISTING_CHECK: true}]}]}]};
+    const instance3 = { ENTITY_ID: 'person',
+      person: {HEIGHT: 1.65, GENDER: 'Female', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743G', HOBBY:'Drawing', TYPE: 'employee'},
+      r_email: [{EMAIL: 'DH997@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY:1}],
+      r_employee: {USER_ID: 'DH997', COMPANY_ID:'DARKHOUSE', DEPARTMENT_ID: 'Development', TITLE: 'Developer', GENDER:'Female'},
+    };
+    const operations = [
+      {
+        action: 'createInstance',
+        noCommit: true,
+        instance: instance1
+      },
+      {
+        action: 'createInstance',
+        noCommit: true,
+        replacements: [{
+          movePath: [0, 'result', 'instance', 'INSTANCE_GUID'],
+          toPath: ['relationships', 0, 'values', 0, 'PARTNER_INSTANCES', 0, 'INSTANCE_GUID']
+        }],
+        instance: instance2
+      }
+    ];
+
+    it('should create a husband and wife pair', function (done) {
+      entity.orchestrate( operations, function (errs, results) {
+        should(errs).eql(null);
+        done();
+      })
+    });
+
+    it('should return a husband and wife pair', function (done) {
+      const getOperations = [
+        {
+          action: 'getInstancePieceByGUID',
+          instance: {INSTANCE_GUID: operations[0].result.instance.INSTANCE_GUID,
+            RELATIONS: ['person', 'r_email', 'r_employee'], RELATIONSHIPS: ['rs_marriage']}
+        },
+        {
+          action: 'getInstancePieceByGUID',
+          instance: {INSTANCE_GUID: operations[1].result.instance.INSTANCE_GUID,
+            RELATIONS: ['person', 'r_email', 'r_employee'], RELATIONSHIPS: ['rs_marriage']}
+        }
+      ];
+      entity.orchestrate( getOperations, function (errs, results) {
+        should(errs).eql(null);
+        results[0].result.instance.should.containDeep(
+          { ENTITY_ID: 'person',
+            relationships: [{ RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'husband',
+              values: [{PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'wife'} ], REG_PLACE: 'SH', COUNTRY: null}] } ],
+            person: [{GENDER: 'Male', HEIGHT: 1.75, HOBBY: 'Game', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E',
+              TYPE: 'employee', SYSTEM_ACCESS: null, BIRTHDAY: null } ],
+          r_email: [{ EMAIL: 'DH999@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY: 1 } ],
+          r_employee: [{USER_ID: 'DH999', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT',
+              TITLE: 'Developer', GENDER: 'Male' } ] });
+        results[1].result.instance.should.containDeep(
+          { ENTITY_ID: 'person',
+            relationships: [{ RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'wife',
+              values: [{PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'husband'} ], REG_PLACE: 'SH', COUNTRY: null}] } ],
+            person: [{GENDER: 'Female', HEIGHT: 1.65, HOBBY: 'Drama', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743F',
+              TYPE: 'employee', SYSTEM_ACCESS: null, BIRTHDAY: null } ],
+            r_email: [{ EMAIL: 'DH998@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY: 1 } ],
+            r_employee: [{USER_ID: 'DH998', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT',
+              TITLE: 'Tester', GENDER: 'Female' } ] });
+        done();
+      })
+    });
+
+    it('should create a new female person and change the relationship', function (done) {
+      const changeOperations = [
+        {
+          action: 'createInstance',
+          noCommit: true,
+          instance: instance3
+        },
+        {
+          action: 'changeInstance',
+          noCommit: true,
+          replacements: [{
+            movePath: [0, 'result', 'instance', 'INSTANCE_GUID'],
+            toPath: ['relationships', 0, 'values', 1, 'PARTNER_INSTANCES', 0, 'INSTANCE_GUID']
+          }],
+          instance: {
+            ENTITY_ID: 'person', INSTANCE_GUID: instance1.INSTANCE_GUID,
+            relationships: [{ RELATIONSHIP_ID: 'rs_marriage',  values:[
+                { action: 'expire', RELATIONSHIP_INSTANCE_GUID: instance2.relationships[0].values[0].RELATIONSHIP_INSTANCE_GUID},
+                { action: 'add', VALID_FROM:'', VALID_TO:'2030-12-31 00:00:00', REG_PLACE: 'SH',
+                  PARTNER_INSTANCES:[{ENTITY_ID:'person',ROLE_ID:'wife',INSTANCE_GUID: '', NO_EXISTING_CHECK: true}]}]}]
+          }
+        }
+      ];
+      entity.orchestrate( changeOperations, function (errs) {
+        should(errs).eql(null);
+        done();
+      })
+    });
+
+    it('should return a husband and 2 wives', function (done) {
+      const getOperations = [
+        {
+          action: 'getInstancePieceByGUID',
+          instance: {INSTANCE_GUID: instance1.INSTANCE_GUID,
+            RELATIONSHIPS: ['rs_marriage']}
+        },
+        {
+          action: 'getInstancePieceByGUID',
+          instance: {INSTANCE_GUID: instance2.INSTANCE_GUID,
+            RELATIONSHIPS: ['rs_marriage']}
+        },
+        {
+          action: 'getInstancePieceByGUID',
+          instance: {INSTANCE_GUID: instance3.INSTANCE_GUID,
+            RELATIONS: ['person', 'r_email', 'r_employee'], RELATIONSHIPS: ['rs_marriage']}
+        }
+      ];
+      entity.orchestrate( getOperations, function (errs, results) {
+        should(errs).eql(null);
+        results[0].result.instance.should.containDeep(
+          { relationships:
+              [{ RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'husband',
+              values: [{PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'wife'} ], REG_PLACE: 'SH', COUNTRY: null}] } ]
+          });
+        results[1].result.instance.relationships[0].values[0].VALID_FROM.should.eql(
+          results[1].result.instance.relationships[0].values[0].VALID_TO
+        );
+        results[2].result.instance.should.containDeep(
+          { ENTITY_ID: 'person',
+            relationships: [{ RELATIONSHIP_ID: 'rs_marriage', SELF_ROLE_ID: 'wife',
+              values: [{PARTNER_INSTANCES: [{ ENTITY_ID: 'person', ROLE_ID: 'husband'} ], REG_PLACE: 'SH', COUNTRY: null}] } ],
+            person: [{GENDER: 'Female', HEIGHT: 1.65, HOBBY: 'Drawing', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743G',
+              TYPE: 'employee', SYSTEM_ACCESS: null, BIRTHDAY: null } ],
+            r_email: [{ EMAIL: 'DH997@darkhouse.com.cn', TYPE: 'PRIVATE', PRIMARY: 1 } ],
+            r_employee: [{USER_ID: 'DH997', COMPANY_ID: 'DARKHOUSE', DEPARTMENT_ID: 'DEVELOPMENT',
+              TITLE: 'Developer', GENDER: 'Female' } ] });
+        done();
+      })
+    });
+
+    it('should delete all the instances', function (done) {
+      const deleteOperations = [
+        {
+          action: 'softDeleteInstanceByGUID',
+          instance: {INSTANCE_GUID: instance1.INSTANCE_GUID}
+        },
+        {
+          action: 'softDeleteInstanceByGUID',
+          instance: {INSTANCE_GUID: instance2.INSTANCE_GUID}
+        },
+        {
+          action: 'softDeleteInstanceByGUID',
+          instance: {INSTANCE_GUID: instance3.INSTANCE_GUID}
+        },
+        {
+          action: 'hardDeleteByGUID',
+          instance: {INSTANCE_GUID: instance1.INSTANCE_GUID}
+        },
+        {
+          action: 'hardDeleteByGUID',
+          instance: {INSTANCE_GUID: instance2.INSTANCE_GUID}
+        },
+        {
+          action: 'hardDeleteByGUID',
+          instance: {INSTANCE_GUID: instance3.INSTANCE_GUID}
+        }
+      ];
+      entity.orchestrate( deleteOperations, function (errs) {
+        should(errs).eql(null);
+        done();
+      })
+    });
   });
 
   after('Close the MDB', function (done) {

@@ -108,5 +108,12 @@ module.exports = {
       if (err) res.json(err);
       else next();
     })
+  },
+
+  orchestrate: function (req, res) {
+    entity.orchestrate(req.body, function (err, results) {
+      if (err) res.json(err);
+      else res.json(results);
+    })
   }
 };

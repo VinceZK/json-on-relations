@@ -41,6 +41,8 @@ router.put('/api/entity/instance/softDelete/:instanceGUID',
   defaultAddIns.afterEntityDeletion);
 router.put('/api/entity/instance/restore/:instanceGUID',
   entity.restoreInstance);
+router.post('/api/entity/orchestrate',
+  entity.orchestrate);
 
 // Entity Meta Service
 router.get('/api/entity/EntityIDs',
