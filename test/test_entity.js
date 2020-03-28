@@ -25,7 +25,7 @@ describe.only('entity tests', function () {
            values:[
              {action:'add', SYNCED:0,
                PARTNER_INSTANCES:[{ENTITY_ID:'permission', ROLE_ID:'system_role',
-                 INSTANCE_GUID:'391E75B02A1811E981F3C33C6FB0A7C1', NO_EXISTING_CHECK: false}]}
+                 INSTANCE_GUID:'391E75B02A1811E981F3C33C6FB0A7C1'}]}
            ]
            }]
     };
@@ -1049,7 +1049,7 @@ describe.only('entity tests', function () {
       entity.changeInstance(instance4, function (err) {
         should(err).eql(null);
         entity.getInstanceByGUID('568822C02A0B11E98FB33576955DB73A', function (err, result) {
-          const relationship = result['relationships'][0];
+          const relationship = result['relationships'].find( relationship => relationship.RELATIONSHIP_ID === 'rs_app_category');
           relationshipGUID = relationship.values.find(
             value => value.PARTNER_INSTANCES[0].INSTANCE_GUID === '3D9D0AE02A1611E9BBE39B9C6748A022')
             .RELATIONSHIP_INSTANCE_GUID;

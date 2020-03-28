@@ -734,18 +734,23 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
           if (!Array.isArray(relationship['PARTNER_ENTITY_PIECES'])) {
             piece = relationship['PARTNER_ENTITY_PIECES'];
           } else {
-            piece = relationship['PARTNER_ENTITY_PIECES'].find(function (element) {
+            const specificPartner = relationship['PARTNER_ENTITY_PIECES'].find(function (element) {
               return element.ENTITY_ID === partnerInstance.ENTITY_ID;
-            })['piece'];
-          }
-          getInstancePieceByGUID(partnerInstance.INSTANCE_GUID, piece, function (errs, instance) {
-            if (errs) return callback(errs);
-            _.each(instance, function (attrValue, attrKey) {
-              if (attrKey === 'INSTANCE_GUID' || attrKey === 'ENTITY_ID') return;
-              partnerInstance[attrKey] = attrValue;
             });
+            if (specificPartner) { piece = specificPartner['piece'] }
+          }
+          if (piece) {
+            getInstancePieceByGUID(partnerInstance.INSTANCE_GUID, piece, function (errs, instance) {
+              if (errs) return callback(errs);
+              _.each(instance, function (attrValue, attrKey) {
+                if (attrKey === 'INSTANCE_GUID' || attrKey === 'ENTITY_ID') return;
+                partnerInstance[attrKey] = attrValue;
+              });
+              callback(null);
+            });
+          } else {
             callback(null);
-          });
+          }
         }, callback);
       } else {
         callback(null);

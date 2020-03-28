@@ -509,6 +509,7 @@ export class RelationshipDetailComponent implements OnInit {
       } else {
         this.readonly = true;
         this.relationshipForm.get('TIME_DEPENDENT').disable();
+        this.relationshipForm.get('SINGLETON').disable();
         this.relationshipMeta = data[0];
         this.attributes = data[1].ATTRIBUTES;
         this._generateRelationshipForm();
