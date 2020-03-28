@@ -1123,6 +1123,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
   const errorMessages = [];
   const SQLs = [];
   async.map(relationships, function (relationship, callback) {
+    if (!relationship || !relationship['RELATIONSHIP_ID']) { return callback(null); }
     const roleMeta = _checkEntityInvolvesRelationship(relationship['RELATIONSHIP_ID'], entityMeta, entityRelation);
     if(!roleMeta)
       return callback([message.report('ENTITY', 'RELATIONSHIP_NOT_VALID', 'E', relationship['RELATIONSHIP_ID'], entityMeta.ENTITY_ID)]);
@@ -1307,9 +1308,10 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
 
       const groupByPartnerCardinality = _.groupBy(relationshipInstances, 'PARTNER_ROLE_CARDINALITY');
       _.each(groupByPartnerCardinality, function (value, key) {
-        if(key === '[1..1]') __checkOverlap(value);
-        else if(key === '[1..n]' && relationshipMeta.SINGLETON) {
-          // Singleton relationship only allows one pair
+        if ( key === '[1..1]' || (key === '[1..n]' && relationshipMeta.SINGLETON))  {
+          // '[1..1]' means the partner instance can only exist once in this kind of relationship
+          // Singleton relationship means a pair can only exist once in this kind of relationship
+          // Since in this context, the self instance is the same, so the 2 cases share the same checking logic
           const groupByPartnerInstanceGUID = _.groupBy(value, 'PARTNER_INSTANCE_GUID');
           _.each(groupByPartnerInstanceGUID, function (groupedValue) {
             __checkOverlap(groupedValue);});
@@ -2065,11 +2067,13 @@ function orchestrate(operations, callback) {
 
 function _replaceValue(replacements, currentInstance, operations) {
   if (!replacements || replacements.length === 0) return;
-  let source = operations;
-  let target = currentInstance;
 
   replacements.forEach( replacement => {
-     replacement.movePath.forEach( node => source = source[node] );
+    let source = operations;
+    let target = currentInstance;
+     replacement.movePath.forEach( node => {
+       source = source[node];
+     });
      replacement.toPath.forEach( (node, idx) => {
        if (idx === replacement.toPath.length - 1) {
          target[node] = source;
