@@ -18,11 +18,11 @@ on how to build a CRUD App with JSON-On-Relations. Also check the videos:
 
 ## First Glance
 ### Define Your Entity
-Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if his gender is male, 
-or a wife if his gender is female.
+Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if the gender is male, 
+or a wife if the gender is female.
 ![Entity: person](EntityPerson.png)
 
-When the TYPE of a person is "employee", then he has the role "employee". 
+When the TYPE of a person is "employee", he has the role "employee". 
 Role "employee" has relations, like "r_address", "r_email", and "r_employee"".
 ![Role: employee](RoleEmployee.png)
 
@@ -30,13 +30,13 @@ A relation corresponds to a DB table which represents a collection of attributes
 Besides, you can also define associations among relations.
 ![Relation: r_employee](RelationEmployee.png)
 
-Entities can have relationships with each others. Each relationship is performed by certain roles. 
+Entities can have relationships with others. Each relationship is performed by certain roles. 
 For example, relationship "marriage" is performed by the 2 roles: "husband" and "wife". 
-Once the 2 roles are respectively assigned to 2 people, they can then potentially have the marriage relationship.  
+Once the 2 roles are respectively assigned to 2 people, they can then have the marriage relationship.  
 ![Relationship: rs_marriage](RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
-Once you have your entity modelling done, you can immediately create an entity instance.  
+Once you have your entity modeling done, you can immediately create an entity instance.  
 ![A person instance](PersonInstance.png)
 
 You can also search instances of an entity type based on all its relations. 
