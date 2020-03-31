@@ -1,31 +1,15 @@
 # JSON-On-Relations
-JSON-On-Relations is a RESTful framework for business entity modeling and consuming.
- 
-Usually, we model and store business entities in relational databases. 
-However, there seems to be not much good frameworks 
-that allow easily modeling and consuming these entities in a RESTful style. 
-Especially, I haven't seen any one on the **NodeJS** stack.
-Thus, I hope JSON-On-Relations can fill the gap.
-   
-JSON-On-Relations follows the RESTful style on consuming the data in relational databases.
-It uniforms the APIs by representing them in a protocol JSON format, which complies with Entity Relationship Modeling paradigm.
-Therefore, it guarantees a strong contract with the relational nature. 
-So that it is not difficult for users to deduce from the JSON representation to SQL representation, and vice-versa.
-JSON-On-Relations allows a lot of relational data manipulations to be achieved by composing a JSON message.
+JSON-On-Relations(JOR) is an entity framework in NodeJS.
 
-Existing ORM solutions focus too much on the “object” concept. 
-Ignoring the relational nature of data limits their capabilities on building complex enterprise applications. 
-SQL is still proven to be the best abstraction on data manipulation.
-If the target is to map between objects and relations, then do the best on mapping,
-rather than creating another layer of leaky abstraction.
-Any attempts to rebuild the wheel always end like drawing legs on a snake.
+JOR provides entity modeling tools which can generate tables in relational database(MySQL). 
+It then allows you to compose JSON messages to query and manipulate data.
 
-Unlike other protocols, for example,  OData or JSON API, 
-JSON-On-Relations is not trying to introduce a new SQL-like grammar in RESTful style. 
-It is from object perspective to map to relations, and from relation perspective, to model the objects.
-It is not a black box, instead, it tries to make data model more understandable.
-It is both a framework and toolset that facilitates both modeling and consuming.
-It acts more like a bridge which connects enterprise applications to the modern web technologies.
+JOR is not trying to introduce a new SQL-like grammar over HTTP, but to provide an efficient way in building CRUD Apps. 
+It reduces the number of RESTful endpoints. By composing JSON messages, 
+developers can achieve most of the data manipulations without any server side programming.
+
+The over-fetching and under-fetching issues are well handled by grouping relevant attributes in relations. 
+Besides, through relationship definitions, information of multiple entity instances can be retrieved in one call.
 
 Here gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. Also check the videos:
@@ -575,7 +559,6 @@ For example, data domain "Country" contains all the country codes in the world s
 while a data element can be assigned with a data domain, and adding more business semantics like labels, documentations, and so on. 
 
 ## Planned Features
-+ Entity orchestration: combined operations on multiple entities together.
 + Version management of data modeling.
 + Introduce DB view concept and a report painter tool.
 
