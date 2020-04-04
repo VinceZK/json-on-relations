@@ -9,10 +9,13 @@ By composing JSON messages, developers can achieve most of the data manipulation
 By grouping relevant attributes in Relations and traversing relationships among entities, 
 the over-fetching and under-fetching issues are well resolved
 
-Here gives an [example](https://vincezk.github.io/Portal/) on how to build a CRUD App with JSON-On-Relations. 
-Also check the videos:
+Check the videos for a first glance:
 + [youtube](https://www.youtube.com/playlist?list=PLYO0p46tFifM51zhDNtapS99pF2ysUdvy)
 + [bilibili](https://www.bilibili.com/video/av73399543/)
+
+Here also gives an [example](https://vincezk.github.io/Portal/) on how to build a CRUD App with JOR. 
+
+For a deep dive, check the [wiki](https://github.com/VinceZK/json-on-relations/wiki).
 
 ## License
 [The Apache-2.0 License](https://opensource.org/licenses/Apache-2.0)
