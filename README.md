@@ -15,23 +15,6 @@ on how to build a CRUD App with JSON-On-Relations. Also check the videos:
 + [bilibili](https://www.bilibili.com/video/av73399543/)
 
 ## First Glance
-### Define Your Entity
-Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if the gender is male, 
-or a wife if the gender is female.
-![Entity: person](img/EntityPerson.png)
-
-When the TYPE of a person is "employee", he has the role "employee". 
-Role "employee" has relations, like "r_address", "r_email", and "r_employee"".
-![Role: employee](img/RoleEmployee.png)
-
-A relation corresponds to a DB table which represents a collection of attributes. 
-Besides, you can also define associations among relations.
-![Relation: r_employee](img/RelationEmployee.png)
-
-Entities can have relationships with others. Each relationship is performed by certain roles. 
-For example, relationship "marriage" is performed by the 2 roles: "husband" and "wife". 
-Once the 2 roles are respectively assigned to 2 people, they can then have the marriage relationship.  
-![Relationship: rs_marriage](img/RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
 Once you have your entity modeling done, you can immediately create an entity instance.  
@@ -99,89 +82,6 @@ Content-Type: application/json
 }
 ```  
 
-## How to Use
-**You can either directly explore on the hosted websites:**
- + [Modeling](https://darkhouse.com.cn/jor/model)
- + [Entity Browser](https://darkhouse.com.cn/jor/entity/list)
- 
-**Or by applying following steps to establish in your own environment**
-    
-1. Install it to your node/angular project:
-   ```bash
-    $ npm install json-on-relations --save
-   ```
-2. Create the database in MySQL: 
-
-   Copy file "node_modules/json-on-relations/MDB.sql" to your sql console and execute. 
-   The script will create database "MDB" which contains all the tables and test data.
-   
-   Please also create a DB user 'nodejs' with password 'nodejs'. 
-   By default, Portal uses credential 'nodejs/nodejs' to connect MySql at port 3306. 
-   You can of course change the default settings. Please refer the next step.
-   
-3. In your NodeJS project:
-   Copy the folder "node_modules/json-on-relations/dist" and its belongings to your project root. 
- 
-   create "server.js" in the project root with following:
-   
-   ```javascript
-   const express = require('express');
-   const app = express();
-
-   // We don't want to serve sessions for static resources
-   const path = require('path');
-   app.use(express.static(path.join(__dirname, 'dist/jor')));
-
-   const cors = require('cors'); // Allow cross site requests
-   app.use(cors());
-
-   app.use(require('body-parser').json());
-   const compress = require('compression');
-   app.use(compress());
-   
-   // Routing
-   const routes = require('json-on-relations').Routes;
-   app.use('/', routes);
-   // The index page as an entry point
-   app.route('*').get( (req, res) => {   
-     res.sendFile(path.join(__dirname, '../dist/jor/index.html'));
-   });
-   
-   process.on('SIGINT',function(){
-     console.log("Closing.....");
-     process.exit()
-   });
-   
-   const entityDB = require('json-on-relations').EntityDB;
-   entityDB.setConnPool('mysql', { // Set the connection pool to your mysql DB.
-                                   // Currently, we only support mysql.
-                                   connectionLimit : 10,
-                                   host: 'localhost',  // To be replaced by your DB host
-                                   user: 'nodejs',     // To be replaced by your own DB user
-                                   password: 'nodejs', // To be replaced by your own DB password
-                                   database: 'MDB',
-                                   createDatabaseTable: true,
-                                   multipleStatements: true,
-                                   dateStrings: true,
-                                   port: 3306           // replaced by your DB port.
-                                 });
-   app.listen(3000, () => console.log('Example app listening on port 3000!'));
-   ```
-
-   You should also install following involved packages: express, path, cors, body-parse, and compression.
-4. Start the server:
-
-   ```bash
-    $ node server.js
-   ```
-   
-5. Open the links:
-   + [Modeling](http://localhost:3000/model)
-   + [Entity Browser](http://localhost:3000/entity/list)
-   
-**If you are using Angular for UI development, you are encouraged to install the package 
-[JOR-Angular](https://github.com/VinceZK/json-on-relations/tree/master/projects/jor-angular) for some useful libraries.**  
-   
 ## RESTful API
 Following APIs are opened in the default route table. These examples are also listed in the 'test/test_api.http'. 
 ### Create a person instance
