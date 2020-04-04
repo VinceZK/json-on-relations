@@ -282,10 +282,36 @@ Content-Type: application/json
   ]
 }
 
+### Orchestrate
+POST http://localhost:3000/api/entity/orchestrate
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+[
+  {
+    "action": "getInstancePieceByGUID",
+    "instance": {"INSTANCE_GUID": "instance1.INSTANCE_GUID",
+      "RELATIONSHIPS": ["rs_marriage"]}
+  },
+  {
+    "action": "getInstancePieceByGUID",
+    "instance": {"INSTANCE_GUID": "instance2.INSTANCE_GUID",
+      "RELATIONSHIPS": ["rs_marriage"]}
+  },
+  {
+    "action": "getInstancePieceByGUID",
+    "instance": {"INSTANCE_GUID": "instance3.INSTANCE_GUID",
+      "RELATIONS": ["person", "r_email", "r_employee"], "RELATIONSHIPS": ["rs_marriage"]}
+  }
+]
+
 ### Get the meta data of a given entity type
 GET http://localhost:3000/api/entity/meta/person
 Accept: */*
 Cache-Control: no-cache
+
+
 
 ### Get the meta data of a given relation
 GET http://localhost:3000/api/relation/meta/r_retail_customer
