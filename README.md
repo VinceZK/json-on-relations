@@ -4,12 +4,10 @@ JSON-On-Relations(JOR) is an entity framework in NodeJS.
 JOR provides entity modeling tools which can generate tables in relational database(MySQL). 
 It then allows you to compose JSON messages to query and manipulate data.
 
-JOR is not trying to introduce a new SQL-like grammar over HTTP, but to provide an efficient way in building CRUD Apps. 
-It reduces the number of RESTful endpoints. By composing JSON messages, 
-developers can achieve most of the data manipulations without any server side programming.
-
-The over-fetching and under-fetching issues are well handled by grouping relevant attributes in relations. 
-Besides, through relationship definitions, information of multiple entity instances can be retrieved in one call.
+JOR is not trying to introduce a new SQL-like grammar over HTTP, but to reduce the number of RESTful endpoints. 
+By composing JSON messages, developers can achieve most of the data manipulations without any server side coding. 
+By grouping relevant attributes in Relations and traversing relationships among entities, 
+the over-fetching and under-fetching issues are well resolved
 
 Here gives an [example](https://vincezk.github.io/Portal/) 
 on how to build a CRUD App with JSON-On-Relations. Also check the videos:
@@ -20,32 +18,32 @@ on how to build a CRUD App with JSON-On-Relations. Also check the videos:
 ### Define Your Entity
 Entity "person" is defined with 6 attributes and 4 roles. A person could be a husband if the gender is male, 
 or a wife if the gender is female.
-![Entity: person](EntityPerson.png)
+![Entity: person](img/EntityPerson.png)
 
 When the TYPE of a person is "employee", he has the role "employee". 
 Role "employee" has relations, like "r_address", "r_email", and "r_employee"".
-![Role: employee](RoleEmployee.png)
+![Role: employee](img/RoleEmployee.png)
 
 A relation corresponds to a DB table which represents a collection of attributes. 
 Besides, you can also define associations among relations.
-![Relation: r_employee](RelationEmployee.png)
+![Relation: r_employee](img/RelationEmployee.png)
 
 Entities can have relationships with others. Each relationship is performed by certain roles. 
 For example, relationship "marriage" is performed by the 2 roles: "husband" and "wife". 
 Once the 2 roles are respectively assigned to 2 people, they can then have the marriage relationship.  
-![Relationship: rs_marriage](RelationshipMarriage.png)
+![Relationship: rs_marriage](img/RelationshipMarriage.png)
 
 ### Browse and Maintain Your Entity Instances
 Once you have your entity modeling done, you can immediately create an entity instance.  
-![A person instance](PersonInstance.png)
+![A person instance](img/PersonInstance.png)
 
 You can also search instances of an entity type based on all its relations. 
-![Instance Search and List](InstanceList.png)
+![Instance Search and List](img/InstanceList.png)
 
 ### Compose Your Message
 Each entity instance can be represented as a JSON file. 
 And the JSON is not just an simple data format, but also a message that can be communicated with the server end. 
-![JSON format of a person instance](JSONPersonInstance.png)
+![JSON format of a person instance](img/JSONPersonInstance.png)
 
 If you want to create a new person instance, just post the message like bellow:
 
@@ -536,7 +534,7 @@ A relationship is an association among entities. For instance, "marriage" is a r
 
 Details are illustrated in the following diagram:
 
-![Meta Data Model](DataModeling.png)
+![Meta Data Model](img/DataModeling.png)
 
 An Entity can have multiple direct attributes, 
 as well as indirect attributes from the roles that are assigned to it. 
