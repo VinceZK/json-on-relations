@@ -44,6 +44,14 @@ router.put('/api/entity/instance/restore/:instanceGUID',
 router.post('/api/entity/orchestrate',
   entity.orchestrate);
 
+// Query Service
+router.post('/api/query',
+  defaultAddIns.beforeEntityQuery,
+  query.run);
+
+// User Functions
+router.post('/api/function/:functionName', userFunction.execute);
+
 // Entity Meta Service
 router.get('/api/entity/EntityIDs',
   defaultAddIns.beforeMetaReading,
@@ -60,11 +68,6 @@ router.get('/api/relation/meta/:relationID',
 router.get('/api/relation/meta/entity/:entityID',
   defaultAddIns.beforeMetaReading,
   entity.getRelationMetaOfEntity);
-
-// Query Service
-router.post('/api/query',
-  defaultAddIns.beforeEntityQuery,
-  query.run);
 
 // Model Service
 router.all('/api/model/*', defaultAddIns.beforeModelProcessing);
@@ -91,8 +94,5 @@ router.get('/api/model/data-domains/:domainID', model.getDataDomain);
 router.get('/api/model/data-domains/:domainID/desc', model.getDataDomainDesc);
 router.post('/api/model/data-domains', model.saveDataDomain);
 router.get('/api/model/element-meta/:elementID', model.getElementMeta);
-
-// User Functions
-router.post('/api/function/:functionName', userFunction.execute);
 
 module.exports = router;

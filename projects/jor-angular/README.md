@@ -6,11 +6,11 @@ So far, it contains:
 1. **Attribute UI Controls**: Angular UI components that can be directly used to compose an object page; 
 2. **Search Help**: A button close to an input field which pops up a dialog to allow user to search possible values and input it to the field;
 3. **UI Mapper**: Utility methods used to convert Angular AbstractControl to JOR JSON format;
-4. **Entity Services**: General APIs on entity instances and metas;
-5. **Reusable Types**: Reusable data type Classes used in JOR;
+4. **Entity Services**: Generic services allow manipulations on entity instances and metas;
+5. **Reusable Types**: Reusable data types in JOR;
 
-Please check this [example](https://darkhouse.com.cn/portal/users) which is developed using JOR-Angular.
-Its source code can be found in this [GIT Repo](https://github.com/VinceZK/Portal/tree/master/src/app/user)
+Please check this [example](https://darkhouse.com.cn/portal/external-app/USER) which is developed using JOR-Angular.
+Its source code can be found in this [GIT Repo](https://github.com/VinceZK/Logon/tree/master/src/app/user)
 ![Example CRUD App](./assets/appExample.png)
 
 ## Attribute UI Controls
