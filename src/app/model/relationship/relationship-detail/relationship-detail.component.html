@@ -38,7 +38,7 @@
              formControlName="TIME_DEPENDENT" (change)="onChangeTimeDependency()">
     </div>
     <div class="col-4 form-group row ml-3">
-      <label for="valid_period" class="col-form-label form-control-sm">Valid Period(seconds):
+      <label for="valid_period" class="col-form-label form-control-sm">Default Period of Validity(seconds):
         <span [class.ng-invalid]="relationshipForm.get('VALID_PERIOD').invalid" class="dk-invalid-feedback">
         {{relationshipForm.get('VALID_PERIOD').errors?.message}}
       </span>

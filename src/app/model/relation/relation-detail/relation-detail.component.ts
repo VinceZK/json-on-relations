@@ -337,9 +337,9 @@ export class RelationDetailComponent implements OnInit {
     }
   }
 
-  onChangeCardinality(formGroup: FormGroup): void {
+  onChangeCardinality(formGroup: AbstractControl): void {
     const cardinality = formGroup.get('CARDINALITY');
-    if ( cardinality.value === '[1..1]' || cardinality.value === '[1..N]' ) {
+    if ( cardinality.value === '[1..1]' || cardinality.value === '[1..n]' ) {
       formGroup.get('FOREIGN_KEY_CHECK').enable();
     } else {
       formGroup.get('FOREIGN_KEY_CHECK').setValue(0);

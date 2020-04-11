@@ -66,7 +66,7 @@ module.exports = {
 };
 
 /**
- * Get entity meta from entity ID
+ * Get the meta of an entity through its entity ID
  * @param entityID
  * @param callback(errs|entityMeta)
  */
@@ -82,7 +82,7 @@ function getEntityMeta(entityID, callback) {
 }
 
 /**
- * Get relation meta from relation ID
+ * Get the meta of a relation through its relation ID
  * @param relationID
  * @param callback(errs|relationMeta)
  */
@@ -98,7 +98,7 @@ function getRelationMeta(relationID, callback) {
 }
 
 /**
- * Get all relation metas that are relevant to an entity
+ * Get all relations meta of an entity through its entity ID
  * @param entityID
  * @param callback(errs|relationMeta[])
  */
@@ -130,7 +130,7 @@ function getRelationMetaOfEntity(entityID, callback) {
 }
 
 /**
- * List all entity IDs in the system
+ * List all the entity IDs in the JOR system
  * @param callback(errs, IDs)
  */
 function listAllEntityIDs(callback) {
@@ -142,7 +142,7 @@ function listAllEntityIDs(callback) {
 }
 
 /**
- * List all entity IDs by a role
+ * List all the entity IDs that are assigned with the given role
  * @param roleID
  * @param callback(errs, IDs)
  */
@@ -156,23 +156,30 @@ function listEntityIDbyRole(roleID, callback) {
 }
 
 /**
- * save the entity JSON object in DB
- * @param instance = JSON object, for example:
- * { ENTITY_ID: 'person',
- *   person: {INSTANCE_GUID: 'C1D5765AFB9E92F87C936C079837842C'}
- *   relation1: [{action: 'add', a: '1', b: '2'}, {action: 'delete', a: '3', b: '4'}],
- *   relation2: {c: '3', b: '4'}, ... ,
- *   relationships:[
- *    {RELATIONSHIP_ID: 'rs_user_role',
-       values:[
-         {action: 'add', VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2018-07-04 00:00:00', SYNCED: 0,
-          PARTNER_INSTANCES: [
-            {ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'C1D5765AFB9E92F87C936C079837842C'}
-        ]}
-       ]}]
- * }
- * @param callback(errs, result, insertSQLs), result is the JSON of the instance created
- * @param noCommit: If true, the transaction will not be submitted to DB.
+ * Create an entity instance in DB from a given JSON object.
+ * @param instance An entity instance in JSON.
+ * @param callback (errs, result, insertSQLs)
+ * errs: null if successful, or error messages;
+ * result: JSON object with INSTANCE_GUID;
+ * insertSQLs: the generated SQL scripts in creating the instance.
+ * @param noCommit If true, the transaction will not be submitted to DB.
+ *
+ * @example
+ * Following JSON is given to the instance parameter
+ * ```
+ *  { ENTITY_ID: 'person',
+ *    person: {INSTANCE_GUID: 'C1D5765AFB9E92F87C936C079837842C'}
+ *    relation1: [{action: 'add', a: '1', b: '2'}, {action: 'delete', a: '3', b: '4'}],
+ *    relation2: {c: '3', b: '4'}, ... ,
+ *    relationships:[
+ *     {RELATIONSHIP_ID: 'rs_user_role',
+ *      values:[
+ *        {action: 'add', VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2018-07-04 00:00:00', SYNCED: 0,
+ *         PARTNER_INSTANCES: [
+ *           {ENTITY_ID:'system_role', ROLE_ID:'system_role', INSTANCE_GUID:'C1D5765AFB9E92F87C936C079837842C'}
+ *       ]}
+ *      ]}]}
+ *  ```
  */
 function createInstance(instance, callback, noCommit) {
   const instanceGUID = guid.genTimeBased();
@@ -295,22 +302,17 @@ function _checkEntityRoleCondition(role, entityRelation) {
   return (!role.CONDITIONAL_ATTR ||
     (role.CONDITIONAL_ATTR && role.CONDITIONAL_VALUE.split(',').includes(entityRelation[role.CONDITIONAL_ATTR])));
 }
+
 /**
- * Soft delete an instance by the given business ID
- * @param idAttr
- * for example {RELATION_ID: 'r_user', USER_ID: 'DH001'}
- * @param callback(err)
- */
-function softDeleteInstanceByID(idAttr, callback) {
-  _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
-    if(err) return callback(err); // err should be already a message array
-    softDeleteInstanceByGUID(instanceGUID,callback);
-  })
-}
-/**
- * Soft delete an entity instance by set the DEL flag to 1 through instance GUID
- * @param instanceGUID
- * @param callback(err, updateSQLs)
+ * Soft delete an entity instance through instance GUID.
+ * It doesn't physically delete the instance from DB,
+ * but just sets the field DEL in the table ENTITY_INSTANCES to true.
+ *
+ * @param instanceGUID instance GUID
+ * @param callback (errs, updateSQLs)
+ * errs: null if successful, or error messages;
+ * updateSQLs: the generated updating SQL scripts.
+ * @param noCommit If true, the transaction will not be submitted to DB.
  */
 function softDeleteInstanceByGUID(instanceGUID, callback, noCommit) {
   let updateSQL = "update ENTITY_INSTANCES set DEL = 1 where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
@@ -320,21 +322,28 @@ function softDeleteInstanceByGUID(instanceGUID, callback, noCommit) {
     else callback(null);
   })
 }
+
 /**
- * Restore the soft deleted instance by the given business ID
- * @param idAttr
- * @param callback(err)
+ * Soft delete an entity instance through a business ID.
+ *
+ * @param idAttr Attributes in a relation that can uniquely identify an entity instance,
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'};
+ * @param callback (errs)
+ * errs: null if successful, or error messages.
  */
-function restoreInstanceByID(idAttr, callback) {
+function softDeleteInstanceByID(idAttr, callback) {
   _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
-    if(err) return callback(err);
-    restoreInstanceByGUID(instanceGUID,callback);
+    if(err) return callback(err); // err should be already a message array
+    softDeleteInstanceByGUID(instanceGUID,callback);
   })
 }
+
 /**
- * Restore the soft deleted blog, set DEL flag = 0
- * @param instanceGUID
- * @param callback(err)
+ * Restore a soft deleted instance by setting DEL flag back to false through instance GUID.
+ *
+ * @param instanceGUID instance GUID
+ * @param callback(errs)
+ * errs: null if successful, or error messages.
  */
 function restoreInstanceByGUID(instanceGUID, callback) {
   let updateSQL = "update ENTITY_INSTANCES set DEL = 0 where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
@@ -345,22 +354,28 @@ function restoreInstanceByGUID(instanceGUID, callback) {
 }
 
 /**
- * Delete the object from the DB by a unique business ID
- * @param idAttr
- * for example {RELATION_ID: 'r_user', USER_ID: 'DH001'}
- * @param callback(err)
+ * Restore a soft deleted instance by setting DEL flag back to false through a business ID.
+ *
+ * @param idAttr Attributes in a relation that can uniquely identify an entity instance,
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'};
+ * @param callback (errs)
+ * errs: null if successful, or error messages.
  */
-function hardDeleteByID(idAttr, callback) {
-  _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
-    if(err) return callback(err); // err should already be a message array
-    hardDeleteByGUID(instanceGUID,callback);
+function restoreInstanceByID(idAttr, callback) {
+  _getGUIDFromBusinessID(idAttr, function (errs, instanceGUID) {
+    if(errs) return callback(errs);
+    restoreInstanceByGUID(instanceGUID,callback);
   })
 }
+
 /**
- * Delete the object from the DB by INSTANCE_GUID
- * @param instanceGUID
- * @param callback(errs, deleteSQLs)
- * @param noCommit
+ * Physically delete an entity instance from DB through instance GUID
+ *
+ * @param instanceGUID instance GUID
+ * @param callback (errs, updateSQLs)
+ * errs: null if successful, or error messages;
+ * updateSQLs: the generated updating SQL scripts.
+ * @param noCommit If true, the transaction will not be submitted to DB.
  */
 function hardDeleteByGUID(instanceGUID, callback, noCommit) {
   _getEntityInstanceHead(instanceGUID, function (err, instanceHead) {
@@ -408,13 +423,29 @@ function hardDeleteByGUID(instanceGUID, callback, noCommit) {
   })
 }
 
+/**
+ * Physically delete an entity instance from DB through a business ID
+ *
+ * @param idAttr Attributes in a relation that can uniquely identify an entity instance,
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'};
+ * @param callback (errs)
+ * errs: null if successful, or error messages.
+ */
+function hardDeleteByID(idAttr, callback) {
+  _getGUIDFromBusinessID(idAttr, function (err, instanceGUID) {
+    if(err) return callback(err); // err should already be a message array
+    hardDeleteByGUID(instanceGUID,callback);
+  })
+}
 
 /**
- * Get an instance in a JSON format from its business ID
- * @param idAttr
- * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'}
- * @param callback(errs, instance)
- * For the return instance example, please refer method getInstanceByGUID
+ * Get an entity instance through its business ID
+ *
+ * @param idAttr Attributes in a relation that can uniquely identify an entity instance,
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'};
+ * @param callback (errs, instance)
+ * errs: null if successful, or error messages;
+ * instance: an entity instance JSON, same as the example of getInstanceByGUID.
  */
 function getInstanceByID(idAttr, callback) {
   _getGUIDFromBusinessID(idAttr, function (errs, instanceGUID) {
@@ -423,11 +454,15 @@ function getInstanceByID(idAttr, callback) {
   })
 }
 /**
- * Get an instance in a JSON format from its instanceGUID
- * @param instanceGUID
- * @param callback(err,instance)
- * instance is a JSON object or NULL if the ID is not exist!
- * Here is an example:
+ * Get an entity instance through instanceGUID
+ *
+ * @param instanceGUID instance GUID
+ * @param callback (errs,instance)
+ * errs: null if successful, or error messages
+ * instance: entity instance in JSON, or null
+ *
+ * @example
+ * The following JSON is the returned entity instance:
  * {  ENTITY_ID: 'person', INSTANCE_GUID: '9718C0E8783C1F86EC212C8436A958C5',
       person: {HEIGHT: 170, GENDER: 'male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E'},
       r_user: {action: 'add', USER_ID: 'DH001', USER_NAME:'VINCEZK', DISPLAY_NAME: 'Vincent Zhang'},
@@ -529,14 +564,17 @@ function _deleteDisabledRoleStuff(instance, entityMeta) {
   });
 }
 /**
- * Get a piece of information from an instance from its business ID
- * @param idAttr
- * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'}
- * @param piece
- *  {RELATIONS: ['r_user', 'r_email'],
- *  RELATIONSHIPS: ['rs_user_role'] }
- * @param callback(err, instance)
- * For the return instance example, please refer method getInstanceByGUID
+ * Get a piece of information from an entity instance through business ID.
+ *
+ * @param idAttr Attributes in a relation that can uniquely identify an entity instance,
+ * for example: {RELATION_ID: 'r_user', USER_ID: 'DH001'};
+ * @param piece What relations and relationships you want to get
+ * @param callback(errs, instance)
+ * errs: null if successful, or error messages;
+ * instance: only contains the requested pieces of information
+ *
+ * @example
+ * Refer getInstancePieceByGUID.
  */
 function getInstancePieceByID(idAttr, piece, callback) {
   _getGUIDFromBusinessID(idAttr, function (errs, instanceGUID) {
@@ -546,13 +584,28 @@ function getInstancePieceByID(idAttr, piece, callback) {
 }
 
 /**
- * Get a piece of information from an instance.
- * For example, only get the named attributes or relations
- * @param instanceGUID
- * @param piece
- * {RELATIONS: ['r_user', 'r_email'],
- *  RELATIONSHIPS: ['rs_user_role'] }
+ * Get a piece of information from an entity instance through instance GUID.
+ *
+ * @param instanceGUID Instance GUID
+ * @param piece What relations and relationships you want to get
  * @param callback(errs, instance)
+ * errs: null if successful, or error messages;
+ * instance: only contains the requested pieces of information
+ *
+ * @example
+ * If I only want the information of relations: r_user and r_email, and relationship: rs_user_role
+ * { RELATIONS: ['r_user', 'r_email'],
+ *   RELATIONSHIPS: ['rs_user_role'] }
+ *
+ * @example
+ * The returned result only contains:
+ * {
+ *   INSTANCE_GUID: 'xxxxxxxxxx',
+ *   ENTITY_ID: 'person',
+ *   r_user: [{...}],
+ *   r_email: [{...}],
+ *   relationships: [{RELATIONSHIP_ID: 'rs_user_role', values: [...]}]
+ * }
  */
 function getInstancePieceByGUID(instanceGUID, piece, callback) {
   _getEntityInstanceHead(instanceGUID, function (errs, instanceHead) {
@@ -760,9 +813,16 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
 }
 
 /**
- * Change an instance from the provided instance JSON.
- * Only list attributes, relations, and relationships are got updated.
- * @param instance
+ * Change an existing instance according to the changing descriptions in the instance.
+ *
+ * @param instance A JSON describes which attributes in which relations or relationships that need to be changed.
+ * @param callback (errs, updateSQLs)
+ * errs: null if successful, or error messages;
+ * updateSQLs: the generated updating SQL scripts.
+ * @param noCommit If true, the transaction will not be submitted to DB.
+ *
+ * @example
+ * The following example describes the changes made to an entity instance:
  * { ENTITY_ID: 'person', INSTANCE_GUID: '43DAE23498B6FC121D67717E79B8F3C0',
  *   person: {action: 'change', a: '1', b:'2'}
  *   relation1: [{action: 'add', a: '1', b: '2'}, {action: 'delete', a: '3', b: '4'}],
@@ -773,8 +833,6 @@ function _getRelationshipPieces(instance, relationships, entityMeta, callback) {
  *               VALID_FROM:'2018-06-27 00:00:00', VALID_TO:'2030-12-31 00:00:00'}]
  *     }]
  * }
- * @param callback(errs, updateSQLs)
- * @param noCommit: If true, the transaction will not be submitted to DB.
  */
 function changeInstance(instance, callback, noCommit) {
   const errorMessages = [];
@@ -916,14 +974,14 @@ function changeInstance(instance, callback, noCommit) {
 }
 
 /**
- * Overwrite an Instance by mass updates.
- * Relationships cannot be overwritten.
- * @param instance
- * { ENTITY_ID: 'people', INSTANCE_GUID: '43DAE23498B6FC121D67717E79B8F3C0',
- *   relation1: [{a: '1', b: '2'}, {a: '3', b: '4'}],
- *   relation2: {c: '3', b: '4'}, ...
- * }
- * @param callback(errs, updateSQLs)
+ * Overwrite an Instance in DB.
+ * Note: relationships cannot be overwritten.
+ *
+ * @param instance The entity instance to replace the existing one in DB.
+ * @param callback (errs, updateSQLs)
+ * errs: null if successful, or error messages;
+ * updateSQLs: the generated updating SQL scripts.
+ * @param noCommit If true, the transaction will not be submitted to DB.
  */
 function overwriteInstance(instance, callback, noCommit) {
   const errorMessages = [];
@@ -1960,35 +2018,46 @@ function _getGUIDFromBusinessID(idAttr, callback) {
 }
 
 /**
- * Combine multiple operations in one transaction
- * @param operations
+ * Orchestrate multiple operations in one transaction.
+ * This is useful in some circumstances that multiple instances need to be processed in one transaction.
+ * For example, you want to create 2 people and marry them.
+ * You want this transaction to be finished in one call, and if failed, all the operations should be rolled back.
+ *
+ * @param operations The provides operations are
+ * createInstance, changeInstance, softDeleteInstanceByGUID, hardDeleteByGUID, getInstancePieceByGUID
+ * @param callback (errs, results)
+ * errs: null if successful, or error messages;
+ * results: an updated operation array with each operation a result node
+ * which may contain instance or updateSQLs.
+ *
+ * @example
+ * Here gives an example of operation array which is assigned to the parameter operations:
  * [
- * {
- *   action: 'createInstance',
- *   replacements: [],
- *   noCommit: true,
- *   instance: {} // An instance object
- *   result: {instance, updateSQLs} // Return Object
- * },
- * {
- *   action: 'createInstance',
- *   replacements: [
- *   {movePath: [0, 'result', 'instance', 'INSTANCE_GUID'],
- *    toPath: ['relationships', 0, 'values', 0, 'PARTNER_INSTANCES', 0, 'INSTANCE_GUID']}
+ *  {
+ *    action: 'createInstance',
+ *    replacements: [],
+ *    noCommit: true,
+ *    instance: {} // An instance object
+ *    result: {instance, updateSQLs} // Return Object
+ *  },
+ *  {
+ *    action: 'createInstance',
+ *    replacements: [
+ *    {movePath: [0, 'result', 'instance', 'INSTANCE_GUID'],
+ *     toPath: ['relationships', 0, 'values', 0, 'PARTNER_INSTANCES', 0, 'INSTANCE_GUID']}
  *    ],
  *    noCommit: true,
- *   instance: {} // An instance object
- *   result: {instance, updateSQLs} // Return Object
- * },
- * {
- *   action: 'changeInstance',
- *   replacements: [],
- *   instance: {},
- *   result: {updateSQLs}
- * }
+ *    instance: {} // An instance object
+ *    result: {instance, updateSQLs} // Return Object
+ *  },
+ *  {
+ *    action: 'changeInstance',
+ *    replacements: [],
+ *    instance: {},
+ *    result: {updateSQLs}
+ *  }
  * ...
  * ]
- * @param callback(errs, results)
  */
 function orchestrate(operations, callback) {
   async.mapSeries(operations, function (operation, callback) {

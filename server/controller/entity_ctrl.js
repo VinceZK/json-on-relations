@@ -100,7 +100,7 @@ module.exports = {
   restoreInstance: function(req, res) {
     entity.restoreInstanceByGUID(req.params['instanceGUID'], function (err) {
       res.json(err);
-    })
+    });
   },
 
   deleteInstance: function (req, res, next) {

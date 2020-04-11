@@ -275,7 +275,7 @@ export class RelationshipDetailComponent implements OnInit {
     const relationID = this.relationshipForm.get('RELATIONSHIP_ID').value;
     const attrFormArray = this.relationshipForm.get('ATTRIBUTES') as FormArray;
     if (timeDependent) {
-      validPeriodCtrl.setValue(28080000); // 3600 * 24 * 365
+      validPeriodCtrl.setValue(31536000); // 3600 * 24 * 365
       validPeriodCtrl.markAsDirty();
       validPeriodCtrl.enable();
       const validFromFormGroup = this.fb.group({

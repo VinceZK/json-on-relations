@@ -17,7 +17,7 @@ Its source code can be found in this [GIT Repo](https://github.com/VinceZK/Logon
 Following UI is composed using the attribute UI control **dk-app-attribute-form2**. 
 ![Employes Attributes of A User](./assets/userBasicEmployee.png)
 
-``` html
+```html
 <div class="card mt-4">
   <div class="card-header">Employee</div>
   <div class="card-body">
@@ -79,7 +79,7 @@ Besides UI control **dk-app-attribute-form2**, there are other 3 UI controls pro
 3. **dk-app-attribute**: Display only the field without label.
 
 *Notice*: You need also import [Bootstrap](https://getbootstrap.com/) and following CSS into the `./src/style.css` file:
-``` css
+```css
 @import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
 input.ng-invalid,
@@ -122,7 +122,7 @@ Choose one(or multiple), and click "Confirm" will transfer the value to the fiel
 ### How to Use
 First, append the magnifier button right close to the input field(button "searchPermission").
 Meanwhile, add the tag `<dk-app-search-help></dk-app-search-help>` at the bottom.
-``` html
+```html
 <tbody formArrayName="userRole" class="mb-4">
   <tr *ngFor="let userRoleForm of userRoleFormArray.controls; let i = index">
     <td [formGroup]="userRoleForm">
@@ -146,7 +146,7 @@ Meanwhile, add the tag `<dk-app-search-help></dk-app-search-help>` at the bottom
 <dk-app-search-help></dk-app-search-help>
 ```
 Second, implement the function `onSearchHelp` in the component.
-``` javascript
+```javascript
   onSearchHelp(rowID: number, exportObject: AbstractControl): void {
     const afterExportFn = function (context: any, ruleIdx: number) {
       return () => context.onChangeRoleID(ruleIdx);
@@ -171,7 +171,7 @@ which asks for following parameters:
 It is used to map the Angular FormGroup and FormArray to JOR JSON format.
 3 functions are provided:
 + **composeChangedRelation**:
-``` javascript
+```javascript
 /**
  * Map a FormGroup to a JOR relation(with cardinality [0..1] and [1..1]) for adding or updating.
  * @param formGroup: It must be a flat Angular FormGroup, which means no deep structure.
@@ -189,7 +189,7 @@ It is used to map the Angular FormGroup and FormArray to JOR JSON format.
  */
 ```
 + **composeChangedRelationArray**:
-``` javascript
+```javascript
 /**
  * Map a FormArray to JOR relation(with cardinality [0..n] or [1..n]) for adding, updating, or deletion.
  * @param formArray: It must be a flat Angular FormArray, which means no deep structure.
@@ -213,7 +213,7 @@ It is used to map the Angular FormGroup and FormArray to JOR JSON format.
  */
 ```
 + **composeChangedRelationship**:
-``` javascript
+```javascript
 /**
  * Map a FormArray to JOR relationships for adding, updating, or deletion.
  * @param relationshipID: Relationship ID defined in JOR. For example: 'rs_marriage'
@@ -249,7 +249,7 @@ It is used to map the Angular FormGroup and FormArray to JOR JSON format.
 ## Entity Services
 Some general APIs on entity instances and metas are provided.
 They can be directly called. For example, using service `this.entityService.createEntityInstance` to create a new instance:
-``` javascript
+```javascript
 constructor( private entityService: EntityService ) {
 }
 
@@ -281,7 +281,7 @@ Here list some of the entity services. For a comprehensive list, please find in 
 ## Reusable Types
 All reusable types can be found in the file `./entity.ts`. They can be imported for direct use. 
 For example:
-``` javascript
+```javascript
 import {DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject,
                 Relation, RelationMeta, RelationshipH, RoleH} from 'jor-angular';
 ``` 
