@@ -106,6 +106,18 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Data domain ID is missing", longText: 'dummy'}
     }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'SEARCH_HELP_NOT_EXIST',
+    msgText: {
+      EN: {shortText: "Search Help '%s' doesn't exist in DB", longText: 'dummy'}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'SEARCH_HELP_ID_MISSING',
+    msgText: {
+      EN: {shortText: "Search Help ID is missing", longText: 'dummy'}
+    }
   }
 ];
 

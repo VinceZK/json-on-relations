@@ -93,6 +93,10 @@ router.get('/api/model/data-domains', model.listDataDomain);
 router.get('/api/model/data-domains/:domainID', model.getDataDomain);
 router.get('/api/model/data-domains/:domainID/desc', model.getDataDomainDesc);
 router.post('/api/model/data-domains', model.saveDataDomain);
+router.get('/api/model/search-helps', model.listSearchHelp);
+router.get('/api/model/search-helps/:searchHelpID', model.getSearchHelp);
+router.get('/api/model/search-helps/:searchHelpID/desc', model.getSearchHelpDesc);
+router.post('/api/model/search-helps', model.saveSearchHelp);
 router.get('/api/model/element-meta/:elementID', model.getElementMeta);
 
 module.exports = router;

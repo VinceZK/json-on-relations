@@ -14,6 +14,8 @@ import {DataElementComponent} from './data-element/data-element.component';
 import {DataDomainComponent} from './data-domain/data-domain.component';
 import {DataDomainDetailComponent} from './data-domain/data-domain-detail/data-domain-detail.component';
 import {DataElementDetailComponent} from './data-element/data-element-detail/data-element-detail.component';
+import {SearchHelpComponent} from './search-help/search-help.component';
+import {SearchHelpDetailComponent} from './search-help/search-help-detail/search-help-detail.component';
 
 const routes: Routes = [
   { path: '',
@@ -31,6 +33,8 @@ const routes: Routes = [
         children: [{ path: ':elementID', canDeactivate: [WorkProtectionGuard], component: DataElementDetailComponent }] },
       { path: 'data-domain', component: DataDomainComponent,
         children: [{ path: ':domainID', canDeactivate: [WorkProtectionGuard], component: DataDomainDetailComponent }] },
+      { path: 'search-help', component: SearchHelpComponent,
+        children: [{ path: ':searchHelpID', canDeactivate: [WorkProtectionGuard], component: SearchHelpDetailComponent }] },
       { path: '**', redirectTo: '/model/entity-type', pathMatch: 'full' },
     ]
   }

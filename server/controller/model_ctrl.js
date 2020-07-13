@@ -210,6 +210,43 @@ module.exports = {
     })
   },
 
+  listSearchHelp: function (req, res) {
+    model.listSearchHelp(req.query.term, function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
+  },
+
+  getSearchHelp: function (req, res) {
+    model.getSearchHelp(req.params['searchHelpID'], function (errs, searchHelp) {
+      if(errs)res.json(errs);
+      else res.json(searchHelp);
+    })
+  },
+
+  getSearchHelpDesc: function (req, res) {
+    model.getSearchHelpDesc(req.params['searchHelpID'], function (errs, rows) {
+      if(errs)res.json(errs);
+      else res.json(rows);
+    })
+  },
+
+  saveSearchHelp: function (req, res) {
+    let userID = 'DH001';
+    if (req.user && req.user.identity && req.user.identity.userBasic.USER_ID) {
+      userID = req.user.identity.userBasic.USER_ID;
+    }
+    model.saveSearchHelp(req.body, userID, function (err) {
+      if(err) res.json(err);
+      else {
+        model.getSearchHelp(req.body.SEARCH_HELP_ID, function (err, searchHelp) {
+          if(err) res.json(err);
+          else res.json(searchHelp);
+        })
+      }
+    })
+  },
+
   getElementMeta: function (req, res) {
     model.getElementMeta(req.params['elementID'], function (errs, elementMeta) {
       if(errs) res.json(errs);

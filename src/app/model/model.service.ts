@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {EntityType, Relation, RelationshipH, RoleH, DataDomainH, DataElementH} from 'jor-angular';
+import {EntityType, Relation, RelationshipH, RoleH, DataDomainH, DataElementH, SearchHelpH} from 'jor-angular';
 import {Subject} from 'rxjs';
 
 @Injectable({
@@ -46,6 +46,10 @@ export class ModelService {
   private theSelectedDataDomain: DataDomainH;
   private selectedDataDomainSource = new Subject<DataDomainH>();
   theSelectedDataDomain$ = this.selectedDataDomainSource.asObservable();
+
+  private theSelectedSearchHelp: SearchHelpH;
+  private selectedSearchHelpSource = new Subject<SearchHelpH>();
+  theSelectedSearchHelp$ = this.selectedSearchHelpSource.asObservable();
 
   showSearchList(): void {
     this.isSearchListShown.next(true);
@@ -136,6 +140,20 @@ export class ModelService {
 
   setSelectedDataDomain(domain: DataDomainH): void {
     this.theSelectedDataDomain = domain;
+  }
+
+  updateSearchHelpID(searchHelpID: string) {
+    this.theSelectedSearchHelp.SEARCH_HELP_ID = searchHelpID;
+    this.selectedSearchHelpSource.next(this.theSelectedSearchHelp);
+  }
+
+  updateSearchHelpDesc(searchHelpDesc: string) {
+    this.theSelectedSearchHelp.SEARCH_HELP_DESC = searchHelpDesc;
+    this.selectedSearchHelpSource.next(this.theSelectedSearchHelp);
+  }
+
+  setSelectedSearchHelp(searchHelp: SearchHelpH): void {
+    this.theSelectedSearchHelp = searchHelp;
   }
 
   sendDialogAnswer(answer: string): void {

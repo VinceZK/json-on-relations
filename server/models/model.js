@@ -35,6 +35,10 @@ module.exports = {
   getDataDomain: getDataDomain,
   getDataDomainDesc: getDataDomainDesc,
   saveDataDomain: saveDataDomain,
+  listSearchHelp: listSearchHelp,
+  getSearchHelp: getSearchHelp,
+  getSearchHelpDesc: getSearchHelpDesc,
+  saveSearchHelp: saveSearchHelp,
   getElementMeta: getElementMeta
 };
 
@@ -1135,12 +1139,13 @@ function saveDataDomain(dataDomain, userID, callback) {
     }
   } else if (dataDomain.action === undefined || dataDomain.action === 'add') {
     let insertSQL = "insert into DATA_DOMAIN ( DOMAIN_ID, DOMAIN_DESC, DATA_TYPE, DATA_LENGTH, `DECIMAL`, `DOMAIN_TYPE`," +
-      " `UNSIGNED`, `CAPITAL_ONLY`, RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+      " `UNSIGNED`, `CAPITAL_ONLY`, ENTITY_ID, RELATION_ID, REG_EXPR, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
       " values ( " + entityDB.pool.escape(dataDomain.DOMAIN_ID) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_DESC) +
       ", " + entityDB.pool.escape(dataDomain.DATA_TYPE) + ", " + entityDB.pool.escape(dataDomain.DATA_LENGTH) +
       ", " + entityDB.pool.escape(dataDomain.DECIMAL) + ", " + entityDB.pool.escape(dataDomain.DOMAIN_TYPE) +
       ", " + entityDB.pool.escape(dataDomain.UNSIGNED) + ", " + entityDB.pool.escape(dataDomain.CAPITAL_ONLY) +
-      ", " + entityDB.pool.escape(dataDomain.RELATION_ID) + ", " + entityDB.pool.escape(dataDomain.REG_EXPR) +
+      ", " + entityDB.pool.escape(dataDomain.ENTITY_ID) + ", " + entityDB.pool.escape(dataDomain.RELATION_ID) +
+      ", " + entityDB.pool.escape(dataDomain.REG_EXPR) +
       ", 1, "+ entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) +
       ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
     updateSQLs.push(insertSQL);
@@ -1198,6 +1203,166 @@ function _getDomainUsedRelations(domainID, callback) {
     if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     else callback(null, rows);
   });
+}
+
+
+/**
+ * List search helps
+ * @param term
+ * @param callback(err, rows)
+ */
+function listSearchHelp(term, callback) {
+  let selectSQL = "select * from SEARCH_HELP";
+  let searchTerm = term?term.trim():null;
+  if (searchTerm) {
+    searchTerm = '%' + searchTerm + '%';
+    selectSQL = selectSQL + " where SEARCH_HELP_ID like " + entityDB.pool.escape(searchTerm) +
+      " or SEARCH_HELP_DESC like " + entityDB.pool.escape(searchTerm) +
+      " order by LAST_CHANGE_TIME desc limit 10";
+  } else {
+    selectSQL = selectSQL + " order by LAST_CHANGE_TIME desc limit 10";
+  }
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null, rows);
+  });
+}
+
+/**
+ * Get search help detail
+ * @param searchHelpID
+ * @param callback(err, searchHelpMeta)
+ */
+function getSearchHelp(searchHelpID, callback) {
+  let selectSQL = "select * from SEARCH_HELP where SEARCH_HELP_ID = "+ entityDB.pool.escape(searchHelpID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    let searchHelp = rows[0];
+    if(!searchHelp) return callback(message.report('MODEL', 'SEARCH_HELP_NOT_EXIST', 'E', searchHelpID));
+    selectSQL = "select * from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelpID) +
+    " order by LIST_POSITION";
+    entityDB.executeSQL(selectSQL, function (err, rows) {
+      if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+      searchHelp['FIELDS'] = rows;
+      callback(null, searchHelp);
+    });
+  })
+}
+
+/**
+ * Get search help description
+ * @param searchHelpID
+ * @param callback(err, desc)
+ */
+function getSearchHelpDesc(searchHelpID, callback) {
+  let selectSQL =
+    "select SEARCH_HELP_DESC from SEARCH_HELP where SEARCH_HELP = "+ entityDB.pool.escape(searchHelpID);
+  entityDB.executeSQL(selectSQL, function (err, rows) {
+    if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    if(!rows[0]) return callback(message.report('MODEL', 'SEARCH_HELP_NOT_EXIST', 'E', searchHelpID));
+    callback(null, rows[0].SEARCH_HELP_DESC);
+  })
+}
+
+/**
+ * Save a search help
+ * @param dataDomain
+ * @param userID
+ * @param callback(err)
+ * @returns {*}
+ */
+function saveSearchHelp(searchHelp, userID, callback) {
+  if (!searchHelp || searchHelp === {}) {
+    return callback(message.report('MODEL', 'NOTHING_TO_SAVE', 'W'));
+  }
+
+  if (!searchHelp.SEARCH_HELP_ID) {
+    return callback(message.report('MODEL', 'SEARCH_HELP_ID_MISSING', 'E'));
+  }
+
+  const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
+  const updateSQLs = [];
+  let syncDBTableIndicator = false;
+  let updateRelationReloadIndicator = false;
+  if (searchHelp.action === 'update') {
+    let updateSQL = "update SEARCH_HELP set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
+      ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
+    if (searchHelp.SEARCH_HELP_DESC !== undefined)
+      updateSQL += ", SEARCH_HELP_DESC = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_DESC);
+    if (searchHelp.ENTITY_ID !== undefined) {
+      updateSQL += ", ENTITY_ID = " + entityDB.pool.escape(searchHelp.ENTITY_ID);
+    }
+    if (searchHelp.RELATION_ID !== undefined) {
+      updateSQL += ", RELATION_ID = " + entityDB.pool.escape(searchHelp.RELATION_ID);
+    }
+    if (searchHelp.BEHAVIOUR !== undefined) {
+      updateSQL += ", BEHAVIOUR = " + entityDB.pool.escape(searchHelp.BEHAVIOUR);
+    }
+    if (searchHelp.MULTI !== undefined) {
+      updateSQL += ", MULTI = " + entityDB.pool.escape(searchHelp.MULTI);
+    }
+    if (searchHelp.FUZZY_SEARCH !== undefined) {
+      updateSQL += ", `FUZZY_SEARCH` = " + entityDB.pool.escape(searchHelp.FUZZY_SEARCH);
+    }
+
+    updateSQL += " where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID);
+    updateSQLs.push(updateSQL);
+    if (searchHelp.FIELDS && searchHelp.DOMAIN_VALUES.FIELDS > 0) {
+      updateSQL = "delete from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID)
+        + "; insert into SEARCH_HELP_FIELD ( `SEARCH_HELP_ID`, `RELATION_ID`, `FIELD_NAME`, `IMPORT`, `EXPORT`," +
+        " `IE_FIELD_NAME`, `LIST_POSITION`, `FILTER_POSITION`, `FILTER_DISP_ONLY`, `DEFAULT_VALUE`) values ";
+      searchHelp.FIELDS.forEach( (field, index, fields) => {
+        updateSQL += "( " + entityDB.pool.escape(field.SEARCH_HELP_ID) +
+        ", " + entityDB.pool.escape(field.RELATION_ID) +
+        ", " + entityDB.pool.escape(field.FIELD_NAME) +
+        ", " + entityDB.pool.escape(field.IMPORT) +
+        ", " + entityDB.pool.escape(field.EXPORT) +
+        ", " + entityDB.pool.escape(field.IE_FIELD_NAME) +
+        ", " + entityDB.pool.escape(field.LIST_POSITION) +
+        ", " + entityDB.pool.escape(field.FILTER_POSITION) +
+        ", " + entityDB.pool.escape(field.FILTER_DISP_ONLY) +
+        ", " + entityDB.pool.escape(field.DEFAULT_VALUE);
+        updateSQL += (index === fields.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(updateSQL);
+    } else {
+      updateSQL = "delete from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID);
+      updateSQLs.push(updateSQL);
+    }
+  } else if (searchHelp.action === undefined || searchHelp.action === 'add') {
+    let insertSQL = "insert into SEARCH_HELP ( SEARCH_HELP_ID, SEARCH_HELP_DESC, ENTITY_ID, RELATION_ID, `BEHAVIOUR`, " +
+      " `MULTI`, `FUZZY_SEARCH`, VERSION_NO, CREATE_BY, CREATE_TIME, LAST_CHANGE_BY, LAST_CHANGE_TIME)" +
+      " values ( " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID) + ", " + entityDB.pool.escape(searchHelp.SEARCH_HELP_DESC) +
+      ", " + entityDB.pool.escape(searchHelp.ENTITY_ID) + ", " + entityDB.pool.escape(searchHelp.RELATION_ID) +
+      ", " + entityDB.pool.escape(searchHelp.BEHAVIOUR) + ", " + entityDB.pool.escape(searchHelp.MULTI) +
+      ", " + entityDB.pool.escape(searchHelp.FUZZY_SEARCH) +
+      ", 1, "+ entityDB.pool.escape(userID) + ", " + entityDB.pool.escape(currentTime) +
+      ", " + entityDB.pool.escape(userID) + ", "  + entityDB.pool.escape(currentTime) + " )";
+    updateSQLs.push(insertSQL);
+    if (searchHelp.FIELDS && searchHelp.FIELDS.length > 0) {
+      insertSQL = "insert into SEARCH_HELP_FIELD ( `SEARCH_HELP_ID`, `RELATION_ID`, `FIELD_NAME`, `IMPORT`, `EXPORT`," +
+        " `IE_FIELD_NAME`, `LIST_POSITION`, `FILTER_POSITION`, `FILTER_DISP_ONLY`, `DEFAULT_VALUE`) values ";
+      searchHelp.FIELDS.forEach( (field, index, fields) => {
+        insertSQL += "( " + entityDB.pool.escape(field.SEARCH_HELP_ID) +
+          ", " + entityDB.pool.escape(field.RELATION_ID) +
+          ", " + entityDB.pool.escape(field.FIELD_NAME) +
+          ", " + entityDB.pool.escape(field.IMPORT) +
+          ", " + entityDB.pool.escape(field.EXPORT) +
+          ", " + entityDB.pool.escape(field.IE_FIELD_NAME) +
+          ", " + entityDB.pool.escape(field.LIST_POSITION) +
+          ", " + entityDB.pool.escape(field.FILTER_POSITION) +
+          ", " + entityDB.pool.escape(field.FILTER_DISP_ONLY) +
+          ", " + entityDB.pool.escape(field.DEFAULT_VALUE);
+        insertSQL += (index === fields.length - 1)? " );" : " ),";
+      });
+      updateSQLs.push(insertSQL);
+    }
+  }
+
+  entityDB.doUpdatesParallel(updateSQLs, function (err) {
+    if (err) callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
+    else callback(null);
+  })
 }
 
 /**

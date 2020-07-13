@@ -60,6 +60,18 @@ export class SearchHelpComponent implements OnInit {
     this.isSearchHelpModalShown = true;
   }
 
+  /**
+   * Open a search help dialog based on the given entity and one of its relation
+   * @param entityID
+   * @param relationID
+   * @param exportControl
+   * @param readonly
+   * @param exportField: Provided only if the exportField name is not the same with the attribute name
+   * @param domainID: Provided only if exportField is given. It is  to make sure that different attribute names must share the same domain.
+   * For example, attribute "CREATE_BY" and "USER_ID" share the same domain "USER_ID". When the search help dialog pop up on CREATE_BY,
+   * It should query on the entity "USER", and the value of attribute "USER_ID" is exported to "CREATE_BY"
+   * @param afterExportFn
+   */
   openSearchHelpModalByEntity(entityID: string, relationID: string, exportControl: any,
                               readonly: boolean, exportField?: string, domainID?: string, afterExportFn?: any) {
     const searchHelpMeta = new SearchHelp();
@@ -81,7 +93,7 @@ export class SearchHelpComponent implements OnInit {
           searchHelpMeta.FIELDS.push({
             FIELD_NAME: attribute.ATTR_NAME,
             FIELD_DESC: attribute.LIST_HEADER_TEXT,
-            IE_FIELD_NAME: attribute.DOMAIN_ID === domainID ? exportField : null,
+            IE_FIELD_NAME: exportField && domainID && domainID === attribute.DOMAIN_ID ? exportField : null,
             IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
             EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
             LIST_POSITION: attribute.ORDER,

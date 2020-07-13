@@ -19,6 +19,7 @@
   "private": false,
   "dependencies": {
     "@angular/animations": "^9.0.0-rc.13",
+    "@angular/cdk": "^10.0.1",
     "@angular/common": "^9.0.0-rc.13",
     "@angular/compiler": "^9.0.0-rc.13",
     "@angular/core": "^9.0.0-rc.13",
@@ -46,6 +47,7 @@
     "passport": "^0.4.0",
     "path": "^0.12.7",
     "rxjs": "^6.5.3",
+    "ui-logon-angular": "^1.2.1",
     "ui-message": "^1.2.0",
     "ui-message-angular": "^1.2.0",
     "underscore": "^1.9.1",

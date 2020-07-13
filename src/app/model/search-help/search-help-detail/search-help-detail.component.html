@@ -1,0 +1,163 @@
+<div class="btn-toolbar mb-2"  role="toolbar"
+     [ngClass]="{'justify-content-end': isSearchListShown, 'justify-content-between': !isSearchListShown}" >
+  <button *ngIf="!isSearchListShown" class="btn" type="button" title="Show List" (click)="showSearchList()">
+    <span class="fas fa-arrow-right"></span>
+  </button>
+
+  <div class="btn-group" role="group">
+    <button class="btn" type="button" title="Edit/Display" (click)="switchEditDisplay()">
+      <span *ngIf="readonly" class="fas fa-edit"></span>
+      <span *ngIf="!readonly" class="fas fa-glasses"></span>
+    </button>
+    <button class="btn" type="button" title="Save" (click)="save()">
+      <span class="fas fa-save"></span>
+    </button>
+  </div>
+</div>
+
+<dk-message></dk-message>
+<form *ngIf="searchHelpMeta" [formGroup]="searchHelpForm">
+  <div class="form-group">
+    <label for="searchHelp" class="col-form-label form-control-sm">Search Help:
+      <span [class.ng-invalid]="searchHelpForm.get('SEARCH_HELP_ID').invalid" class="dk-invalid-feedback">
+        {{searchHelpForm.get('SEARCH_HELP_ID').errors?.message}}
+      </span>
+    </label>
+    <input type="text" class="form-control form-control-sm" id="searchHelp" [readonly]="readonly || !isNewMode"
+           (change)="onChangeSearchHelpID()" name="searchHelp" formControlName="SEARCH_HELP_ID">
+  </div>
+  <div class="form-group">
+    <label for="searchHelp-desc" class="col-form-label form-control-sm">Search Help Description:</label>
+    <textarea class="form-control" id="searchHelp-desc" name="searchHelp-desc" rows="2"
+              formControlName="SEARCH_HELP_DESC" [readonly]="readonly" (change)="onChangeSearchHelpDesc()"></textarea>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Search Help Definition</div>
+    <div class="card-body">
+      <div class="card mb-2">
+        <div class="ml-4 mt-2">
+          <label class="col-form-label col-form-label-sm" for="ENTITY_ID">Entity and Relation:
+            <span [class.ng-invalid]="searchHelpForm.get('ENTITY_ID').invalid" class="dk-invalid-feedback">
+                  {{searchHelpForm.get('ENTITY_ID').errors?.message}}
+            </span>
+          </label>
+        </div>
+        <div class="card-body row">
+          <div class="input-group col-lg-4 ml-1">
+            <input type="text" formControlName="ENTITY_ID" id="ENTITY_ID" name="ENTITY_ID" placeholder="Entity Type"
+                   class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeEntityID(searchHelpForm)">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="searchEntity"
+                      (click)="onEntitySearchHelp(searchHelpForm)">
+                <span class="fas fa-search"></span>
+              </button>
+            </div>
+          </div>
+          <select formControlName="RELATION_ID" class="form-control form-control-sm col-lg-4 ml-2 mr-3"
+                  (change)="onChangeRelationID(searchHelpForm)">
+            <option *ngFor="let relation of relationsOfEntity" [value]="relation">{{relation}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card mb-2">
+        <div class="card-body row">
+          <div class="form-group row col-lg-4 mr-2">
+            <label class="col-form-label col-form-label-sm col-4 text-right" for="behaviour">Behaviour:</label>
+            <select formControlName="BEHAVIOUR" class="form-control form-control-sm col-8" id="behaviour">
+              <option *ngFor="let opt of behaviours" [value]="opt.key">{{opt.value}}</option>
+            </select>
+          </div>
+          <div class="form-check col-lg-3 ml-4">
+            <input type="checkbox" class="form-check-input" formControlName="MULTI" id="Multiple">
+            <label class="form-check-label" for="Multiple">Multiple Values</label>
+          </div>
+          <div class="form-check col-lg-3 ml-4">
+            <input type="checkbox" class="form-check-input" formControlName="FUZZY_SEARCH" id="fuzzySearch">
+            <label class="form-check-label" for="fuzzySearch">Fuzzy Search</label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Search Help Fields</div>
+    <div class="card-body">
+      <table class="table table-bordered dk-table">
+        <thead class="thead-light">
+        <tr>
+          <th scope="col">Relation</th>
+          <th scope="col">Field Name</th>
+          <th scope="col">Field Description</th>
+          <th scope="col" title="Import the value to the filter">I</th>
+          <th scope="col" title="Export the value when selected">E</th>
+          <th scope="col">Alias</th>
+          <th scope="col" title="Position in the list">L.P.</th>
+          <th scope="col" title="Position in the filter">F.P.</th>
+          <th scope="col" title="Display on in the filter">Disp</th>
+          <th scope="col" title="Default value in the filter">Default</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody formArrayName="FIELDS">
+        <tr *ngFor="let fieldForm of searchHelpFieldsFormArray.controls; let i = index">
+          <td [formGroup]="fieldForm" class="dk-selection">
+            <div class="input-group">
+              <select formControlName="RELATION_ID" class="form-control form-control-sm"
+                      (change)="onChangeRelationID(fieldForm)">
+                <option *ngFor="let relation of relationsOfEntity" [value]="relation">{{relation}}</option>
+              </select>
+            </div>
+          </td>
+          <td [formGroup]="fieldForm" class="dk-selection">
+            <div class="input-group">
+              <select formControlName="FIELD_NAME" class="form-control form-control-sm">
+                <option *ngFor="let attribute of relationAttributesMap[fieldForm.get('RELATION_ID').value]"
+                        [value]="attribute['ATTR_NAME']">{{attribute['ATTR_NAME']}}</option>
+              </select>
+            </div>
+          </td>
+          <td [formGroup]="fieldForm" class="dk-description">
+            <input  type="text" formControlName="FIELD_DESC" class="form-control" maxlength="100" readonly>
+          </td>
+          <td [formGroup]="fieldForm">
+            <input type="checkbox" formControlName="IMPORT">
+          </td>
+          <td [formGroup]="fieldForm">
+            <input type="checkbox" formControlName="EXPORT">
+          </td>
+          <td [formGroup]="fieldForm" class="dk-string">
+            <input  type="text" formControlName="IE_FIELD_NAME" class="form-control form-control-sm"  [readonly]="readonly">
+          </td>
+          <td [formGroup]="fieldForm" class="dk-number">
+            <input type="number" formControlName="LIST_POSITION" class="form-control form-control-sm" [readonly]="readonly">
+          </td>
+          <td [formGroup]="fieldForm" class="dk-number">
+            <input type="number" formControlName="FILTER_POSITION" class="form-control form-control-sm" [readonly]="readonly">
+          </td>
+          <td [formGroup]="fieldForm">
+            <input type="checkbox" formControlName="FIELD_DISP_ONLY">
+          </td>
+          <td [formGroup]="fieldForm" class="dk-string">
+            <input  type="text" formControlName="DEFAULT_VALUE" class="form-control form-control-sm"  [readonly]="readonly">
+          </td>
+          <td class="dk-actions">
+            <button class="btn btn-sm" type="button" id="add" [disabled]="readonly" (click)="insertField(i)" title="Insert">
+              <span class="fas fa-plus"></span>
+            </button>
+            <button class="btn btn-sm" type="button" id="delete" [disabled]="readonly" (click)="deleteField(i)" title="Delete">
+              <span class="far fa-trash-alt"></span>
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+
+<dk-app-search-help></dk-app-search-help>

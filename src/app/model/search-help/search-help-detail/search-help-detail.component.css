@@ -1,0 +1,23 @@
+.dk-table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  border: none;
+}
+.dk-actions{
+  width: 4rem;
+  min-width: 4rem;
+  max-width: 4rem;
+}
+.dk-selection{
+  width: 15rem;
+}
+.dk-string{
+  width: 15rem;
+}
+.dk-number{
+  width: 6rem;
+}
+.dk-description{
+  width: 15rem;
+}

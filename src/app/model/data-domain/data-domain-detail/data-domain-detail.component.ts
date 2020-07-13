@@ -5,7 +5,6 @@ import {UniqueDataDomainValidator} from '../../model-validators';
 import {Message, MessageService} from 'ui-message-angular';
 import {ModelService} from '../../model.service';
 import {DialogService} from '../../../dialog.service';
-import {msgStore} from '../../../msgStore';
 import {switchMap} from 'rxjs/operators';
 import {Observable, of} from 'rxjs';
 import {DataDomainMeta, SearchHelpComponent, EntityService, SearchHelp, SearchHelpMethod} from 'jor-angular';
@@ -42,7 +41,6 @@ export class DataDomainDetailComponent implements OnInit {
               private modelService: ModelService,
               private dialogService: DialogService,
               private entityService: EntityService) {
-    this.messageService.setMessageStore(msgStore, 'EN');
     this.dataTypes = this.modelService.dataTypes;
   }
 

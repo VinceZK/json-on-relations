@@ -158,6 +158,12 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'SEARCH_HELP_SAVED',
+    msgText: {
+      EN: {shortText: 'Search Help "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'UNSAVED_NEW',
     msgText: {
       EN: {shortText: 'There is a unsaved new object existing, please save it first, then create another.', longText: ''}

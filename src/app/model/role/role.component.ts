@@ -5,8 +5,8 @@ import {EntityService} from 'jor-angular';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
 import {ActivatedRoute, Router} from '@angular/router';
-import {msgStore} from '../../msgStore';
 import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
+import {IdentityService} from '../../identity.service';
 
 @Component({
   selector: 'app-role',
@@ -22,9 +22,9 @@ export class RoleComponent implements OnInit {
   constructor(private entityService: EntityService,
               private modelService: ModelService,
               private messageService: MessageService,
+              private identityService: IdentityService,
               private route: ActivatedRoute,
               private router: Router) {
-    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   ngOnInit() {
@@ -103,8 +103,8 @@ export class RoleComponent implements OnInit {
     this.theSelectedRole.ROLE_ID = 'new';
     this.theSelectedRole.ROLE_DESC = 'description';
     this.theSelectedRole.VERSION_NO = 1;
-    this.theSelectedRole.LAST_CHANGE_BY = 'DH001';
-    this.theSelectedRole.LAST_CHANGE_TIME = new Date().toDateString();
+    this.theSelectedRole.LAST_CHANGE_BY = this.identityService.Session.USER_ID;
+    this.theSelectedRole.LAST_CHANGE_TIME = this.identityService.CurrentTime;
     this.modelService.setSelectedRole(this.theSelectedRole);
     this.roleList.splice(0, 0, this.theSelectedRole);
   }

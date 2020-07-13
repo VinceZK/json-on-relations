@@ -6,7 +6,7 @@ import {Subject} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
-import {msgStore} from '../../msgStore';
+import {IdentityService} from '../../identity.service';
 
 @Component({
   selector: 'app-entity-type',
@@ -23,9 +23,9 @@ export class EntityTypeComponent implements OnInit {
   constructor(private entityService: EntityService,
               private modelService: ModelService,
               private messageService: MessageService,
+              private identityService: IdentityService,
               private route: ActivatedRoute,
               private router: Router) {
-    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   ngOnInit() {
@@ -104,8 +104,8 @@ export class EntityTypeComponent implements OnInit {
     this.theSelectedEntityType.ENTITY_ID = 'new';
     this.theSelectedEntityType.ENTITY_DESC = 'description';
     this.theSelectedEntityType.VERSION_NO = 1;
-    this.theSelectedEntityType.LAST_CHANGE_BY = 'DH001';
-    this.theSelectedEntityType.LAST_CHANGE_TIME = new Date().toDateString();
+    this.theSelectedEntityType.LAST_CHANGE_BY = this.identityService.Session.USER_ID;
+    this.theSelectedEntityType.LAST_CHANGE_TIME = this.identityService.CurrentTime;
     this.modelService.setSelectedEntityType(this.theSelectedEntityType);
     this.entityTypeList.splice(0, 0, this.theSelectedEntityType);
   }

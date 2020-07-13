@@ -6,7 +6,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
-import {msgStore} from '../../msgStore';
+import {IdentityService} from '../../identity.service';
 
 @Component({
   selector: 'app-relation',
@@ -23,9 +23,9 @@ export class RelationComponent implements OnInit {
   constructor(private entityService: EntityService,
               private modelService: ModelService,
               private messageService: MessageService,
+              private identityService: IdentityService,
               private route: ActivatedRoute,
               private router: Router) {
-    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   ngOnInit() {
@@ -104,8 +104,8 @@ export class RelationComponent implements OnInit {
     this.theSelectedRelation.RELATION_ID = 'r_new';
     this.theSelectedRelation.RELATION_DESC = 'description';
     this.theSelectedRelation.VERSION_NO = 1;
-    this.theSelectedRelation.LAST_CHANGE_BY = 'DH001';
-    this.theSelectedRelation.LAST_CHANGE_TIME = new Date().toDateString();
+    this.theSelectedRelation.LAST_CHANGE_BY = this.identityService.Session.USER_ID;
+    this.theSelectedRelation.LAST_CHANGE_TIME = this.identityService.CurrentTime;
     this.modelService.setSelectedRelation(this.theSelectedRelation);
     this.relationList.splice(0, 0, this.theSelectedRelation);
   }

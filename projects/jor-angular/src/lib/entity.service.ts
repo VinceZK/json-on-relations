@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject,
-        Relation, RelationMeta, RelationshipH, RoleH} from './entity';
+import {
+  DataDomainH, DataElementH, Entity, EntityMeta, EntityType, QueryObject,
+  Relation, RelationMeta, RelationshipH, RoleH, SearchHelpH
+} from './entity';
 import {catchError} from 'rxjs/operators';
 import {MessageService, messageType} from 'ui-message-angular';
 
@@ -255,7 +257,7 @@ export class EntityService {
    * @param term
    */
   listDataElement(term: string): Observable<DataElementH[]> {
-    return this.http.get<RoleH[]>( this.originalHost + `/api/model/data-elements?term=${term}`).pipe(
+    return this.http.get<DataElementH[]>( this.originalHost + `/api/model/data-elements?term=${term}`).pipe(
       catchError(this.handleError<any>('listDataElement')));
   }
 
@@ -291,7 +293,7 @@ export class EntityService {
    * @param term
    */
   listDataDomain(term: string): Observable<DataDomainH[]> {
-    return this.http.get<RoleH[]>( this.originalHost + `/api/model/data-domains?term=${term}`).pipe(
+    return this.http.get<DataDomainH[]>( this.originalHost + `/api/model/data-domains?term=${term}`).pipe(
       catchError(this.handleError<any>('listDataDomain')));
   }
 
@@ -320,6 +322,42 @@ export class EntityService {
   saveDataDomain(domain: any): Observable<any> {
     return this.http.post<any>(this.originalHost + `/api/model/data-domains`, domain, httpOptions).pipe(
       catchError(this.handleError<any>('saveDataDomain')));
+  }
+
+  /**
+   * Return a list of search helps in the system according to the search term
+   * @param term
+   */
+  listSearchHelp(term: string): Observable<SearchHelpH[]> {
+    return this.http.get<SearchHelpH[]>( this.originalHost + `/api/model/search-helps?term=${term}`).pipe(
+      catchError(this.handleError<any>('listSearchHelp')));
+  }
+
+  /**
+   * Return a search help definition from a given domain ID
+   * @param searchHelpID
+   */
+  getSearchHelp(searchHelpID: string): Observable<any> {
+    return this.http.get<any>( this.originalHost + `/api/model/search-helps/${searchHelpID}`).pipe(
+      catchError(this.handleError<any>('getSearchHelp')));
+  }
+
+  /**
+   * Return the description of a given search help ID
+   * @param searchHelpID
+   */
+  getSearchHelpDesc(searchHelpID: string): Observable<string | {}> {
+    return this.http.get<string>( this.originalHost + `/api/model/search-helps/${searchHelpID}/desc`).pipe(
+      catchError(this.handleError<any>('getSearchHelpDesc')));
+  }
+
+  /**
+   * Save a search help after changing or creation
+   * @param searchHelp
+   */
+  saveSearchHelp(searchHelp: any): Observable<any> {
+    return this.http.post<any>(this.originalHost + `/api/model/search-helps`, searchHelp, httpOptions).pipe(
+      catchError(this.handleError<any>('saveSearchHelp')));
   }
 
   /**

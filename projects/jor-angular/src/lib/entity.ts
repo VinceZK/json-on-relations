@@ -261,3 +261,42 @@ export class DataDomainValue {
   LOW_VALUE_TEXT?: string;
   HIGH_VALUE?: string;
 }
+
+export class SearchHelpH {
+  SEARCH_HELP_ID: string;
+  SEARCH_HELP_DESC?: string;
+  VERSION_NO: number;
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class SearchHelpMeta {
+  SEARCH_HELP_ID: string;
+  SEARCH_HELP_DESC?: string;
+  VERSION_NO: number;
+  BEHAVIOUR: string; // A: Auto-Trigger Search, M: Manual-Trigger Search
+  ENTITY_ID?: string;
+  RELATION_ID?: string;
+  MULTI?: boolean;  // Allow multiple value selection
+  FUZZY_SEARCH?: boolean; // Allow fuzzy search
+  FIELDS: SearchHelpFieldMeta[];
+  CREATE_BY: string;
+  CREATE_TIME: string;
+  LAST_CHANGE_BY: string;
+  LAST_CHANGE_TIME: string;
+}
+
+export class SearchHelpFieldMeta {
+  RELATION_ID?: string;
+  FIELD_NAME: string;
+  FIELD_DESC?: string;
+  IMPORT: boolean;
+  EXPORT: boolean;
+  IE_FIELD_NAME?: string; // Import or Export field name.
+  LIST_POSITION: number;
+  FILTER_POSITION: number;
+  FIELD_DISP_ONLY?: boolean;
+  DEFAULT_VALUE?: any;
+}

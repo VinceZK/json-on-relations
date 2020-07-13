@@ -35,7 +35,7 @@
            [placeholder]="attributeControl.placeholder"
            [pattern]="attributeControl.pattern"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'checkbox'" type="checkbox" class="form-control"
+    <input *ngSwitchCase="'checkbox'" type="checkbox" class="mb-1 ml-1"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key">

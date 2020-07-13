@@ -19,6 +19,8 @@ import { DataElementComponent } from './data-element/data-element.component';
 import { DataDomainComponent } from './data-domain/data-domain.component';
 import { DataDomainDetailComponent } from './data-domain/data-domain-detail/data-domain-detail.component';
 import { DataElementDetailComponent } from './data-element/data-element-detail/data-element-detail.component';
+import { SearchHelpComponent } from './search-help/search-help.component';
+import { SearchHelpDetailComponent } from './search-help/search-help-detail/search-help-detail.component';
 import {JorAngularModule} from 'jor-angular';
 
 @NgModule({
@@ -46,7 +48,9 @@ import {JorAngularModule} from 'jor-angular';
     DataElementComponent,
     DataElementDetailComponent,
     DataDomainComponent,
-    DataDomainDetailComponent
+    DataDomainDetailComponent,
+    SearchHelpComponent,
+    SearchHelpDetailComponent
   ]
 })
 export class ModelModule { }

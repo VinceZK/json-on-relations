@@ -3,9 +3,9 @@ import {Subject} from 'rxjs';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
 import {ActivatedRoute, Router} from '@angular/router';
-import {msgStore} from '../../msgStore';
 import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {DataElementH, EntityService, DataElementMeta} from 'jor-angular';
+import {IdentityService} from '../../identity.service';
 
 @Component({
   selector: 'app-data-element',
@@ -21,9 +21,9 @@ export class DataElementComponent implements OnInit {
   constructor(private entityService: EntityService,
               private modelService: ModelService,
               private messageService: MessageService,
+              private identityService: IdentityService,
               private route: ActivatedRoute,
               private router: Router) {
-    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   ngOnInit() {
@@ -102,8 +102,8 @@ export class DataElementComponent implements OnInit {
     this.theSelectedDataElement.ELEMENT_ID = 'new';
     this.theSelectedDataElement.ELEMENT_DESC = 'description';
     this.theSelectedDataElement.VERSION_NO = 1;
-    this.theSelectedDataElement.LAST_CHANGE_BY = 'DH001';
-    this.theSelectedDataElement.LAST_CHANGE_TIME = new Date().toDateString();
+    this.theSelectedDataElement.LAST_CHANGE_BY = this.identityService.Session.USER_ID;
+    this.theSelectedDataElement.LAST_CHANGE_TIME = this.identityService.CurrentTime;
     this.modelService.setSelectedDataElement(this.theSelectedDataElement);
     this.dataElementList.splice(0, 0, this.theSelectedDataElement);
   }

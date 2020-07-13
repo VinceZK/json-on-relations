@@ -3,9 +3,9 @@ import {Subject} from 'rxjs';
 import {ModelService} from '../model.service';
 import {MessageService} from 'ui-message-angular';
 import {ActivatedRoute, Router} from '@angular/router';
-import {msgStore} from '../../msgStore';
 import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {DataDomainH, DataDomainMeta, EntityService} from 'jor-angular';
+import {IdentityService} from '../../identity.service';
 
 @Component({
   selector: 'app-data-domain',
@@ -21,9 +21,9 @@ export class DataDomainComponent implements OnInit {
   constructor(private entityService: EntityService,
               private modelService: ModelService,
               private messageService: MessageService,
+              private identityService: IdentityService,
               private route: ActivatedRoute,
               private router: Router) {
-    this.messageService.setMessageStore(msgStore, 'EN');
   }
 
   ngOnInit() {
@@ -102,8 +102,8 @@ export class DataDomainComponent implements OnInit {
     this.theSelectedDataDomain.DOMAIN_ID = 'new';
     this.theSelectedDataDomain.DOMAIN_DESC = 'description';
     this.theSelectedDataDomain.VERSION_NO = 1;
-    this.theSelectedDataDomain.LAST_CHANGE_BY = 'DH001';
-    this.theSelectedDataDomain.LAST_CHANGE_TIME = new Date().toDateString();
+    this.theSelectedDataDomain.LAST_CHANGE_BY = this.identityService.Session.USER_ID;
+    this.theSelectedDataDomain.LAST_CHANGE_TIME = this.identityService.CurrentTime;
     this.modelService.setSelectedDataDomain(this.theSelectedDataDomain);
     this.dataDomainList.splice(0, 0, this.theSelectedDataDomain);
   }

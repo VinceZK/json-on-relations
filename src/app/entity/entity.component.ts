@@ -4,7 +4,6 @@ import {Attribute, Entity, EntityMeta, EntityRelation, RelationMeta, Role, Relat
 import {forkJoin, Observable, of} from 'rxjs';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {Message, MessageService} from 'ui-message-angular';
-import {msgStore} from '../msgStore';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {DialogService} from '../dialog.service';
@@ -36,7 +35,6 @@ export class EntityComponent implements OnInit {
               private dialogService: DialogService,
               private entityService: EntityService) {
     this.formGroup = this.fb.group({});
-    this.messageService.setMessageStore(msgStore, 'EN');
     this.toBeAddRelationship = new Relationship();
   }
 
