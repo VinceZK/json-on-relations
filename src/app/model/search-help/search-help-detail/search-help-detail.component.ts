@@ -104,6 +104,12 @@ export class SearchHelpDetailComponent implements OnInit {
       this.searchHelpForm.get('MULTI').setValue(this.searchHelpMeta.MULTI);
       this.searchHelpForm.get('FUZZY_SEARCH').setValue(this.searchHelpMeta.FUZZY_SEARCH);
       this.searchHelpFieldsFormArray.clear();
+      if (this.readonly) {
+        this.searchHelpForm.get('BEHAVIOUR').disable();
+        this.searchHelpForm.get('MULTI').disable();
+        this.searchHelpForm.get('FUZZY_SEARCH').disable();
+        this.searchHelpForm.get('RELATION_ID').disable();
+      }
     } else {
       this.searchHelpForm = this.fb.group({
         SEARCH_HELP_ID: [this.searchHelpMeta.SEARCH_HELP_ID, {updateOn: 'blur'}],
@@ -118,22 +124,24 @@ export class SearchHelpDetailComponent implements OnInit {
     }
     this._setNewModeState();
 
-    this.searchHelpMeta.FIELDS.forEach( field => {
-      this.searchHelpFieldsFormArray.push(
-        this.fb.group({
-          RELATION_ID: [{value: field.RELATION_ID, disabled: this.readonly}],
-          FIELD_NAME: [{value: field.FIELD_NAME, disabled: this.readonly}],
-          FIELD_DESC: [field.FIELD_DESC],
-          IMPORT: [{value: field.IMPORT, disabled: this.readonly}],
-          EXPORT: [{value: field.EXPORT, disabled: this.readonly}],
-          IE_FIELD_NAME: [field.IE_FIELD_NAME],
-          LIST_POSITION: [field.LIST_POSITION],
-          FILTER_POSITION: [field.FILTER_POSITION],
-          FIELD_DISP_ONLY: [{value: field.FIELD_DISP_ONLY, disabled: this.readonly}],
-          DEFAULT_VALUE: [field.DEFAULT_VALUE]
-        })
-      );
-    });
+    if (this.searchHelpMeta.FIELDS) {
+      this.searchHelpMeta.FIELDS.forEach( field => {
+        this.searchHelpFieldsFormArray.push(
+          this.fb.group({
+            RELATION_ID: [{value: field.RELATION_ID, disabled: this.readonly}],
+            FIELD_NAME: [{value: field.FIELD_NAME, disabled: this.readonly}],
+            FIELD_DESC: [field.FIELD_DESC],
+            IMPORT: [{value: field.IMPORT, disabled: this.readonly}],
+            EXPORT: [{value: field.EXPORT, disabled: this.readonly}],
+            IE_FIELD_NAME: [field.IE_FIELD_NAME],
+            LIST_POSITION: [field.LIST_POSITION],
+            FILTER_POSITION: [field.FILTER_POSITION],
+            FIELD_DISP_ONLY: [{value: field.FIELD_DISP_ONLY, disabled: this.readonly}],
+            DEFAULT_VALUE: [field.DEFAULT_VALUE]
+          })
+        );
+      });
+    }
   }
 
   _setNewModeState() {
@@ -265,7 +273,7 @@ export class SearchHelpDetailComponent implements OnInit {
       {FIELD_NAME: 'ENTITY_ID', FIELD_DESC: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
       {FIELD_NAME: 'ENTITY_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
-    searchHelpMeta.READ_ONLY = this.readonly || this.searchHelpForm.get('DOMAIN_TYPE').value !== 2;
+    searchHelpMeta.READ_ONLY = this.readonly;
     const afterExportFn = function (context: any) {
       return () => context.onChangeEntityID(control);
     }(this).bind(this);
@@ -289,6 +297,7 @@ export class SearchHelpDetailComponent implements OnInit {
           if (setDefault) {
             searchHelpForm.get('RELATION_ID').setValue(this.relationsOfEntity[0]);
             searchHelpForm.get('RELATION_ID').markAsDirty();
+            this._getAttributesOfRelation(searchHelpForm, true);
           }
         }
       });
@@ -304,9 +313,7 @@ export class SearchHelpDetailComponent implements OnInit {
       if (afterChanges) {
         this._afterChangeRelationID(formGroup);
       } else {
-        const currAttr = <Attribute>this.relationAttributesMap[relationID].find(
-          (attribute: Attribute) => attribute.ATTR_NAME === formGroup.get('FIELD_NAME').value);
-        formGroup.get('FIELD_DESC').setValue(currAttr.ATTR_DESC);
+        this.onChangeField(formGroup);
       }
     } else {
       this.entityService.getRelationMeta(relationID)
@@ -315,9 +322,7 @@ export class SearchHelpDetailComponent implements OnInit {
           if (afterChanges) {
             this._afterChangeRelationID(formGroup);
           } else {
-            const currAttr = <Attribute>this.relationAttributesMap[relationID].find(
-              (attribute: Attribute) => attribute.ATTR_NAME === formGroup.get('FIELD_NAME').value);
-            formGroup.get('FIELD_DESC').setValue(currAttr.ATTR_DESC);
+            this.onChangeField(formGroup);
           }
         });
     }
@@ -350,9 +355,17 @@ export class SearchHelpDetailComponent implements OnInit {
     }
   }
 
+  onChangeField(formGroup: AbstractControl): void {
+    const relationID = formGroup.get('RELATION_ID').value;
+    const currAttr = <Attribute>this.relationAttributesMap[relationID].find(
+      (attribute: Attribute) => attribute.ATTR_NAME === formGroup.get('FIELD_NAME').value);
+    formGroup.get('FIELD_DESC').setValue(currAttr.ATTR_DESC);
+  }
+
   insertField(index: number): void {
-    this.searchHelpFieldsFormArray.insert(index, this.fb.group({
-      RELATION_ID: [''],
+    const mainRelationID = this.searchHelpForm.get('RELATION_ID').value;
+    const newFieldCtrl = this.fb.group({
+      RELATION_ID: [mainRelationID],
       FIELD_NAME: [''],
       FIELD_DESC: [''],
       IMPORT: [''],
@@ -362,10 +375,16 @@ export class SearchHelpDetailComponent implements OnInit {
       FILTER_POSITION: [''],
       FILTER_DISP_ONLY: [''],
       DEFAULT_VALUE: ['']
-    }));
+    });
+    this.searchHelpFieldsFormArray.insert(index, newFieldCtrl);
+    this._getAttributesOfRelation(newFieldCtrl, true);
   }
 
   deleteField(index: number): void {
+    if (this.searchHelpFieldsFormArray.length === 1) {
+      this.messageService.reportMessage('MODEL', 'MINIMUM_ONE_SEARCH_FIELD', 'E');
+      return;
+    }
     this.searchHelpFieldsFormArray.removeAt(index);
     this.searchHelpFieldsFormArray.markAsDirty();
   }

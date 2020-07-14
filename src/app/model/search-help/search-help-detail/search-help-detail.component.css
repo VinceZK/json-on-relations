@@ -11,13 +11,17 @@
 }
 .dk-selection{
   width: 15rem;
+  min-width: 10rem;
 }
 .dk-string{
   width: 15rem;
+  min-width: 10rem;
 }
 .dk-number{
-  width: 6rem;
+  width: 10rem;
+  min-width: 5rem;
 }
 .dk-description{
   width: 15rem;
+  min-width: 10rem;
 }

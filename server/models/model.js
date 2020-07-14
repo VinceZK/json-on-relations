@@ -1131,7 +1131,7 @@ function saveDataDomain(dataDomain, userID, callback) {
         updateSQL += (index === domainValues.length - 1)? " );" : " ),";
       });
       updateSQLs.push(updateSQL);
-    } else {
+    } else if (dataDomain.DOMAIN_VALUES) { // DOMAIN_VALUES is changed
       updateSQL = "delete from DATA_DOMAIN_VALUE where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
       updateSQLs.push(updateSQL);
       updateSQL = "delete from DATA_DOMAIN_VALUE_TEXT where DOMAIN_ID = " + entityDB.pool.escape(dataDomain.DOMAIN_ID);
@@ -1256,7 +1256,7 @@ function getSearchHelp(searchHelpID, callback) {
  */
 function getSearchHelpDesc(searchHelpID, callback) {
   let selectSQL =
-    "select SEARCH_HELP_DESC from SEARCH_HELP where SEARCH_HELP = "+ entityDB.pool.escape(searchHelpID);
+    "select SEARCH_HELP_DESC from SEARCH_HELP where SEARCH_HELP_ID = "+ entityDB.pool.escape(searchHelpID);
   entityDB.executeSQL(selectSQL, function (err, rows) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     if(!rows[0]) return callback(message.report('MODEL', 'SEARCH_HELP_NOT_EXIST', 'E', searchHelpID));
@@ -1266,7 +1266,7 @@ function getSearchHelpDesc(searchHelpID, callback) {
 
 /**
  * Save a search help
- * @param dataDomain
+ * @param searchHelp
  * @param userID
  * @param callback(err)
  * @returns {*}
@@ -1282,8 +1282,7 @@ function saveSearchHelp(searchHelp, userID, callback) {
 
   const currentTime = timeUtil.getCurrentDateTime("yyyy-MM-dd HH:mm:ss");
   const updateSQLs = [];
-  let syncDBTableIndicator = false;
-  let updateRelationReloadIndicator = false;
+
   if (searchHelp.action === 'update') {
     let updateSQL = "update SEARCH_HELP set LAST_CHANGE_BY = " + entityDB.pool.escape(userID) +
       ", LAST_CHANGE_TIME = " + entityDB.pool.escape(currentTime) + ", VERSION_NO = VERSION_NO + 1";
@@ -1307,12 +1306,12 @@ function saveSearchHelp(searchHelp, userID, callback) {
 
     updateSQL += " where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID);
     updateSQLs.push(updateSQL);
-    if (searchHelp.FIELDS && searchHelp.DOMAIN_VALUES.FIELDS > 0) {
+    if (searchHelp.FIELDS && searchHelp.FIELDS.length > 0) {
       updateSQL = "delete from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID)
         + "; insert into SEARCH_HELP_FIELD ( `SEARCH_HELP_ID`, `RELATION_ID`, `FIELD_NAME`, `IMPORT`, `EXPORT`," +
         " `IE_FIELD_NAME`, `LIST_POSITION`, `FILTER_POSITION`, `FILTER_DISP_ONLY`, `DEFAULT_VALUE`) values ";
       searchHelp.FIELDS.forEach( (field, index, fields) => {
-        updateSQL += "( " + entityDB.pool.escape(field.SEARCH_HELP_ID) +
+        updateSQL += "( " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID) +
         ", " + entityDB.pool.escape(field.RELATION_ID) +
         ", " + entityDB.pool.escape(field.FIELD_NAME) +
         ", " + entityDB.pool.escape(field.IMPORT) +
@@ -1324,9 +1323,6 @@ function saveSearchHelp(searchHelp, userID, callback) {
         ", " + entityDB.pool.escape(field.DEFAULT_VALUE);
         updateSQL += (index === fields.length - 1)? " );" : " ),";
       });
-      updateSQLs.push(updateSQL);
-    } else {
-      updateSQL = "delete from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID);
       updateSQLs.push(updateSQL);
     }
   } else if (searchHelp.action === undefined || searchHelp.action === 'add') {
@@ -1343,7 +1339,7 @@ function saveSearchHelp(searchHelp, userID, callback) {
       insertSQL = "insert into SEARCH_HELP_FIELD ( `SEARCH_HELP_ID`, `RELATION_ID`, `FIELD_NAME`, `IMPORT`, `EXPORT`," +
         " `IE_FIELD_NAME`, `LIST_POSITION`, `FILTER_POSITION`, `FILTER_DISP_ONLY`, `DEFAULT_VALUE`) values ";
       searchHelp.FIELDS.forEach( (field, index, fields) => {
-        insertSQL += "( " + entityDB.pool.escape(field.SEARCH_HELP_ID) +
+        insertSQL += "( " + entityDB.pool.escape(searchHelp.SEARCH_HELP_ID) +
           ", " + entityDB.pool.escape(field.RELATION_ID) +
           ", " + entityDB.pool.escape(field.FIELD_NAME) +
           ", " + entityDB.pool.escape(field.IMPORT) +

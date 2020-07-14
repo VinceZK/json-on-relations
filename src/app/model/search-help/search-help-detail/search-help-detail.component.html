@@ -115,7 +115,8 @@
           </td>
           <td [formGroup]="fieldForm" class="dk-selection">
             <div class="input-group">
-              <select formControlName="FIELD_NAME" class="form-control form-control-sm">
+              <select formControlName="FIELD_NAME" class="form-control form-control-sm"
+                      (change)="onChangeField(fieldForm)">
                 <option *ngFor="let attribute of relationAttributesMap[fieldForm.get('RELATION_ID').value]"
                         [value]="attribute['ATTR_NAME']">{{attribute['ATTR_NAME']}}</option>
               </select>

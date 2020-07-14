@@ -158,9 +158,21 @@ export const msgStore = [
     }
   },
   { msgCat: 'MODEL',
+    msgName: 'MINIMUM_ONE_DOMAIN_VALUE',
+    msgText: {
+      EN: {shortText: 'At least one domain value is needed!', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
     msgName: 'SEARCH_HELP_SAVED',
     msgText: {
       EN: {shortText: 'Search Help "%s" is saved', longText: ''}
+    }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'MINIMUM_ONE_SEARCH_FIELD',
+    msgText: {
+      EN: {shortText: 'At least one search field is needed!', longText: ''}
     }
   },
   { msgCat: 'MODEL',

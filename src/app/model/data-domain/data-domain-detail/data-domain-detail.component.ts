@@ -541,6 +541,10 @@ export class DataDomainDetailComponent implements OnInit {
       return this.messageService.reportMessage('MODEL', 'INVALID_DATA', 'E');
     }
 
+    if (+this.dataDomainForm.get('DOMAIN_TYPE').value >= 3 && this.domainValueFormArray.length === 0 ) {
+      return this.messageService.reportMessage('MODEL', 'MINIMUM_ONE_DOMAIN_VALUE', 'E');
+    }
+
     if (this.isNewMode) {
       this.changedDataDomain['action'] = 'add';
       this.changedDataDomain['DOMAIN_ID'] = this.dataDomainForm.get('DOMAIN_ID').value;
