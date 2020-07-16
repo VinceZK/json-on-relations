@@ -74,8 +74,14 @@ export class AttributeComponent implements OnInit, OnChanges{
   }
 
   onSearchHelp(attributeControl: AttributeBase) {
-    this.searchHelpComponent.openSearchHelpModalByEntity(
-      attributeControl.domainEntityId, attributeControl.domainRelationId, this.formGroup, this.readonly,
-      attributeControl.name, attributeControl.domainId);
+    if (attributeControl.searchHelpId) {
+      this.searchHelpComponent.openSearchHelpBySearchHelp(
+        attributeControl.searchHelpId, attributeControl.name, attributeControl.searchHelpExportField,
+        this.formGroup, this.readonly );
+    } else {
+      this.searchHelpComponent.openSearchHelpModalByEntity(
+        attributeControl.domainEntityId, attributeControl.domainRelationId, this.formGroup, this.readonly,
+        attributeControl.name, attributeControl.domainId);
+    }
   }
 }

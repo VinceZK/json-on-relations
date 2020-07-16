@@ -110,8 +110,8 @@ export class EntityTypeDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ROLE_ID', FIELD_DESC: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ROLE_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      {FIELD_NAME: 'ROLE_ID', LIST_HEADER_TEXT: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ROLE_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly || this.oldRole(control) && control.valid;
 

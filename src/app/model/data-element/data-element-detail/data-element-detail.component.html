@@ -47,7 +47,7 @@
                  [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary btn-sm" type="button" id="searchDomain"
-                    (click)="onSearchHelp(dataElementForm)">
+                    (click)="onDataDomainSearchHelp(dataElementForm)">
               <span class="fas fa-search"></span>
             </button>
           </div>
@@ -95,13 +95,13 @@
   <div class="card mt-2">
     <div class="card-header">Text</div>
     <div class="card-body">
-      <div class="ml-4 form-group row">
+      <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="label-text">Label Text</label>
         <input type="text" formControlName="LABEL_TEXT" id="label-text" name="label-text"
                class="form-control form-control-sm col-md-6" [readonly]="readonly">
       </div>
 
-      <div class="ml-4 form-group row">
+      <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="list-header-text">List Header Text</label>
         <input type="text" formControlName="LIST_HEADER_TEXT" id="list-header-text" name="list-header-text"
                class="form-control form-control-sm col-md-6" [readonly]="readonly">
@@ -112,22 +112,37 @@
   <div class="card mt-2">
     <div class="card-header">Additional Attribute</div>
     <div class="card-body">
-      <div class="ml-4 form-group row">
+      <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="search-help">Search Help</label>
-        <input type="text" formControlName="SEARCH_HELP_ID" id="search-help" name="search-help"
-               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+        <div class="input-group col-8 col-lg-4">
+          <input type="text" formControlName="SEARCH_HELP_ID" id="search-help" name="search-help"
+                 class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeSearchHelp(dataElementForm)">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="searchSearchHelp"
+                    (click)="onSearchHelpSearchHelp(dataElementForm)">
+              <span class="fas fa-search"></span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="ml-4 form-group row">
+      <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="sh-export-field">Export Field</label>
-        <input type="text" formControlName="SEARCH_HELP_EXPORT_FIELD" id="sh-export-field" name="sh-export-field"
-               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+<!--        <input type="text" formControlName="SEARCH_HELP_EXPORT_FIELD" id="sh-export-field" name="sh-export-field"-->
+<!--               class="form-control form-control-sm col-md-4" [readonly]="readonly">-->
+        <div class="input-group col-8 col-lg-4">
+          <select formControlName="SEARCH_HELP_EXPORT_FIELD" class="form-control form-control-sm" id="sh-export-field">
+            <option *ngFor="let exportField of searchHelpExportField" [value]="exportField">{{exportField}}</option>
+          </select>
+        </div>
       </div>
 
-      <div class="ml-4 form-group row">
+      <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="parameter">Parameter</label>
-        <input type="text" formControlName="PARAMETER_ID" id="parameter" name="parameter"
-               class="form-control form-control-sm col-md-4" [readonly]="readonly">
+        <div class="input-group col-8 col-lg-4">
+          <input type="text" formControlName="PARAMETER_ID" id="parameter" name="parameter"
+                 class="form-control form-control-sm" [readonly]="readonly">
+        </div>
       </div>
     </div>
   </div>

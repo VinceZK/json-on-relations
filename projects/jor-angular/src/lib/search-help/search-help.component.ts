@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {QueryObject, RelationMeta} from '../entity';
+import {QueryObject, RelationMeta, SearchHelpMeta} from '../entity';
 import {EntityService} from '../entity.service';
 import {Observable} from 'rxjs';
 import {SearchHelp, SearchHelpMethod} from './search-help';
@@ -92,7 +92,8 @@ export class SearchHelpComponent implements OnInit {
         relationMeta.ATTRIBUTES.forEach( attribute =>
           searchHelpMeta.FIELDS.push({
             FIELD_NAME: attribute.ATTR_NAME,
-            FIELD_DESC: attribute.LIST_HEADER_TEXT,
+            LABEL_TEXT: attribute.LABEL_TEXT,
+            LIST_HEADER_TEXT: attribute.LIST_HEADER_TEXT,
             IE_FIELD_NAME: exportField && domainID && domainID === attribute.DOMAIN_ID ? exportField : null,
             IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
             EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
@@ -101,12 +102,37 @@ export class SearchHelpComponent implements OnInit {
           }));
         searchHelpMeta.FIELDS.push({
           FIELD_NAME: 'INSTANCE_GUID',
-          FIELD_DESC: 'Instance GUID',
+          LIST_HEADER_TEXT: 'GUID',
           IMPORT: false,
           EXPORT: true,
           LIST_POSITION: 999,
           FILTER_POSITION: 0});
         this.openSearchHelpModal(searchHelpMeta, exportControl, afterExportFn);
+      });
+  }
+
+  openSearchHelpBySearchHelp(searchHelpID: string, exportField: string, searchHelpExportField: string,
+                             exportControl: any, readonly: boolean, afterExportFn?: any) {
+    const searchHelp = new SearchHelp();
+    this.entityService.getSearchHelp(searchHelpID)
+      .subscribe((searchHelpMeta: SearchHelpMeta) => {
+        searchHelp.OBJECT_NAME = searchHelpMeta.SEARCH_HELP_DESC + '(' + searchHelpMeta.SEARCH_HELP_ID + ')';
+        searchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+          return (searchTerm: QueryObject): Observable<object[]> => entityService.searchEntities(searchTerm);
+        }(this.entityService);
+        searchHelp.BEHAVIOUR = searchHelpMeta.BEHAVIOUR;
+        searchHelp.MULTI = searchHelpMeta.MULTI;
+        searchHelp.FUZZY_SEARCH = searchHelpMeta.FUZZY_SEARCH;
+        searchHelp.READ_ONLY = readonly;
+        searchHelp.ENTITY_ID = searchHelpMeta.ENTITY_ID;
+        searchHelp.RELATION_ID = searchHelpMeta.RELATION_ID;
+        searchHelp.FIELDS = searchHelpMeta.FIELDS;
+        const searchHelpField = searchHelp.FIELDS.find(
+          field => (field.IE_FIELD_NAME || field.FIELD_NAME) === searchHelpExportField);
+        searchHelpField.IE_FIELD_NAME = exportField;
+        searchHelpField.EXPORT = true;
+        searchHelpField.IMPORT = true;
+        this.openSearchHelpModal(searchHelp, exportControl, afterExportFn);
       });
   }
 
@@ -123,12 +149,20 @@ export class SearchHelpComponent implements OnInit {
         const fieldValue = this.filterFieldsFormGroup.get(fieldMeta.FIELD_NAME).value;
         if (fieldValue) {
           if (fieldValue.includes('*') || fieldValue.includes('%')) {
-            searchTerm.FILTER.push({FIELD_NAME: fieldMeta.FIELD_NAME, OPERATOR: 'CN', LOW: fieldValue});
+            searchTerm.FILTER.push({RELATION_ID: fieldMeta.RELATION_ID,
+              FIELD_NAME: fieldMeta.FIELD_NAME, OPERATOR: 'CN', LOW: fieldValue});
           } else {
-            searchTerm.FILTER.push({FIELD_NAME: fieldMeta.FIELD_NAME, OPERATOR: 'EQ', LOW: fieldValue});
+            searchTerm.FILTER.push({RELATION_ID: fieldMeta.RELATION_ID,
+              FIELD_NAME: fieldMeta.FIELD_NAME, OPERATOR: 'EQ', LOW: fieldValue});
           }
         }
       });
+      searchTerm.PROJECTION = [];
+      if (!this.listFields.find( fieldMeta => fieldMeta.FIELD_NAME === 'INSTANCE_GUID')) {
+        this.listFields.forEach( fieldMeta => {
+          searchTerm.PROJECTION.push({RELATION_ID: fieldMeta.RELATION_ID, FIELD_NAME: fieldMeta.FIELD_NAME});
+        });
+      }
     }
 
     this.listData = [];

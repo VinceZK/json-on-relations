@@ -178,10 +178,10 @@
                         [readonly]="readonly">
               </td>
               <td class="dk-actions">
-                <button class="btn btn-sm" type="button" id="add" [disabled]="readonly" (click)="insertDomainValue(i)" title="Insert">
+                <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="insertDomainValue(i)" title="Insert">
                   <span class="fas fa-plus"></span>
                 </button>
-                <button class="btn btn-sm" type="button" id="delete" [disabled]="readonly" (click)="deleteDomainValue(i)" title="Delete">
+                <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteDomainValue(i)" title="Delete">
                   <span class="far fa-trash-alt"></span>
                 </button>
               </td>

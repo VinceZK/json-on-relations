@@ -13,7 +13,8 @@ export class SearchHelp {
 export class SearchHelpField {
   RELATION_ID?: string;
   FIELD_NAME: string;
-  FIELD_DESC?: string;
+  LABEL_TEXT?: string;
+  LIST_HEADER_TEXT?: string;
   IMPORT: boolean;
   EXPORT: boolean;
   IE_FIELD_NAME?: string; // Import or Export field name.

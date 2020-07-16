@@ -17,7 +17,7 @@
           <div class="mt-2 mx-2 row" [formGroup]="filterFieldsFormGroup">
             <div *ngFor="let filterField of filterFields" class="col-6 form-group row">
               <label for="{{filterField.FIELD_NAME}}" class="col-6 col-form-label col-form-label-sm text-right">
-                {{filterField.FIELD_DESC}}:</label>
+                {{filterField.LABEL_TEXT || filterField.FIELD_NAME}}:</label>
               <input id="{{filterField.FIELD_NAME}}" name="{{filterField.FIELD_NAME}}" formControlName="{{filterField.FIELD_NAME}}"
                      type="text" class="col-6 form-control form-control-sm" [readonly]="filterField.FILTER_DISP_ONLY" (keyup)="enterSearch($event)">
             </div>
@@ -39,7 +39,7 @@
             <th scope="col">
               <input *ngIf="searchHelpMeta?.MULTI" type="checkbox" [(ngModel)]="isSelectAllChecked" (click)="selectAll()">
             </th>
-            <th *ngFor="let listField of listFields">{{listField.FIELD_DESC}}</th>
+            <th *ngFor="let listField of listFields">{{listField.LIST_HEADER_TEXT || listField.FIELD_NAME}}</th>
           </tr>
           </thead>
 

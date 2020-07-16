@@ -292,11 +292,13 @@ export class SearchHelpFieldMeta {
   RELATION_ID?: string;
   FIELD_NAME: string;
   FIELD_DESC?: string;
+  LABEL_TEXT?: string;
+  LIST_HEADER_TEST?: string;
   IMPORT: boolean;
   EXPORT: boolean;
   IE_FIELD_NAME?: string; // Import or Export field name.
   LIST_POSITION: number;
   FILTER_POSITION: number;
-  FIELD_DISP_ONLY?: boolean;
+  FILTER_DISP_ONLY?: boolean;
   DEFAULT_VALUE?: any;
 }

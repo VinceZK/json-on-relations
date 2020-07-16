@@ -52,9 +52,9 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ELEMENT_ID', FIELD_DESC: 'Element ID', IE_FIELD_NAME: 'DATA_ELEMENT',
+      {FIELD_NAME: 'ELEMENT_ID', LIST_HEADER_TEXT: 'Element ID', IE_FIELD_NAME: 'DATA_ELEMENT',
         IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ELEMENT_DESC', FIELD_DESC: 'Element Description', IE_FIELD_NAME: 'ATTR_DESC',
+      {FIELD_NAME: 'ELEMENT_DESC', LIST_HEADER_TEXT: 'Element Description', IE_FIELD_NAME: 'ATTR_DESC',
         IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly || control.get('DATA_ELEMENT').disabled;

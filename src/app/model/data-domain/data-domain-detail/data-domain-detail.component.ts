@@ -278,8 +278,8 @@ export class DataDomainDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ENTITY_ID', FIELD_DESC: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ENTITY_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      {FIELD_NAME: 'ENTITY_ID', LIST_HEADER_TEXT: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ENTITY_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly || this.dataDomainForm.get('DOMAIN_TYPE').value !== 2;
     const afterExportFn = function (context: any) {

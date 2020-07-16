@@ -119,9 +119,9 @@ export class RelationDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'RELATION_ID', FIELD_DESC: 'Relation', IMPORT: true, EXPORT: true, IE_FIELD_NAME: fieldName,
+      {FIELD_NAME: 'RELATION_ID', LIST_HEADER_TEXT: 'Relation', IMPORT: true, EXPORT: true, IE_FIELD_NAME: fieldName,
         LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'RELATION_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      {FIELD_NAME: 'RELATION_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly;
 

@@ -63,7 +63,7 @@
 
       <div class="card mb-2">
         <div class="card-body row">
-          <div class="form-group row col-lg-4 mr-2">
+          <div class="form-group row col-lg-5 mr-2">
             <label class="col-form-label col-form-label-sm col-4 text-right" for="behaviour">Behaviour:</label>
             <select formControlName="BEHAVIOUR" class="form-control form-control-sm col-8" id="behaviour">
               <option *ngFor="let opt of behaviours" [value]="opt.key">{{opt.value}}</option>
@@ -135,22 +135,22 @@
             <input  type="text" formControlName="IE_FIELD_NAME" class="form-control form-control-sm"  [readonly]="readonly">
           </td>
           <td [formGroup]="fieldForm" class="dk-number">
-            <input type="number" formControlName="LIST_POSITION" class="form-control form-control-sm" [readonly]="readonly">
+            <input type="number" min="0" formControlName="LIST_POSITION" class="form-control form-control-sm" [readonly]="readonly">
           </td>
           <td [formGroup]="fieldForm" class="dk-number">
-            <input type="number" formControlName="FILTER_POSITION" class="form-control form-control-sm" [readonly]="readonly">
+            <input type="number" min="0" formControlName="FILTER_POSITION" class="form-control form-control-sm" [readonly]="readonly">
           </td>
           <td [formGroup]="fieldForm">
-            <input type="checkbox" formControlName="FIELD_DISP_ONLY">
+            <input type="checkbox" formControlName="FILTER_DISP_ONLY">
           </td>
           <td [formGroup]="fieldForm" class="dk-string">
             <input  type="text" formControlName="DEFAULT_VALUE" class="form-control form-control-sm"  [readonly]="readonly">
           </td>
           <td class="dk-actions">
-            <button class="btn btn-sm" type="button" id="add" [disabled]="readonly" (click)="insertField(i)" title="Insert">
+            <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="insertField(i)" title="Insert">
               <span class="fas fa-plus"></span>
             </button>
-            <button class="btn btn-sm" type="button" id="delete" [disabled]="readonly" (click)="deleteField(i)" title="Delete">
+            <button class="btn btn-sm" type="button" [disabled]="readonly" (click)="deleteField(i)" title="Delete">
               <span class="far fa-trash-alt"></span>
             </button>
           </td>

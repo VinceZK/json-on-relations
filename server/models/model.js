@@ -1239,8 +1239,13 @@ function getSearchHelp(searchHelpID, callback) {
     if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
     let searchHelp = rows[0];
     if(!searchHelp) return callback(message.report('MODEL', 'SEARCH_HELP_NOT_EXIST', 'E', searchHelpID));
-    selectSQL = "select * from SEARCH_HELP_FIELD where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelpID) +
-    " order by LIST_POSITION";
+    selectSQL = "select A.RELATION_ID, FIELD_NAME, IMPORT, EXPORT, IE_FIELD_NAME, LIST_POSITION, FILTER_POSITION," +
+      "FILTER_DISP_ONLY, DEFAULT_VALUE, B.ATTR_DESC as FIELD_DESC, C.LABEL_TEXT, C.LIST_HEADER_TEXT " +
+      "from SEARCH_HELP_FIELD as A " +
+      "join ATTRIBUTE as B on A.RELATION_ID = B.RELATION_ID and A.FIELD_NAME = B.ATTR_NAME " +
+      "join DATA_ELEMENT_TEXT as C on B.DATA_ELEMENT = C.ELEMENT_ID " +
+      "where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelpID) +
+      " and C.LANGU = 'EN' order by LIST_POSITION";
     entityDB.executeSQL(selectSQL, function (err, rows) {
       if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
       searchHelp['FIELDS'] = rows;

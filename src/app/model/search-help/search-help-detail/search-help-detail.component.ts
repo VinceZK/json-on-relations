@@ -136,7 +136,7 @@ export class SearchHelpDetailComponent implements OnInit {
             IE_FIELD_NAME: [field.IE_FIELD_NAME],
             LIST_POSITION: [field.LIST_POSITION],
             FILTER_POSITION: [field.FILTER_POSITION],
-            FIELD_DISP_ONLY: [{value: field.FIELD_DISP_ONLY, disabled: this.readonly}],
+            FILTER_DISP_ONLY: [{value: field.FILTER_DISP_ONLY, disabled: this.readonly}],
             DEFAULT_VALUE: [field.DEFAULT_VALUE]
           })
         );
@@ -233,7 +233,7 @@ export class SearchHelpDetailComponent implements OnInit {
       field.get('FIELD_NAME').disable();
       field.get('IMPORT').disable();
       field.get('EXPORT').disable();
-      field.get('FIELD_DISP_ONLY').disable();
+      field.get('FILTER_DISP_ONLY').disable();
     });
   }
 
@@ -248,7 +248,7 @@ export class SearchHelpDetailComponent implements OnInit {
       field.get('FIELD_NAME').enable();
       field.get('IMPORT').enable();
       field.get('EXPORT').enable();
-      field.get('FIELD_DISP_ONLY').enable();
+      field.get('FILTER_DISP_ONLY').enable();
     });
   }
 
@@ -270,8 +270,8 @@ export class SearchHelpDetailComponent implements OnInit {
     searchHelpMeta.MULTI = false;
     searchHelpMeta.FUZZY_SEARCH = true;
     searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ENTITY_ID', FIELD_DESC: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ENTITY_DESC', FIELD_DESC: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      {FIELD_NAME: 'ENTITY_ID', LIST_HEADER_TEXT: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+      {FIELD_NAME: 'ENTITY_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
     ];
     searchHelpMeta.READ_ONLY = this.readonly;
     const afterExportFn = function (context: any) {
@@ -346,7 +346,7 @@ export class SearchHelpDetailComponent implements OnInit {
             IE_FIELD_NAME: [''],
             LIST_POSITION: [attribute.ORDER],
             FILTER_POSITION: [attribute.ORDER],
-            FIELD_DISP_ONLY: [''],
+            FILTER_DISP_ONLY: [false],
             DEFAULT_VALUE: ['']
           })
         );
@@ -364,20 +364,19 @@ export class SearchHelpDetailComponent implements OnInit {
 
   insertField(index: number): void {
     const mainRelationID = this.searchHelpForm.get('RELATION_ID').value;
-    const newFieldCtrl = this.fb.group({
+    const firstAttribute = <Attribute>this.relationAttributesMap[mainRelationID][0];
+    this.searchHelpFieldsFormArray.insert(index, this.fb.group({
       RELATION_ID: [mainRelationID],
-      FIELD_NAME: [''],
-      FIELD_DESC: [''],
-      IMPORT: [''],
-      EXPORT: [''],
+      FIELD_NAME: [firstAttribute.ATTR_NAME],
+      FIELD_DESC: [firstAttribute.ATTR_DESC],
+      IMPORT: [firstAttribute.PRIMARY_KEY],
+      EXPORT: [firstAttribute.PRIMARY_KEY],
       IE_FIELD_NAME: [''],
-      LIST_POSITION: [''],
-      FILTER_POSITION: [''],
-      FILTER_DISP_ONLY: [''],
+      LIST_POSITION: [0],
+      FILTER_POSITION: [0],
+      FILTER_DISP_ONLY: [false],
       DEFAULT_VALUE: ['']
-    });
-    this.searchHelpFieldsFormArray.insert(index, newFieldCtrl);
-    this._getAttributesOfRelation(newFieldCtrl, true);
+    }));
   }
 
   deleteField(index: number): void {
@@ -464,6 +463,8 @@ export class SearchHelpDetailComponent implements OnInit {
         this._switch2DisplayMode();
         this.searchHelpMeta = data;
         this._generateSearchHelpForm();
+        this.searchHelpFieldsFormArray.controls.forEach( field =>
+          this._getAttributesOfRelation(field, false ));
         this.messageService.reportMessage('MODEL', 'SEARCH_HELP_SAVED', 'S', data['SEARCH_HELP_ID']);
       }
     } else {
