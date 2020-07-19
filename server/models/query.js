@@ -162,7 +162,7 @@ function run(queryObject, callback) {
       const index = relationMeta.ATTRIBUTES.findIndex(function (attribute) {
         return attribute.ATTR_NAME === fieldName;
       });
-      if (index === -1) {
+      if (index === -1 && fieldName !== 'INSTANCE_GUID') {
         errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', fieldName, relationID));
       } else {
         projectionString += entityDB.pool.escapeId(relationID) + '.' + entityDB.pool.escapeId(fieldName);

@@ -39,7 +39,10 @@
             <th scope="col">
               <input *ngIf="searchHelpMeta?.MULTI" type="checkbox" [(ngModel)]="isSelectAllChecked" (click)="selectAll()">
             </th>
-            <th *ngFor="let listField of listFields">{{listField.LIST_HEADER_TEXT || listField.FIELD_NAME}}</th>
+            <th *ngFor="let listField of listFields"
+                [style.display]="listField.FIELD_NAME === 'INSTANCE_GUID' ? 'none' : 'table-cell'">
+              {{listField.LIST_HEADER_TEXT || listField.FIELD_NAME}}
+            </th>
           </tr>
           </thead>
 
@@ -49,7 +52,10 @@
               <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedIndex" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
               <input *ngIf="searchHelpMeta.MULTI" type="checkbox" [(ngModel)]="item.SELECTED">
             </td>
-            <td *ngFor="let listField of listFields">{{item[listField.FIELD_NAME]}}</td>
+            <td *ngFor="let listField of listFields"
+                [style.display]="listField.FIELD_NAME === 'INSTANCE_GUID' ? 'none' : 'table-cell'">
+              {{item[listField.FIELD_NAME]}}
+            </td>
           </tr>
           </tbody>
         </table>

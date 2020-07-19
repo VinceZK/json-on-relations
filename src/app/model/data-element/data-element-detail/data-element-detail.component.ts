@@ -131,6 +131,7 @@ export class DataElementDetailComponent implements OnInit {
 
   _getSearchHelpMeta(formGroup: AbstractControl, setDefault: boolean): void {
     const searchHelpCtrl = formGroup.get('SEARCH_HELP_ID');
+    if (!searchHelpCtrl.value) { return; }
     this.entityService.getSearchHelp(searchHelpCtrl.value).subscribe(data => {
       if (data['msgCat']) {
         searchHelpCtrl.setErrors({message: data['msgShortText']});

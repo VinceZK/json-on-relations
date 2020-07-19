@@ -18,6 +18,7 @@ export class AppComponent {
                private messageService: MessageService,
                private logonService: LogonService) {
     this.entityService.setOriginalHost(environment.originalHost);
+    this.logonService.setHost(environment.originalHost);
     this.logonService.session().subscribe( data => {
       this.identityService.setSession( data );
       this.messageService.setMessageStore(msgStore, this.identityService.Session.LANGUAGE);

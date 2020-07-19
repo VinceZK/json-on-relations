@@ -76,7 +76,7 @@ export class AttributeComponent implements OnInit, OnChanges{
   onSearchHelp(attributeControl: AttributeBase) {
     if (attributeControl.searchHelpId) {
       this.searchHelpComponent.openSearchHelpBySearchHelp(
-        attributeControl.searchHelpId, attributeControl.name, attributeControl.searchHelpExportField,
+        attributeControl.searchHelpId, attributeControl.searchHelpExportField, attributeControl.name,
         this.formGroup, this.readonly );
     } else {
       this.searchHelpComponent.openSearchHelpModalByEntity(

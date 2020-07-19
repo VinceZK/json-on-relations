@@ -33,6 +33,12 @@ export class SearchHelpComponent implements OnInit {
     this.filterFieldsFormGroup = this.fb.group({});
   }
 
+  /**
+   * Open an search help dialog with free style
+   * @param searchHelpMeta
+   * @param exportControl
+   * @param afterExportFn
+   */
   openSearchHelpModal(searchHelpMeta: SearchHelp, exportControl: any, afterExportFn?: any) {
     this.searchHelpMeta = searchHelpMeta;
     this.exportControl = exportControl;
@@ -111,7 +117,16 @@ export class SearchHelpComponent implements OnInit {
       });
   }
 
-  openSearchHelpBySearchHelp(searchHelpID: string, exportField: string, searchHelpExportField: string,
+  /**
+   * Open a search help dialog based on the given search help
+   * @param searchHelpID
+   * @param searchHelpExportField: one searchHelp field which is exported in the searchHelp
+   * @param exportField: a field control name of Angular form control
+   * @param exportControl: an Angular form control
+   * @param readonly
+   * @param afterExportFn
+   */
+  openSearchHelpBySearchHelp(searchHelpID: string, searchHelpExportField: string, exportField: string,
                              exportControl: any, readonly: boolean, afterExportFn?: any) {
     const searchHelp = new SearchHelp();
     this.entityService.getSearchHelp(searchHelpID)
@@ -132,6 +147,13 @@ export class SearchHelpComponent implements OnInit {
         searchHelpField.IE_FIELD_NAME = exportField;
         searchHelpField.EXPORT = true;
         searchHelpField.IMPORT = true;
+        searchHelp.FIELDS.push({
+          FIELD_NAME: 'INSTANCE_GUID',
+          LIST_HEADER_TEXT: 'GUID',
+          IMPORT: false,
+          EXPORT: true,
+          LIST_POSITION: 999,
+          FILTER_POSITION: 0});
         this.openSearchHelpModal(searchHelp, exportControl, afterExportFn);
       });
   }
@@ -158,11 +180,9 @@ export class SearchHelpComponent implements OnInit {
         }
       });
       searchTerm.PROJECTION = [];
-      if (!this.listFields.find( fieldMeta => fieldMeta.FIELD_NAME === 'INSTANCE_GUID')) {
-        this.listFields.forEach( fieldMeta => {
-          searchTerm.PROJECTION.push({RELATION_ID: fieldMeta.RELATION_ID, FIELD_NAME: fieldMeta.FIELD_NAME});
-        });
-      }
+      this.listFields.forEach( fieldMeta => {
+        searchTerm.PROJECTION.push({RELATION_ID: fieldMeta.RELATION_ID, FIELD_NAME: fieldMeta.FIELD_NAME});
+      });
     }
 
     this.listData = [];

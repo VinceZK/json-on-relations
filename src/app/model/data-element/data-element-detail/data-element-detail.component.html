@@ -128,8 +128,6 @@
 
       <div class="ml-2 form-group row">
         <label class="col-form-label col-form-label-sm col-lg-3" for="sh-export-field">Export Field</label>
-<!--        <input type="text" formControlName="SEARCH_HELP_EXPORT_FIELD" id="sh-export-field" name="sh-export-field"-->
-<!--               class="form-control form-control-sm col-md-4" [readonly]="readonly">-->
         <div class="input-group col-8 col-lg-4">
           <select formControlName="SEARCH_HELP_EXPORT_FIELD" class="form-control form-control-sm" id="sh-export-field">
             <option *ngFor="let exportField of searchHelpExportField" [value]="exportField">{{exportField}}</option>
