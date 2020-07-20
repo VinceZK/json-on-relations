@@ -1243,9 +1243,8 @@ function getSearchHelp(searchHelpID, callback) {
       "FILTER_DISP_ONLY, DEFAULT_VALUE, B.ATTR_DESC as FIELD_DESC, C.LABEL_TEXT, C.LIST_HEADER_TEXT " +
       "from SEARCH_HELP_FIELD as A " +
       "join ATTRIBUTE as B on A.RELATION_ID = B.RELATION_ID and A.FIELD_NAME = B.ATTR_NAME " +
-      "join DATA_ELEMENT_TEXT as C on B.DATA_ELEMENT = C.ELEMENT_ID " +
-      "where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelpID) +
-      " and C.LANGU = 'EN' order by LIST_POSITION";
+      "left join DATA_ELEMENT_TEXT as C on B.DATA_ELEMENT = C.ELEMENT_ID and C.LANGU = 'EN' " +
+      "where SEARCH_HELP_ID = " + entityDB.pool.escape(searchHelpID) + " order by LIST_POSITION";
     entityDB.executeSQL(selectSQL, function (err, rows) {
       if (err) return callback(message.report('MODEL', 'GENERAL_ERROR', 'E', err));
       searchHelp['FIELDS'] = rows;
