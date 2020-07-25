@@ -123,6 +123,9 @@
               <span class="fas fa-search"></span>
             </button>
           </div>
+          <span [class.ng-invalid]="dataElementForm.get('SEARCH_HELP_ID').invalid" class="dk-invalid-feedback">
+            {{dataElementForm.get('SEARCH_HELP_ID').errors?.message}}
+          </span>
         </div>
       </div>
 

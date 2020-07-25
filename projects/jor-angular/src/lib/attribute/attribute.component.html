@@ -1,6 +1,8 @@
 <div [formGroup]="formGroup">
   <div [ngSwitch]="attributeControl.controlType">
-    <div class="input-group">
+    <div *ngIf="attributeControl.controlType === 'text' ||
+                attributeControl.controlType === 'text_capital' ||
+                attributeControl.controlType === 'integer'" class="input-group">
       <input *ngSwitchCase="'text'" type="text" class="form-control"
              [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"

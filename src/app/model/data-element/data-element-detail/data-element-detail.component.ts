@@ -131,10 +131,18 @@ export class DataElementDetailComponent implements OnInit {
 
   _getSearchHelpMeta(formGroup: AbstractControl, setDefault: boolean): void {
     const searchHelpCtrl = formGroup.get('SEARCH_HELP_ID');
-    if (!searchHelpCtrl.value) { return; }
+    if (!searchHelpCtrl.value) {
+      formGroup.get('SEARCH_HELP_EXPORT_FIELD').setValue('');
+      formGroup.get('SEARCH_HELP_EXPORT_FIELD').markAsDirty();
+      return;
+    }
     this.entityService.getSearchHelp(searchHelpCtrl.value).subscribe(data => {
       if (data['msgCat']) {
         searchHelpCtrl.setErrors({message: data['msgShortText']});
+        if (setDefault) {
+          formGroup.get('SEARCH_HELP_EXPORT_FIELD').setValue('');
+          formGroup.get('SEARCH_HELP_EXPORT_FIELD').markAsDirty();
+        }
       } else {
         this.searchHelpExportField = [];
         const searchHelpFields = <SearchHelpField[]>data['FIELDS'];

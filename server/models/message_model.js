@@ -118,6 +118,12 @@ const msgArray = [
     msgText: {
       EN: {shortText: "Search Help ID is missing", longText: 'dummy'}
     }
+  },
+  { msgCat: 'MODEL',
+    msgName: 'SEARCH_HELP_NO_EXPORT',
+    msgText: {
+      EN: {shortText: "At least one field should be chosen as export field", longText: 'dummy'}
+    }
   }
 ];
 

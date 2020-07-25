@@ -32,12 +32,12 @@
               formControlName="RELATIONSHIP_DESC" [readonly]="readonly" (change)="onChangeRelationshipDesc()"></textarea>
   </div>
   <div class="row ml-2">
-    <div class="col-3 form-group row" >
-      <label for="timeDependent" class="col-form-label form-control-sm">Time Dependent: </label>
-      <input type="checkbox" class="form-control ml-2" id="timeDependent" name="timeDependent"
+    <div class="col-8 col-lg-3 form-check">
+      <input type="checkbox" class="form-check-input" id="timeDependent" name="timeDependent"
              formControlName="TIME_DEPENDENT" (change)="onChangeTimeDependency()">
+      <label for="timeDependent" class="form-check-label">Time Dependent</label>
     </div>
-    <div class="col-4 form-group row ml-3">
+    <div class="col-8 col-lg-4 form-group row mx-3">
       <label for="valid_period" class="col-form-label form-control-sm">Default Period of Validity(seconds):
         <span [class.ng-invalid]="relationshipForm.get('VALID_PERIOD').invalid" class="dk-invalid-feedback">
         {{relationshipForm.get('VALID_PERIOD').errors?.message}}
@@ -46,10 +46,10 @@
       <input type="number" class="form-control form-control-sm" id="valid_period" [readonly]="readonly"
              name="valid_period" formControlName="VALID_PERIOD">
     </div>
-    <div class="col-3 form-group row ml-3" >
-      <label for="singleton" class="col-form-label form-control-sm">Singleton: </label>
-      <input type="checkbox" class="form-control ml-2" id="singleton" name="singleton"
+    <div class="col-8 col-lg-3 form-check" >
+      <input type="checkbox" class="form-check-input" id="singleton" name="singleton"
              formControlName="SINGLETON">
+      <label for="singleton" class="form-check-label">Singleton</label>
     </div>
   </div>
 
