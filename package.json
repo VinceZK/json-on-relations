@@ -14,7 +14,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e --dev-server-target= --webdriverUpdate=false",
     "prod": "node server.js",
-    "webdriver-update": "webdriver-manager update"
+    "webdriver-update": "webdriver-manager update",
+    "postinstall": "ngcc"
   },
   "private": false,
   "dependencies": {
@@ -49,7 +50,7 @@
     "rxjs": "^6.5.3",
     "ui-logon-angular": "^1.2.1",
     "ui-message": "^1.2.0",
-    "ui-message-angular": "^1.2.0",
+    "ui-message-angular": "^1.3.0",
     "underscore": "^1.9.1",
     "zone.js": "^0.10.2"
   },
