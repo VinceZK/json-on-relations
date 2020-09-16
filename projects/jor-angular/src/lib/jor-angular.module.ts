@@ -25,7 +25,6 @@ import { AttributeForm2Component } from './attribute/attribute-form2/attribute-f
     ReactiveFormsModule
   ],
   exports: [
-    JorAngularComponent,
     SearchHelpComponent,
     AttributeComponent,
     AttributeFormComponent,

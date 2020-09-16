@@ -1284,7 +1284,7 @@ function saveSearchHelp(searchHelp, userID, callback) {
     return callback(message.report('MODEL', 'SEARCH_HELP_ID_MISSING', 'E'));
   }
 
-  if (searchHelp.FIELDS.findIndex( field => field.EXPORT) === -1) {
+  if (searchHelp.FIELDS && searchHelp.FIELDS.findIndex( field => field.EXPORT) === -1) {
     return callback(message.report('MODEL', 'SEARCH_HELP_NO_EXPORT', 'E'));
   }
 

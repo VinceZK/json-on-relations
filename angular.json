@@ -27,7 +27,10 @@
               "src/assets/css/global.css",
               "src/assets/css/fontawesome_all.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "core-js", "rxjs", "uuid"
+            ]
           },
           "configurations": {
             "production": {
