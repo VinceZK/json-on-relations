@@ -1,6 +1,6 @@
 {
   "name": "jor-angular",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "peerDependencies": {
     "@angular/common": "^10.1.1",
     "@angular/core": "^10.1.1"

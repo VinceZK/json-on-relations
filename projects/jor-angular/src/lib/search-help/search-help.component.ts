@@ -14,7 +14,7 @@ export class SearchHelpComponent implements OnInit {
   isSearchHelpModalShown = false;
   isFilterShown = false;
   isSelectAllChecked = false;
-  searchHelpMeta: SearchHelp;
+  searchHelp: SearchHelp;
   fuzzySearchTerm: string;
   selectedIndex = -1;
   filterFields = [];
@@ -23,6 +23,7 @@ export class SearchHelpComponent implements OnInit {
   exportControl: any;
   afterExportFn: any;
   listData = [];
+  preSearchHelpParas = {};
 
   get displaySearchHelpModal() {return this.isSearchHelpModalShown ? 'block' : 'none'; }
 
@@ -35,29 +36,32 @@ export class SearchHelpComponent implements OnInit {
 
   /**
    * Open an search help dialog with free style
-   * @param searchHelpMeta
-   * @param exportControl
-   * @param afterExportFn
+   * @param searchHelp
+   * @param exportControl: An Angular form control which is used to receive the Search Help returned value.
+   * @param afterExportFn: Optional. If provided, the function will be executed after the value is returned.
    */
-  openSearchHelpModal(searchHelpMeta: SearchHelp, exportControl: any, afterExportFn?: any) {
-    this.searchHelpMeta = searchHelpMeta;
-    this.exportControl = exportControl;
-    this.afterExportFn = afterExportFn;
-    this.filterFieldsFormGroup = this.fb.group({});
-    this.filterFields = this.searchHelpMeta.FIELDS.filter( fieldMeta => fieldMeta.FILTER_POSITION );
-    this.filterFields.sort((a, b) => a.FILTER_POSITION - b.FILTER_POSITION);
-    this.filterFields.forEach( fieldMeta => {
-      if (fieldMeta.IMPORT) {
-        const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
-        if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(ieFieldName).value;  }
-      }
-      this.filterFieldsFormGroup.addControl(fieldMeta.FIELD_NAME, this.fb.control(fieldMeta.DEFAULT_VALUE));
-    });
+  openSearchHelpModal(searchHelp: SearchHelp, exportControl: any, afterExportFn?: any) {
+    if (this.searchHelp !== searchHelp) {
+      this.listData = [];
+      this.searchHelp = searchHelp;
+      this.exportControl = exportControl;
+      this.afterExportFn = afterExportFn;
+      this.filterFieldsFormGroup = this.fb.group({});
+      this.filterFields = this.searchHelp.FIELDS.filter( fieldMeta => fieldMeta.FILTER_POSITION );
+      this.filterFields.sort((a, b) => a.FILTER_POSITION - b.FILTER_POSITION);
+      this.filterFields.forEach( fieldMeta => {
+        if (fieldMeta.IMPORT) {
+          const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
+          if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(ieFieldName).value;  }
+        }
+        this.filterFieldsFormGroup.addControl(fieldMeta.FIELD_NAME, this.fb.control(fieldMeta.DEFAULT_VALUE));
+      });
 
-    this.listFields = this.searchHelpMeta.FIELDS.filter( fieldMeta => fieldMeta.LIST_POSITION );
-    this.listFields.sort((a, b) => a.LIST_POSITION - b.LIST_POSITION);
+      this.listFields = this.searchHelp.FIELDS.filter( fieldMeta => fieldMeta.LIST_POSITION );
+      this.listFields.sort((a, b) => a.LIST_POSITION - b.LIST_POSITION);
+    }
 
-    if (this.searchHelpMeta.BEHAVIOUR === 'A') {
+    if (this.searchHelp.BEHAVIOUR === 'A') {
       this.search();
       this.isFilterShown = false;
     } else {
@@ -70,102 +74,133 @@ export class SearchHelpComponent implements OnInit {
    * Open a search help dialog based on the given entity and one of its relation
    * @param entityID
    * @param relationID
-   * @param exportControl
-   * @param readonly
-   * @param exportField: Provided only if the exportField name is not the same with the attribute name
-   * @param domainID: Provided only if exportField is given. It is  to make sure that different attribute names must share the same domain.
-   * For example, attribute "CREATE_BY" and "USER_ID" share the same domain "USER_ID". When the search help dialog pop up on CREATE_BY,
-   * It should query on the entity "USER", and the value of attribute "USER_ID" is exported to "CREATE_BY"
-   * @param afterExportFn
+   * @param exportControl: An Angular form control which is used to receive the Search Help returned value.
+   * @param readonly: If readonly, then the Search Help cannot return value.
+   * @param exportField: Provided only if exportField is given. It uses the data domain to find which attribute should return the value(s).
+   For example, attribute "USER" is assigned with Data Domain "USER_ID". When the Search Help dialog pops up on the field 'CREATE_BY',
+   it finds the attribute "USER" using the Data Domain "USER_ID",
+   and the value of its attribute "USER" is then exported to the field "CREATE_BY".
+   * @param afterExportFn: Optional. If provided, the function will be executed after the value is returned.
    */
   openSearchHelpModalByEntity(entityID: string, relationID: string, exportControl: any,
                               readonly: boolean, exportField?: string, domainID?: string, afterExportFn?: any) {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = entityID;
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: QueryObject): Observable<object[]> => entityService.searchEntities(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'M';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = false;
-    searchHelpMeta.FIELDS = [];
-    searchHelpMeta.READ_ONLY = readonly;
-    searchHelpMeta.ENTITY_ID = entityID;
-    searchHelpMeta.RELATION_ID = relationID;
-    this.entityService.getRelationMeta(relationID)
-      .subscribe(data => {
-        const relationMeta = <RelationMeta>data;
-        relationMeta.ATTRIBUTES.forEach( attribute =>
-          searchHelpMeta.FIELDS.push({
-            FIELD_NAME: attribute.ATTR_NAME,
-            LABEL_TEXT: attribute.LABEL_TEXT,
-            LIST_HEADER_TEXT: attribute.LIST_HEADER_TEXT,
-            IE_FIELD_NAME: exportField && domainID && domainID === attribute.DOMAIN_ID ? exportField : null,
-            IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
-            EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
-            LIST_POSITION: attribute.ORDER,
-            FILTER_POSITION: attribute.ORDER
-          }));
-        searchHelpMeta.FIELDS.push({
-          FIELD_NAME: 'INSTANCE_GUID',
-          LIST_HEADER_TEXT: 'GUID',
-          IMPORT: false,
-          EXPORT: true,
-          LIST_POSITION: 999,
-          FILTER_POSITION: 0});
-        this.openSearchHelpModal(searchHelpMeta, exportControl, afterExportFn);
-      });
+    const currentSearchHelpParas = {
+      'entityID': entityID,
+      'relationID': relationID,
+      'exportField': exportField,
+      'domainID': domainID
+    };
+    if (this._isPreviousSearchHelp(currentSearchHelpParas)) {
+      this.searchHelp.READ_ONLY = readonly;
+      this.openSearchHelpModal(this.searchHelp, exportControl, afterExportFn);
+    } else {
+      this.listData = [];
+      this.preSearchHelpParas = currentSearchHelpParas;
+      const searchHelp = new SearchHelp();
+      searchHelp.OBJECT_NAME = entityID;
+      searchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: QueryObject): Observable<object[]> => entityService.searchEntities(searchTerm);
+      }(this.entityService);
+      searchHelp.BEHAVIOUR = 'M';
+      searchHelp.MULTI = false;
+      searchHelp.FUZZY_SEARCH = false;
+      searchHelp.FIELDS = [];
+      searchHelp.READ_ONLY = readonly;
+      searchHelp.ENTITY_ID = entityID;
+      searchHelp.RELATION_ID = relationID;
+      this.entityService.getRelationMeta(relationID)
+        .subscribe(data => {
+          const relationMeta = <RelationMeta>data;
+          relationMeta.ATTRIBUTES.forEach( attribute =>
+            searchHelp.FIELDS.push({
+              FIELD_NAME: attribute.ATTR_NAME,
+              LABEL_TEXT: attribute.LABEL_TEXT,
+              LIST_HEADER_TEXT: attribute.LIST_HEADER_TEXT,
+              IE_FIELD_NAME: exportField && domainID && domainID === attribute.DOMAIN_ID ? exportField : null,
+              IMPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
+              EXPORT: attribute.PRIMARY_KEY || attribute.DOMAIN_ID === domainID,
+              LIST_POSITION: attribute.ORDER,
+              FILTER_POSITION: attribute.ORDER
+            }));
+          searchHelp.FIELDS.push({
+            FIELD_NAME: 'INSTANCE_GUID',
+            LIST_HEADER_TEXT: 'GUID',
+            IMPORT: false,
+            EXPORT: true,
+            LIST_POSITION: 999,
+            FILTER_POSITION: 0});
+          this.openSearchHelpModal(searchHelp, exportControl, afterExportFn);
+        });
+    }
   }
 
   /**
    * Open a search help dialog based on the given search help
    * @param searchHelpID
-   * @param searchHelpExportField: one searchHelp field which is exported in the searchHelp
-   * @param exportField: a field control name of Angular form control
-   * @param exportControl: an Angular form control
-   * @param readonly
-   * @param afterExportFn
+   * @param searchHelpExportField: a field name in the Search Help which is tagged as exported.
+   An Search Help can have multiple exported fields, and the field names may be different with the Angular control names.
+   Thus, you can choose one Search Help export field name to map with one Angular field control name.
+   * @param exportField: An Angular field control name that is to map with the Search Help export field name.
+   * @param exportControl: An Angular form control which is used to receive the Search Help returned value.
+   * @param readonly: If readonly, then the Search Help cannot return value.
+   * @param afterExportFn: Optional. If provided, the function will be executed after the value is returned.
    */
-  openSearchHelpBySearchHelp(searchHelpID: string, searchHelpExportField: string, exportField: string,
+  openSearchHelpModalBySearchHelp(searchHelpID: string, searchHelpExportField: string, exportField: string,
                              exportControl: any, readonly: boolean, afterExportFn?: any) {
-    const searchHelp = new SearchHelp();
-    this.entityService.getSearchHelp(searchHelpID)
-      .subscribe((searchHelpMeta: SearchHelpMeta) => {
-        searchHelp.OBJECT_NAME = searchHelpMeta.SEARCH_HELP_DESC + '(' + searchHelpMeta.SEARCH_HELP_ID + ')';
-        searchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
-          return (searchTerm: QueryObject): Observable<object[]> => entityService.searchEntities(searchTerm);
-        }(this.entityService);
-        searchHelp.BEHAVIOUR = searchHelpMeta.BEHAVIOUR;
-        searchHelp.MULTI = searchHelpMeta.MULTI;
-        searchHelp.FUZZY_SEARCH = searchHelpMeta.FUZZY_SEARCH;
-        searchHelp.READ_ONLY = readonly;
-        searchHelp.ENTITY_ID = searchHelpMeta.ENTITY_ID;
-        searchHelp.RELATION_ID = searchHelpMeta.RELATION_ID;
-        searchHelp.FIELDS = searchHelpMeta.FIELDS;
-        const searchHelpField = searchHelp.FIELDS.find(
-          field => (field.IE_FIELD_NAME || field.FIELD_NAME) === searchHelpExportField);
-        searchHelpField.IE_FIELD_NAME = exportField;
-        searchHelpField.EXPORT = true;
-        searchHelpField.IMPORT = true;
-        searchHelp.FIELDS.push({
-          FIELD_NAME: 'INSTANCE_GUID',
-          LIST_HEADER_TEXT: 'GUID',
-          IMPORT: false,
-          EXPORT: true,
-          LIST_POSITION: 999,
-          FILTER_POSITION: 0});
-        this.openSearchHelpModal(searchHelp, exportControl, afterExportFn);
-      });
+    const currentSearchHelpParas = {
+      'searchHelpID': searchHelpID,
+      'searchHelpExportField': searchHelpExportField,
+      'exportField': exportField
+    };
+    if (this._isPreviousSearchHelp(currentSearchHelpParas)) {
+      this.searchHelp.READ_ONLY = readonly;
+      this.openSearchHelpModal(this.searchHelp, exportControl, afterExportFn);
+    } else {
+      this.listData = [];
+      this.preSearchHelpParas = currentSearchHelpParas;
+      const searchHelp = new SearchHelp();
+      this.entityService.getSearchHelp(searchHelpID)
+        .subscribe((searchHelpMeta: SearchHelpMeta) => {
+          searchHelp.OBJECT_NAME = searchHelpMeta.SEARCH_HELP_DESC + '(' + searchHelpMeta.SEARCH_HELP_ID + ')';
+          searchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+            return (searchTerm: QueryObject): Observable<object[]> => entityService.searchEntities(searchTerm);
+          }(this.entityService);
+          searchHelp.BEHAVIOUR = searchHelpMeta.BEHAVIOUR;
+          searchHelp.MULTI = searchHelpMeta.MULTI;
+          searchHelp.FUZZY_SEARCH = searchHelpMeta.FUZZY_SEARCH;
+          searchHelp.READ_ONLY = readonly;
+          searchHelp.ENTITY_ID = searchHelpMeta.ENTITY_ID;
+          searchHelp.RELATION_ID = searchHelpMeta.RELATION_ID;
+          searchHelp.FIELDS = searchHelpMeta.FIELDS;
+          const searchHelpField = searchHelp.FIELDS.find(
+            field => (field.IE_FIELD_NAME || field.FIELD_NAME) === searchHelpExportField);
+          searchHelpField.IE_FIELD_NAME = exportField;
+          searchHelpField.EXPORT = true;
+          searchHelpField.IMPORT = true;
+          searchHelp.FIELDS.push({
+            FIELD_NAME: 'INSTANCE_GUID',
+            LIST_HEADER_TEXT: 'GUID',
+            IMPORT: false,
+            EXPORT: true,
+            LIST_POSITION: 999,
+            FILTER_POSITION: 0});
+          this.openSearchHelpModal(searchHelp, exportControl, afterExportFn);
+        });
+    }
+  }
+
+  _isPreviousSearchHelp(currentSearchHelpParas: object): boolean {
+    return JSON.stringify(this.preSearchHelpParas) === JSON.stringify(currentSearchHelpParas);
   }
 
   search() {
     let searchTerm;
-    if (this.searchHelpMeta.FUZZY_SEARCH) {
+    if (this.searchHelp.FUZZY_SEARCH) {
       searchTerm = this.fuzzySearchTerm || '';
     } else {
       searchTerm = new QueryObject();
-      searchTerm.ENTITY_ID = this.searchHelpMeta.ENTITY_ID;
-      searchTerm.RELATION_ID = this.searchHelpMeta.RELATION_ID;
+      searchTerm.ENTITY_ID = this.searchHelp.ENTITY_ID;
+      searchTerm.RELATION_ID = this.searchHelp.RELATION_ID;
       searchTerm.FILTER = [];
       this.filterFields.forEach( fieldMeta => {
         const fieldValue = this.filterFieldsFormGroup.get(fieldMeta.FIELD_NAME).value;
@@ -187,11 +222,11 @@ export class SearchHelpComponent implements OnInit {
 
     this.listData = [];
     this.isSelectAllChecked = false;
-    if (typeof this.searchHelpMeta.METHOD === 'function') {
-      const searchHelpMethod = <SearchHelpMethod>this.searchHelpMeta.METHOD;
+    if (typeof this.searchHelp.METHOD === 'function') {
+      const searchHelpMethod = <SearchHelpMethod>this.searchHelp.METHOD;
       searchHelpMethod(searchTerm).subscribe( data => this._generateSearchList(data));
-    } else if (Array.isArray(this.searchHelpMeta.METHOD )) {
-      this._generateSearchList(this.searchHelpMeta.METHOD);
+    } else if (Array.isArray(this.searchHelp.METHOD )) {
+      this._generateSearchList(this.searchHelp.METHOD);
     }
   }
 
@@ -224,7 +259,7 @@ export class SearchHelpComponent implements OnInit {
 
   confirmSelection() {
     // TODO: Currently, only single selection is supported. Multiple selection in later time
-    if (this.searchHelpMeta.READ_ONLY) {return; }
+    if (this.searchHelp.READ_ONLY) {return; }
     this.listFields.forEach( listField => {
       if (this.exportControl instanceof FormGroup) {
         const exportControl = <AbstractControl>this.exportControl;

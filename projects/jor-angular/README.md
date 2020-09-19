@@ -146,26 +146,97 @@ Meanwhile, add the tag `<dk-app-search-help></dk-app-search-help>` at the bottom
 <dk-app-search-help></dk-app-search-help>
 ```
 Second, implement the function `onSearchHelp` in the component.
-```javascript
+There are 3 options in implementing the search help function:
+
+#### Use the function 'openSearchHelpModalBySearchHelp'. 
+It requires you have an [Search Help](https://github.com/VinceZK/json-on-relations/wiki/Search-Help) pre-defined. 
+```typescript
+import {SearchHelpComponent} from 'jor-angular';
+
+@Component({
+  selector: 'user-role',
+  templateUrl: './user-role.html',
+  styleUrls: ['./user-role.css']
+})
+export class UserRoleComponent implements OnInit {
+  @ViewChild(SearchHelpComponent, {static: false})
+  private searchHelpComponent !: SearchHelpComponent;
+  private readonly: boolean;
+
   onSearchHelp(rowID: number, exportObject: AbstractControl): void {
     const afterExportFn = function (context: any, ruleIdx: number) {
-      return () => context.onChangeRoleID(ruleIdx);
+      return () => context.onChangeRoleID(ruleIdx, true);
     }(this, rowID).bind(this);
-    
-    this.searchHelpComponent.openSearchHelpModalByEntity('permission', 'r_role',
-      exportObject, this.readonly, null, null, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModalBySearchHelp(
+      'ROLE', 'ROLE_NAME', 'NAME', exportObject, this.readonly, afterExportFn);
+  }
+}
+```
+We use `@ViewChild` to get the `searchHelpComponent`. 
+The `afterExportFn` here is used to trigger actions after the value is returned.
+For example, we can use it to get the role description once the value is returned. 
+At last, we call the function `this.searchHelpComponent.openSearchHelpModalBySearchHelp` with parameters below sequentially: 
+1. **searchHelpID**: Search Help ID, refer [Search Help](https://github.com/VinceZK/json-on-relations/wiki/Search-Help).
+2. **searchHelpExportField**: a field name in the Search Help which is tagged as exported. 
+   An Search Help can have multiple exported fields, and the field names may be different with the Angular control names.
+   Thus, you can choose one Search Help export field name to map with one Angular field control name. 
+3. **exportField**: An Angular field control name that is to map with the Search Help export field name.
+4. **exportControl**: An Angular form control which is used to receive the Search Help returned value(s).
+5. **readonly**: If readonly, then the Search Help cannot return value(s).
+6. **afterExportFn**: Optional. If provided, the function will be executed after the value is returned. 
+   
+#### Use the function 'openSearchHelpModalByEntityType'. 
+It requires you have an [Entity Type](https://github.com/VinceZK/json-on-relations/wiki/Entity) pre-defined. 
+```typescript
+    this.searchHelpComponent.openSearchHelpModalByEntity(
+      'permission', 'r_role', exportObject, this.readonly, 'NAME', 'ROLE_NAME', afterExportFn);
+```
+We call the function `this.searchHelpComponent.openSearchHelpModalByEntity` with parameters below sequentially:
+1. **entityID**: Entity ID, refer [JOR Entity](https://github.com/VinceZK/json-on-relations/wiki/Entity).
+2. **relationID**: Relation ID, refer [JOR Relation](https://github.com/VinceZK/json-on-relations/wiki/Relation).
+3. **exportControl**: An Angular form control which is used to receive the Search Help returned value(s).
+4. **readonly**: If readonly, then the Search Help cannot return value(s).
+5. **exportField**: Optional. By default, it assumes the Angular field control name is in the Entity's Relation.
+However, if you have a different Angular field control name, then you should give the control name explicitly.
+6. **domainID**: Provided only if exportField is given. It uses the data domain to find which attribute should return the value(s). 
+For example, attribute "USER" is assigned with Data Domain "USER_ID". When the Search Help dialog pops up on the field 'CREATE_BY', 
+it finds the attribute "USER" using the Data Domain "USER_ID", and the value of its attribute "USER" is then exported to the field "CREATE_BY".
+7. **afterExportFn**: If provided, additional logic can be conducted after value(s) are exported to the receiving field(s).
+
+#### Use the function 'openSearchHelpModal'. 
+This is much freestyle, and it doesn't require any pre-defined objects.
+However, you need to define the search help attributes and the query method all by yourself. 
+```typescript
+  onSearchHelp(rowID: number, control: AbstractControl): void {
+    if (!this.roleSearchHelp) {
+      this.roleSearchHelp = new SearchHelp();
+      this.roleSearchHelp.OBJECT_NAME = 'Role';
+      this.roleSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
+      }(this.entityService);
+      this.roleSearchHelp.BEHAVIOUR = 'A';
+      this.roleSearchHelp.MULTI = false;
+      this.roleSearchHelp.FUZZY_SEARCH = true;
+      this.roleSearchHelp.FIELDS = [
+        {FIELD_NAME: 'ROLE_ID', LIST_HEADER_TEXT: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'ROLE_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.roleSearchHelp.READ_ONLY = this.readonly || this.oldRole(control) && control.valid;
+    }
+    const afterExportFn = function (context: any, ruleIdx: number) {
+      return () => context.onChangeRoleID(ruleIdx, true);
+    }(this, rowID).bind(this);
+    this.searchHelpComponent.openSearchHelpModal(this.roleSearchHelp, control, afterExportFn);
   }
 ```
-Notice, the `afterExportFn` is optional and is used to conduct logic after the value is exported(entered) to the field. 
-The search help dialog is invoked by function `this.searchHelpComponent.openSearchHelpModalByEntity`,
-which asks for following parameters:
-1. **entityID**: Entity ID, refer [JOR Entity](https://github.com/VinceZK/json-on-relations#define-your-entity);
-2. **relationID**: Relation ID, refer [JOR Relation](https://github.com/VinceZK/json-on-relations#define-your-entity);
-3. **exportControl**: Angular AbstractControl type which is used to receive the selected value(s);
-4. **readonly**: If true, selected value(s) can not be exported to the receiving field;
-5. **exportField**: Which field's value is used to export to the receiving field. The default is the same as the receiving field; 
-6. **domainID**: Use data domain to determine which field is used as import or export field;
-7. **afterExportFn**: If provided, additional logic can be conducted after value(s) are exported to the receiving field(s).
+We compose the SearchHelp object manually. 
+The query method is given by providing a dedicate web service all `entityService.listRole(searchTerm)`.
+The `FUZZY_SEARCH` is set to true so that the search dialog can support fuzzy search.
+A field list is given to control which fields are shown in the search list, or as the filter conditions. 
+At last, we call the function `this.searchHelpComponent.openSearchHelpModal` with parameters below sequentially:
+1. **searchHelp**: A SearchHelp object which contains all the information to render the search help dialog.
+2. **exportControl**: An Angular form control which is used to receive the Search Help returned value(s).
+3. **afterExportFn**: If provided, additional logic can be conducted after value(s) are exported to the receiving field(s).
 
 ## UI Mapper
 It is used to map the Angular FormGroup and FormArray to JOR JSON format.

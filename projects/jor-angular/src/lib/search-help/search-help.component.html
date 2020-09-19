@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content dk-search-help-content">
       <div class="modal-header dk-search-help-header">
-        <h6 class="modal-title" id="addRelationship">{{searchHelpMeta?.OBJECT_NAME}} ({{listData.length}})</h6>
+        <h6 class="modal-title" id="addRelationship">{{searchHelp?.OBJECT_NAME}} ({{listData.length}})</h6>
         <button type="button" class="close" (click)="closeSearchHelpModal()">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -11,7 +11,7 @@
 
       <div class="modal-body">
         <div *ngIf="isFilterShown" class="card mb-2">
-          <div *ngIf="searchHelpMeta && searchHelpMeta.FUZZY_SEARCH" class="mt-2 mx-2 row">
+          <div *ngIf="searchHelp && searchHelp.FUZZY_SEARCH" class="mt-2 mx-2 row">
             <input type="text" class="form-control" placeholder="Search" [(ngModel)]="fuzzySearchTerm" (keyup)="enterSearch($event)">
           </div>
           <div class="mt-2 mx-2 row" [formGroup]="filterFieldsFormGroup">
@@ -37,7 +37,7 @@
           <thead class="thead-light">
           <tr>
             <th scope="col">
-              <input *ngIf="searchHelpMeta?.MULTI" type="checkbox" [(ngModel)]="isSelectAllChecked" (click)="selectAll()">
+              <input *ngIf="searchHelp?.MULTI" type="checkbox" [(ngModel)]="isSelectAllChecked" (click)="selectAll()">
             </th>
             <th *ngFor="let listField of listFields"
                 [style.display]="listField.FIELD_NAME === 'INSTANCE_GUID' ? 'none' : 'table-cell'">
@@ -49,8 +49,8 @@
           <tbody>
           <tr *ngFor="let item of listData; let i = index">
             <td>
-              <input *ngIf="!searchHelpMeta.MULTI" type="radio" name="selectedIndex" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
-              <input *ngIf="searchHelpMeta.MULTI" type="checkbox" [(ngModel)]="item.SELECTED">
+              <input *ngIf="!searchHelp.MULTI" type="radio" name="selectedIndex" [value]="i" [(ngModel)]="selectedIndex" (dblclick)="confirmSelection()">
+              <input *ngIf="searchHelp.MULTI" type="checkbox" [(ngModel)]="item.SELECTED">
             </td>
             <td *ngFor="let listField of listFields"
                 [style.display]="listField.FIELD_NAME === 'INSTANCE_GUID' ? 'none' : 'table-cell'">
@@ -63,7 +63,7 @@
 
       <div class="modal-footer dk-search-help-footer">
         <button type="button" class="btn btn-sm btn-secondary" (click)="closeSearchHelpModal()">Cancel</button>
-        <button type="button" class="btn btn-sm btn-primary" (click)="confirmSelection()" [disabled]="searchHelpMeta?.READ_ONLY">Confirm</button>
+        <button type="button" class="btn btn-sm btn-primary" (click)="confirmSelection()" [disabled]="searchHelp?.READ_ONLY">Confirm</button>
       </div>
     </div>
   </div>

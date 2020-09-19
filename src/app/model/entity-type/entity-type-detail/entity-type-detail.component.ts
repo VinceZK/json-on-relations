@@ -25,6 +25,7 @@ export class EntityTypeDetailComponent implements OnInit {
   changedEntityType = {};
   bypassProtection = false;
   isSearchListShown = true;
+  roleSearchHelp: SearchHelp;
 
   @ViewChild(AttributeMetaComponent, {static: false})
   private attrComponent !: AttributeMetaComponent;
@@ -101,24 +102,25 @@ export class EntityTypeDetailComponent implements OnInit {
   }
 
   onSearchHelp(control: AbstractControl, rowID: number): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Role';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'A';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ROLE_ID', LIST_HEADER_TEXT: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ROLE_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly || this.oldRole(control) && control.valid;
-
+    if (!this.roleSearchHelp) {
+      this.roleSearchHelp = new SearchHelp();
+      this.roleSearchHelp.OBJECT_NAME = 'Role';
+      this.roleSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listRole(searchTerm);
+      }(this.entityService);
+      this.roleSearchHelp.BEHAVIOUR = 'A';
+      this.roleSearchHelp.MULTI = false;
+      this.roleSearchHelp.FUZZY_SEARCH = true;
+      this.roleSearchHelp.FIELDS = [
+        {FIELD_NAME: 'ROLE_ID', LIST_HEADER_TEXT: 'Role', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'ROLE_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.roleSearchHelp.READ_ONLY = this.readonly || this.oldRole(control) && control.valid;
+    }
     const afterExportFn = function (context: any, ruleIdx: number) {
       return () => context.onChangeRoleID(ruleIdx, true);
     }(this, rowID).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.roleSearchHelp, control, afterExportFn);
   }
 
   _generateEntityTypeForm(): void {

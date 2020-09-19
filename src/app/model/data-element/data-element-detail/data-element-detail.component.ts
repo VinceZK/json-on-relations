@@ -25,6 +25,8 @@ export class DataElementDetailComponent implements OnInit {
   bypassProtection = false;
   isSearchListShown = true;
   searchHelpExportField = [];
+  dataDomainSearchHelp: SearchHelp;
+  searchHelpSearchHelp: SearchHelp;
 
   @ViewChild(SearchHelpComponent, {static: false})
   private searchHelpComponent !: SearchHelpComponent;
@@ -86,43 +88,47 @@ export class DataElementDetailComponent implements OnInit {
   }
 
   onDataDomainSearchHelp(control: AbstractControl): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Data Domain';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listDataDomain(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'A';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'DOMAIN_ID', LIST_HEADER_TEXT: 'Domain', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'DOMAIN_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly || !this.dataElementForm.get('USE_DOMAIN').value;
+    if (!this.dataDomainSearchHelp) {
+      this.dataDomainSearchHelp = new SearchHelp();
+      this.dataDomainSearchHelp.OBJECT_NAME = 'Data Domain';
+      this.dataDomainSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listDataDomain(searchTerm);
+      }(this.entityService);
+      this.dataDomainSearchHelp.BEHAVIOUR = 'A';
+      this.dataDomainSearchHelp.MULTI = false;
+      this.dataDomainSearchHelp.FUZZY_SEARCH = true;
+      this.dataDomainSearchHelp.FIELDS = [
+        {FIELD_NAME: 'DOMAIN_ID', LIST_HEADER_TEXT: 'Domain', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'DOMAIN_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.dataDomainSearchHelp.READ_ONLY = this.readonly || !this.dataElementForm.get('USE_DOMAIN').value;
+    }
     const afterExportFn = function (context: any) {
       return () => context.onChangeDataDomain(control);
     }(this).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.dataDomainSearchHelp, control, afterExportFn);
   }
 
   onSearchHelpSearchHelp(control: AbstractControl): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Search Help';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listSearchHelp(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'M';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'SEARCH_HELP_ID', LIST_HEADER_TEXT: 'Search Help', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'SEARCH_HELP_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly;
+    if (!this.searchHelpSearchHelp) {
+      this.searchHelpSearchHelp = new SearchHelp();
+      this.searchHelpSearchHelp.OBJECT_NAME = 'Search Help';
+      this.searchHelpSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listSearchHelp(searchTerm);
+      }(this.entityService);
+      this.searchHelpSearchHelp.BEHAVIOUR = 'M';
+      this.searchHelpSearchHelp.MULTI = false;
+      this.searchHelpSearchHelp.FUZZY_SEARCH = true;
+      this.searchHelpSearchHelp.FIELDS = [
+        {FIELD_NAME: 'SEARCH_HELP_ID', LIST_HEADER_TEXT: 'Search Help', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'SEARCH_HELP_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.searchHelpSearchHelp.READ_ONLY = this.readonly;
+    }
     const afterExportFn = function (context: any) {
       return () => context.onChangeSearchHelp(control);
     }(this).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.searchHelpSearchHelp, control, afterExportFn);
   }
 
   onChangeSearchHelp(formGroup: AbstractControl): void {

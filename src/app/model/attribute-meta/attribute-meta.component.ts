@@ -16,6 +16,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   dataTypes = [];
   formArray: FormArray;
   deletedAttributes = [];
+  dataElementSearchHelp: SearchHelp;
 
   constructor(private fb: FormBuilder,
               private entityService: EntityService,
@@ -43,26 +44,27 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   }
 
   onSearchHelp(control: AbstractControl, rowID: number): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Data Element';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listDataElement(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'M';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ELEMENT_ID', LIST_HEADER_TEXT: 'Element ID', IE_FIELD_NAME: 'DATA_ELEMENT',
-        IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ELEMENT_DESC', LIST_HEADER_TEXT: 'Element Description', IE_FIELD_NAME: 'ATTR_DESC',
-        IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly || control.get('DATA_ELEMENT').disabled;
-
+    if (!this.dataElementSearchHelp) {
+      this.dataElementSearchHelp = new SearchHelp();
+      this.dataElementSearchHelp.OBJECT_NAME = 'Data Element';
+      this.dataElementSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listDataElement(searchTerm);
+      }(this.entityService);
+      this.dataElementSearchHelp.BEHAVIOUR = 'M';
+      this.dataElementSearchHelp.MULTI = false;
+      this.dataElementSearchHelp.FUZZY_SEARCH = true;
+      this.dataElementSearchHelp.FIELDS = [
+        {FIELD_NAME: 'ELEMENT_ID', LIST_HEADER_TEXT: 'Element ID', IE_FIELD_NAME: 'DATA_ELEMENT',
+          IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'ELEMENT_DESC', LIST_HEADER_TEXT: 'Element Description', IE_FIELD_NAME: 'ATTR_DESC',
+          IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.dataElementSearchHelp.READ_ONLY = this.readonly || control.get('DATA_ELEMENT').disabled;
+    }
     const afterExportFn = function (context: any, attrIdx: number) {
       return () => context.onChangeDataElement(attrIdx);
     }(this, rowID).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.dataElementSearchHelp, control, afterExportFn);
   }
 
   deleteAttribute(index: number): void {

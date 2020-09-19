@@ -29,6 +29,7 @@ export class DataDomainDetailComponent implements OnInit {
   enableRegExpr = false;
   enableValueRelation = false;
   enableArrayOrInterval = false;
+  entitySearchHelp: SearchHelp;
 
   @ViewChild(SearchHelpComponent, {static: false})
   private searchHelpComponent !: SearchHelpComponent;
@@ -269,23 +270,25 @@ export class DataDomainDetailComponent implements OnInit {
   }
 
   onEntitySearchHelp(control: AbstractControl): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Entity ID';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listEntityType(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'M';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'ENTITY_ID', LIST_HEADER_TEXT: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'ENTITY_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly || this.dataDomainForm.get('DOMAIN_TYPE').value !== 2;
+    if (!this.entitySearchHelp) {
+      this.entitySearchHelp = new SearchHelp();
+      this.entitySearchHelp.OBJECT_NAME = 'Entity ID';
+      this.entitySearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listEntityType(searchTerm);
+      }(this.entityService);
+      this.entitySearchHelp.BEHAVIOUR = 'M';
+      this.entitySearchHelp.MULTI = false;
+      this.entitySearchHelp.FUZZY_SEARCH = true;
+      this.entitySearchHelp.FIELDS = [
+        {FIELD_NAME: 'ENTITY_ID', LIST_HEADER_TEXT: 'Entity', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'ENTITY_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.entitySearchHelp.READ_ONLY = this.readonly || this.dataDomainForm.get('DOMAIN_TYPE').value !== 2;
+    }
     const afterExportFn = function (context: any) {
       return () => context.onChangeEntityID(control);
     }(this).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.entitySearchHelp, control, afterExportFn);
   }
 
   onChangeEntityID(formGroup: AbstractControl): void {

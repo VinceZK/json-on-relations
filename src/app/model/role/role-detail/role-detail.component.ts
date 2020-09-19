@@ -27,6 +27,7 @@ export class RoleDetailComponent implements OnInit {
   changedRole = {};
   bypassProtection = false;
   isSearchListShown = true;
+  relationSearchHelp: SearchHelp;
 
   @ViewChild(SearchHelpComponent, {static: false})
   private searchHelpComponent!: SearchHelpComponent;
@@ -90,24 +91,25 @@ export class RoleDetailComponent implements OnInit {
   }
 
   onSearchHelp(control: AbstractControl, rowID: number): void {
-    const searchHelpMeta = new SearchHelp();
-    searchHelpMeta.OBJECT_NAME = 'Relation';
-    searchHelpMeta.METHOD = function(entityService: EntityService): SearchHelpMethod {
-      return (searchTerm: string): Observable<object[]> => entityService.listRelation(searchTerm);
-    }(this.entityService);
-    searchHelpMeta.BEHAVIOUR = 'A';
-    searchHelpMeta.MULTI = false;
-    searchHelpMeta.FUZZY_SEARCH = true;
-    searchHelpMeta.FIELDS = [
-      {FIELD_NAME: 'RELATION_ID', LIST_HEADER_TEXT: 'Relation', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
-      {FIELD_NAME: 'RELATION_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
-    ];
-    searchHelpMeta.READ_ONLY = this.readonly || this.oldRelation(control) && control.valid;
-
+    if (!this.relationSearchHelp) {
+      this.relationSearchHelp = new SearchHelp();
+      this.relationSearchHelp.OBJECT_NAME = 'Relation';
+      this.relationSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
+        return (searchTerm: string): Observable<object[]> => entityService.listRelation(searchTerm);
+      }(this.entityService);
+      this.relationSearchHelp.BEHAVIOUR = 'A';
+      this.relationSearchHelp.MULTI = false;
+      this.relationSearchHelp.FUZZY_SEARCH = true;
+      this.relationSearchHelp.FIELDS = [
+        {FIELD_NAME: 'RELATION_ID', LIST_HEADER_TEXT: 'Relation', IMPORT: true, EXPORT: true, LIST_POSITION: 1, FILTER_POSITION: 0},
+        {FIELD_NAME: 'RELATION_DESC', LIST_HEADER_TEXT: 'Description', IMPORT: true, EXPORT: true, LIST_POSITION: 2, FILTER_POSITION: 0}
+      ];
+      this.relationSearchHelp.READ_ONLY = this.readonly || this.oldRelation(control) && control.valid;
+    }
     const afterExportFn = function (context: any, ruleIdx: number) {
       return () => context.onChangeRelationID(ruleIdx, true);
     }(this, rowID).bind(this);
-    this.searchHelpComponent.openSearchHelpModal(searchHelpMeta, control, afterExportFn);
+    this.searchHelpComponent.openSearchHelpModal(this.relationSearchHelp, control, afterExportFn);
   }
 
   _generateRoleForm(): void {
