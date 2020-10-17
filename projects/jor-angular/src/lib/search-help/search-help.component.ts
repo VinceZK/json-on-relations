@@ -44,8 +44,6 @@ export class SearchHelpComponent implements OnInit {
     if (this.searchHelp !== searchHelp) {
       this.listData = [];
       this.searchHelp = searchHelp;
-      this.exportControl = exportControl;
-      this.afterExportFn = afterExportFn;
       this.filterFieldsFormGroup = this.fb.group({});
       this.filterFields = this.searchHelp.FIELDS.filter( fieldMeta => fieldMeta.FILTER_POSITION );
       this.filterFields.sort((a, b) => a.FILTER_POSITION - b.FILTER_POSITION);
@@ -61,6 +59,8 @@ export class SearchHelpComponent implements OnInit {
       this.listFields.sort((a, b) => a.LIST_POSITION - b.LIST_POSITION);
     }
 
+    this.exportControl = exportControl;
+    this.afterExportFn = afterExportFn;
     if (this.searchHelp.BEHAVIOUR === 'A') {
       this.search();
       this.isFilterShown = false;

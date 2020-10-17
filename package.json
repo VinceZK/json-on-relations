@@ -14,8 +14,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e --dev-server-target= --webdriverUpdate=false",
     "prod": "node server.js",
-    "webdriver-update": "webdriver-manager update",
-    "postinstall": "ngcc"
+    "webdriver-update": "webdriver-manager update"
   },
   "private": false,
   "dependencies": {
@@ -37,19 +36,14 @@
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "express": "^4.17.1",
-    "express-session": "^1.16.2",
     "handsontable": "^7.1.1",
-    "jor-angular": "latest",
     "mysql": "^2.17.1",
-    "node-authorization": "^2.0.2",
     "node-uuid": "^1.4.8",
-    "numbro": "^2.1.2",
-    "passport": "^0.4.0",
     "path": "^0.12.7",
     "rxjs": "^6.6.3",
     "ui-logon-angular": "^1.4.0",
     "ui-message": "^1.2.0",
-    "ui-message-angular": "^1.3.1",
+    "ui-message-angular": "^1.3.2",
     "underscore": "^1.9.1",
     "zone.js": "^0.10.3"
   },
