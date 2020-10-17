@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation} from '@angular/core';
-import {Attribute, PartnerInstance, RelationMeta, Relationship, RelationshipInstance,
+import {Attribute, RelationMeta, Relationship, RelationshipInstance,
   RelationshipMeta, AttributeBase, AttributeControlService, EntityService, SearchHelpComponent} from 'jor-angular';
 import {MessageService} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
