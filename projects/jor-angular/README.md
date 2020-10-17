@@ -148,7 +148,7 @@ Meanwhile, add the tag `<dk-app-search-help></dk-app-search-help>` at the bottom
 Second, implement the function `onSearchHelp` in the component.
 There are 3 options in implementing the search help function:
 
-#### Use the function 'openSearchHelpModalBySearchHelp'. 
+#### 1. Use the function 'openSearchHelpModalBySearchHelp'. 
 It requires you have an [Search Help](https://github.com/VinceZK/json-on-relations/wiki/Search-Help) pre-defined. 
 ```typescript
 import {SearchHelpComponent} from 'jor-angular';
@@ -185,7 +185,7 @@ At last, we call the function `this.searchHelpComponent.openSearchHelpModalBySea
 5. **readonly**: If readonly, then the Search Help cannot return value(s).
 6. **afterExportFn**: Optional. If provided, the function will be executed after the value is returned. 
    
-#### Use the function 'openSearchHelpModalByEntityType'. 
+#### 2. Use the function 'openSearchHelpModalByEntityType'. 
 It requires you have an [Entity Type](https://github.com/VinceZK/json-on-relations/wiki/Entity) pre-defined. 
 ```typescript
     this.searchHelpComponent.openSearchHelpModalByEntity(
@@ -203,7 +203,7 @@ For example, attribute "USER" is assigned with Data Domain "USER_ID". When the S
 it finds the attribute "USER" using the Data Domain "USER_ID", and the value of its attribute "USER" is then exported to the field "CREATE_BY".
 7. **afterExportFn**: If provided, additional logic can be conducted after value(s) are exported to the receiving field(s).
 
-#### Use the function 'openSearchHelpModal'. 
+#### 3. Use the function 'openSearchHelpModal'. 
 This is much freestyle, and it doesn't require any pre-defined objects.
 However, you need to define the search help attributes and the query method all by yourself. 
 ```typescript
