@@ -9,7 +9,9 @@
  * https://stackoverflow.com/questions/41280471/how-to-implement-routereusestrategy-shoulddetach-for-specific-routes-in-angular
  */
 import {ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy} from '@angular/router';
+import { Injectable } from "@angular/core";
 
+@Injectable()
 export class CustomReuseStrategy implements RouteReuseStrategy {
   routesToCache: string[] = ['list'];
   storedRouteHandles = new Map<string, DetachedRouteHandle>();
