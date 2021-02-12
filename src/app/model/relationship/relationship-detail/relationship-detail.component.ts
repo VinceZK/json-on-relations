@@ -160,6 +160,7 @@ export class RelationshipDetailComponent implements OnInit {
       this.relationshipForm.get('RELATIONSHIP_ID').setAsyncValidators(
         this.uniqueRelationshipValidator.validate.bind(this.uniqueRelationshipValidator));
       this.relationshipForm.get('TIME_DEPENDENT').enable();
+      this.relationshipForm.get('VALID_PERIOD').disable(); // TIME_DEPENDENT by default is not checked
       formArray.push(
         this.fb.group({
           ROLE_ID: [''],
@@ -234,6 +235,9 @@ export class RelationshipDetailComponent implements OnInit {
     } else { // In Display Mode -> Change Mode
       this.readonly = false;
       this.relationshipForm.get('TIME_DEPENDENT').enable();
+      if (!this.relationshipForm.get('TIME_DEPENDENT').value) {
+        this.relationshipForm.get('VALID_PERIOD').disable();
+      }
       this.relationshipForm.get('SINGLETON').enable();
       this.attrComponent.switchEditDisplay(this.readonly);
       this.involveFormArray.controls.forEach(involveFormGroup => {
@@ -410,6 +414,9 @@ export class RelationshipDetailComponent implements OnInit {
     return this.relationshipMeta.INVOLVES.findIndex( role => role.ROLE_ID === formGroup.get('ROLE_ID').value ) !== -1;
   }
 
+  onGoToRole(roleID: string): void {
+    this.router.navigate(['/model/role', roleID]);
+  }
   canDeactivate(): Observable<boolean> | boolean {
     if (this.isNewMode || (!this.bypassProtection && this.relationshipForm && this.relationshipForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');

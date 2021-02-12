@@ -20,7 +20,7 @@ module.exports = {
   * {
       ENTITY_ID: 'person',
       RELATION_ID: 'r_user',
-
+      DISTINCT: true,
       PROJECTION: [
         'USER_ID',
         'USER_NAME',
@@ -96,7 +96,11 @@ function run(queryObject, callback) {
     ], function (errs) {
       if (errs) return callback(errs);
 
-      selectSQL = 'select ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.RELATION_ID);
+      if (queryObject['DISTINCT']) {
+        selectSQL = 'select distinct ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.RELATION_ID);
+      } else {
+        selectSQL = 'select ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.RELATION_ID);
+      }
       selectSQL += joinString;
       if (filterString) selectSQL += ' where ' + filterString +
         ' and `ENTITY_INSTANCES`.`ENTITY_ID` = ' + entityDB.pool.escape(queryObject.ENTITY_ID);
@@ -328,24 +332,20 @@ function run(queryObject, callback) {
     joinString = ' join `ENTITY_INSTANCES` on ' +  entityDB.pool.escapeId(queryObject.RELATION_ID) +
       '.`INSTANCE_GUID` = `ENTITY_INSTANCES`.`INSTANCE_GUID`';
     joinRelations.forEach( joinRelation => {
-      let association;
-      if (joinRelation === queryObject.ENTITY_ID) {
+      let association = factRelationMeta.ASSOCIATIONS.find(function (assoc) {
+        return assoc.RIGHT_RELATION_ID === joinRelation;
+      });
+      if (!association) {
         association =  {
-          ASSOCIATION_NAME: 'Entity master table',
-          RIGHT_RELATION_ID: queryObject.ENTITY_ID,
-          CARDINALITY: '[1..1]',
-          FOREIGN_KEY_CHECK: false,
+          RIGHT_RELATION_ID: joinRelation,
+          // CARDINALITY: '[1..1]',
+          // FOREIGN_KEY_CHECK: false,
           FIELDS_MAPPING: [{
             LEFT_FIELD: 'INSTANCE_GUID',
             RIGHT_FIELD: 'INSTANCE_GUID'
           }]
         }
-      } else {
-        association = factRelationMeta.ASSOCIATIONS.find(function (assoc) {
-          return assoc.RIGHT_RELATION_ID === joinRelation;
-        });
       }
-      if (!association) return;
       joinString += ' left join ' + entityDB.pool.escapeId(joinRelation) + ' on ';
       association.FIELDS_MAPPING.forEach(function (fieldsMapping, i) {
         if (i !== 0) joinString += ' and ';

@@ -23,14 +23,13 @@ export class EntityRelationshipComponent implements OnInit {
   readonlyValidFrom: boolean;
   readonlyValidTo: boolean;
   readonlyPartner: boolean;
-  readonlyAttribute: boolean;
+  readonlyAttribute = false;
   entityIDsByRole = {};
 
   constructor(private fb: FormBuilder,
               private messageService: MessageService,
               private entityService: EntityService,
               private attributeControlService: AttributeControlService) {
-    this.messageService.setMessageStore(msgStore, 'EN');
     this.relationshipAttributeFG = this.fb.group({});
   }
 
@@ -95,8 +94,8 @@ export class EntityRelationshipComponent implements OnInit {
       if (!this.entityIDsByRole[involve.ROLE_ID]) {
         this.entityIDsByRole[involve.ROLE_ID] = this.entityService.listEntityIDbyRole(involve.ROLE_ID); }
     });
-    this.relationshipAttributes.forEach(attribute =>
-      this.relationshipAttributeFG.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
+    // this.relationshipAttributes.forEach(attribute =>
+    //   this.relationshipAttributeFG.get(attribute.ATTR_NAME).setValue(this.detailValue[attribute.ATTR_NAME]));
   }
 
   onSearchHelp(entityID: string, exportObject: object): void {

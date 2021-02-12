@@ -50,13 +50,27 @@ export class SearchHelpComponent implements OnInit {
       this.filterFields.forEach( fieldMeta => {
         if (fieldMeta.IMPORT) {
           const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
-          if (exportControl.get(ieFieldName)) { fieldMeta.DEFAULT_VALUE = exportControl.get(ieFieldName).value;  }
+          if (exportControl.get(ieFieldName)) {
+            fieldMeta.DEFAULT_VALUE = exportControl.get(ieFieldName).value;
+          }
         }
         this.filterFieldsFormGroup.addControl(fieldMeta.FIELD_NAME, this.fb.control(fieldMeta.DEFAULT_VALUE));
       });
-
       this.listFields = this.searchHelp.FIELDS.filter( fieldMeta => fieldMeta.LIST_POSITION );
       this.listFields.sort((a, b) => a.LIST_POSITION - b.LIST_POSITION);
+    }
+
+    // Import the value to fuzzy search field
+    if (this.searchHelp.FUZZY_SEARCH) {
+      this.fuzzySearchTerm = '';
+      this.searchHelp.FIELDS.forEach( fieldMeta => {
+        const ieFieldName = fieldMeta.IE_FIELD_NAME || fieldMeta.FIELD_NAME;
+        const ctrl = exportControl.get(ieFieldName);
+        if (!this.fuzzySearchTerm && ctrl && ctrl.value) {
+          this.fuzzySearchTerm = ctrl.value;
+          return;
+        }
+      });
     }
 
     this.exportControl = exportControl;

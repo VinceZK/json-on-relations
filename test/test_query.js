@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const query = require('../server/models/query.js');
 
-describe('query tests', function () {
+describe.only('query tests', function () {
   let queryObject =
     {
       ENTITY_ID: 'person',
@@ -278,6 +278,67 @@ describe('query tests', function () {
     ];
     query.run(queryObject, function (errs, rows) {
       should(errs).eql(null);
+      console.log(rows);
+      done();
+    });
+  });
+
+  it('should return query result with address', function(done){
+    queryObject.PROJECTION = [
+      'USER_ID',
+      'USER_NAME',
+      'GIVEN_NAME',
+      {FIELD_NAME: 'ADDRESS_VALUE', ALIAS: 'Address', RELATION_ID: 'r_address'},
+      {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'},
+      {FIELD_NAME: 'HEIGHT', RELATION_ID: 'person'}
+    ];
+    queryObject.FILTER = [
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH001'
+      }
+    ];
+    queryObject.SORT = [
+      {
+        FIELD_NAME: 'HEIGHT',
+        RELATION_ID: 'person',
+        ORDER: 'ASC'
+      }
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      rows.length.should.eql(2);
+      console.log(rows);
+      done();
+    });
+  });
+
+  it('should return query result with distinct result', function(done){
+    queryObject.DISTINCT = true;
+    queryObject.PROJECTION = [
+      'USER_ID',
+      'USER_NAME',
+      'GIVEN_NAME',
+      {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'},
+      {FIELD_NAME: 'HEIGHT', RELATION_ID: 'person'}
+    ];
+    queryObject.FILTER = [
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH001'
+      },
+      {
+        FIELD_NAME: 'COUNTRY',
+        RELATION_ID: 'r_address',
+        OPERATOR: 'EQ',
+        LOW: 'China'
+      }
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      rows.length.should.eql(1);
       console.log(rows);
       done();
     });

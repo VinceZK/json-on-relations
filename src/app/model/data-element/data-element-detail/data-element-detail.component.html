@@ -44,7 +44,8 @@
         </div>
         <div class="input-group col-8 col-lg-4">
           <input type="text" class="form-control form-control-sm" id="data-domain" (change)="onChangeDataDomain(dataElementForm)"
-                 [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID">
+                 [readonly]="readonly || !dataElementForm.get('USE_DOMAIN').value" name="dataElement" formControlName="DOMAIN_ID"
+                 (dblclick)="onGoToDataDomain(dataElementForm.value['DOMAIN_ID'])">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary btn-sm" type="button" id="searchDomain"
                     (click)="onDataDomainSearchHelp(dataElementForm)">
@@ -116,7 +117,8 @@
         <label class="col-form-label col-form-label-sm col-lg-3" for="search-help">Search Help</label>
         <div class="input-group col-8 col-lg-4">
           <input type="text" formControlName="SEARCH_HELP_ID" id="search-help" name="search-help"
-                 class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeSearchHelp(dataElementForm)">
+                 class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeSearchHelp(dataElementForm)"
+                 (dblclick)="onGoToSearchHelp(dataElementForm.value['SEARCH_HELP_ID'])">
           <div class="input-group-append">
             <button class="btn btn-outline-secondary btn-sm" type="button" id="searchSearchHelp"
                     (click)="onSearchHelpSearchHelp(dataElementForm)">

@@ -116,7 +116,7 @@ export class DataElementDetailComponent implements OnInit {
       this.searchHelpSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
         return (searchTerm: string): Observable<object[]> => entityService.listSearchHelp(searchTerm);
       }(this.entityService);
-      this.searchHelpSearchHelp.BEHAVIOUR = 'M';
+      this.searchHelpSearchHelp.BEHAVIOUR = 'A';
       this.searchHelpSearchHelp.MULTI = false;
       this.searchHelpSearchHelp.FUZZY_SEARCH = true;
       this.searchHelpSearchHelp.FIELDS = [
@@ -138,8 +138,10 @@ export class DataElementDetailComponent implements OnInit {
   _getSearchHelpMeta(formGroup: AbstractControl, setDefault: boolean): void {
     const searchHelpCtrl = formGroup.get('SEARCH_HELP_ID');
     if (!searchHelpCtrl.value) {
-      formGroup.get('SEARCH_HELP_EXPORT_FIELD').setValue('');
-      formGroup.get('SEARCH_HELP_EXPORT_FIELD').markAsDirty();
+      if (!this.readonly) {
+        formGroup.get('SEARCH_HELP_EXPORT_FIELD').setValue('');
+        formGroup.get('SEARCH_HELP_EXPORT_FIELD').markAsDirty();
+      }
       return;
     }
     this.entityService.getSearchHelp(searchHelpCtrl.value).subscribe(data => {
@@ -191,6 +193,8 @@ export class DataElementDetailComponent implements OnInit {
         this.dataElementForm.get('DOMAIN_ID').disable();
         this.dataElementForm.get('DATA_TYPE').disable();
         this.dataElementForm.get('SEARCH_HELP_EXPORT_FIELD').disable();
+      } else {
+        this.dataElementForm.get('SEARCH_HELP_EXPORT_FIELD').enable();
       }
     } else {
       this.dataElementForm = this.fb.group({
@@ -407,6 +411,14 @@ export class DataElementDetailComponent implements OnInit {
         formGroup.get('DATA_LENGTH').disable();
         formGroup.get('DECIMAL').disable();
     }
+  }
+
+  onGoToDataDomain(domainID: string): void {
+    this.router.navigate(['/model/data-domain', domainID]);
+  }
+
+  onGoToSearchHelp(searchHelpID: string): void {
+    this.router.navigate(['/model/search-help', searchHelpID]);
   }
 
   canDeactivate(): Observable<boolean> | boolean {

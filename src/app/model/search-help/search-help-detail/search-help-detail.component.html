@@ -46,7 +46,8 @@
         <div class="card-body row">
           <div class="input-group col-lg-4 ml-1">
             <input type="text" formControlName="ENTITY_ID" id="ENTITY_ID" name="ENTITY_ID" placeholder="Entity Type"
-                   class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeEntityID(searchHelpForm)">
+                   class="form-control form-control-sm" [readonly]="readonly" (change)="onChangeEntityID(searchHelpForm)"
+                   (dblclick)="onGoToEntity(searchHelpForm.get('ENTITY_ID').value)">
             <div class="input-group-append">
               <button class="btn btn-outline-secondary btn-sm" type="button" id="searchEntity"
                       (click)="onEntitySearchHelp(searchHelpForm)">

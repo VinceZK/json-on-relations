@@ -6,6 +6,7 @@ import {Observable} from 'rxjs';
 import {SearchHelpMethod, SearchHelp, EntityService, SearchHelpComponent} from 'jor-angular';
 import {MessageService, Message} from 'ui-message-angular';
 import {msgStore} from '../../msgStore';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-attribute-meta',
@@ -19,6 +20,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
   dataElementSearchHelp: SearchHelp;
 
   constructor(private fb: FormBuilder,
+              private router: Router,
               private entityService: EntityService,
               private messageService: MessageService,
               private modelService: ModelService) {
@@ -50,7 +52,7 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
       this.dataElementSearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
         return (searchTerm: string): Observable<object[]> => entityService.listDataElement(searchTerm);
       }(this.entityService);
-      this.dataElementSearchHelp.BEHAVIOUR = 'M';
+      this.dataElementSearchHelp.BEHAVIOUR = 'A';
       this.dataElementSearchHelp.MULTI = false;
       this.dataElementSearchHelp.FUZZY_SEARCH = true;
       this.dataElementSearchHelp.FIELDS = [
@@ -310,5 +312,9 @@ export class AttributeMetaComponent implements OnInit, OnChanges {
         attribute.ATTR_NAME === 'VALID_TO' ||
         attribute.ATTR_NAME.substr(-14, 14) === '_INSTANCE_GUID' ||
         attribute.ATTR_NAME.substr(-10, 10) === '_ENTITY_ID');
+  }
+
+  onGoToDataElement(dataElementName: string): void {
+    this.router.navigate(['/model/data-element', dataElementName]);
   }
 }

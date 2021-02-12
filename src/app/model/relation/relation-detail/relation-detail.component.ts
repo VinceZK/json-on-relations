@@ -416,6 +416,10 @@ export class RelationDetailComponent implements OnInit {
       false;
   }
 
+  onGoToRelation(relationID: string): void {
+    this.router.navigate(['/model/relation', relationID]);
+  }
+
   canDeactivate(): Observable<boolean> | boolean {
     if (this.isNewMode || (!this.bypassProtection && this.relationForm && this.relationForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');

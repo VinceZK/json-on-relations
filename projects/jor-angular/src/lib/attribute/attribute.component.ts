@@ -2,6 +2,7 @@ import {Component, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import {AttributeBase} from './attribute-base';
 import {FormGroup} from '@angular/forms';
 import {SearchHelpComponent} from '../search-help/search-help.component';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'dk-app-attribute',
@@ -42,6 +43,16 @@ export class AttributeComponent implements OnInit, OnChanges{
         }
         break;
       default:
+    }
+    if (this.attributeControl.domainId === 'UUID' && !this.readonly && !fieldCtrl.value) {
+      fieldCtrl.setValue(uuid());
+      fieldCtrl.markAsDirty();
+    }
+    if (this.attributeControl.domainId === 'GUID' && !this.readonly && !fieldCtrl.value) {
+      let guid = uuid();
+      guid = guid.replace(/-/g, '').toUpperCase();
+      fieldCtrl.setValue(guid);
+      fieldCtrl.markAsDirty();
     }
   }
 

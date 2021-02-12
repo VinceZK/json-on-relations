@@ -268,7 +268,7 @@ export class SearchHelpDetailComponent implements OnInit {
       this.entitySearchHelp.METHOD = function(entityService: EntityService): SearchHelpMethod {
         return (searchTerm: string): Observable<object[]> => entityService.listEntityType(searchTerm);
       }(this.entityService);
-      this.entitySearchHelp.BEHAVIOUR = 'M';
+      this.entitySearchHelp.BEHAVIOUR = 'A';
       this.entitySearchHelp.MULTI = false;
       this.entitySearchHelp.FUZZY_SEARCH = true;
       this.entitySearchHelp.FIELDS = [
@@ -389,6 +389,10 @@ export class SearchHelpDetailComponent implements OnInit {
     }
     this.searchHelpFieldsFormArray.removeAt(index);
     this.searchHelpFieldsFormArray.markAsDirty();
+  }
+
+  onGoToEntity(entityID: string): void {
+    this.router.navigate(['/model/entity-type', entityID]);
   }
 
   canDeactivate(): Observable<boolean> | boolean {

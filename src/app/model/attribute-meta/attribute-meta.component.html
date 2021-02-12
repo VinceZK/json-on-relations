@@ -43,7 +43,8 @@
           <td [formGroup]="attrFormGroup">
             <div class="input-group dk-dataElement">
               <input type="text" formControlName="DATA_ELEMENT" [readonly]="readonly || isFieldGray(attrFormGroup.value)"
-                     class="form-control form-control-sm" (change)="onChangeDataElement(i)">
+                     class="form-control form-control-sm" (change)="onChangeDataElement(i)"
+                     (dblclick)="onGoToDataElement(attrFormGroup.value['DATA_ELEMENT'])">
               <div class="invalid-tooltip">
                 {{attrFormGroup.get('DATA_ELEMENT').errors?.message}}
               </div>

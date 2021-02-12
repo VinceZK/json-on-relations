@@ -9,7 +9,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'dist/jor')));
 
 app.use(cors());
-app.use(require('body-parser').json());
+app.use(express.json());
 app.use(compress());
 
 // API Routing

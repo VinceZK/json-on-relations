@@ -281,6 +281,10 @@ export class EntityTypeDetailComponent implements OnInit {
       false;
   }
 
+  onGoToRole(roleID: string): void {
+    this.router.navigate(['/model/role', roleID]);
+  }
+
   canDeactivate(): Observable<boolean> | boolean {
     if (this.isNewMode || (!this.bypassProtection && this.entityTypeForm && this.entityTypeForm.dirty)) {
       const dialogAnswer = this.dialogService.confirm('Discard changes?');
