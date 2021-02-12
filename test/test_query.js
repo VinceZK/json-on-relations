@@ -344,6 +344,69 @@ describe.only('query tests', function () {
     });
   });
 
+  it('should return query result with multi-values in the same filter field', function(done){
+    queryObject.PROJECTION = [
+      'USER_ID',
+      'USER_NAME',
+      'GIVEN_NAME',
+      {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'},
+      {FIELD_NAME: 'HEIGHT', RELATION_ID: 'person'}
+    ];
+    queryObject.FILTER = [
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH001'
+      },
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH002'
+      },
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      rows.length.should.eql(2);
+      console.log(rows);
+      done();
+    });
+  });
+
+  it('should return query result with the same filter field, different relation id', function(done){
+    queryObject.PROJECTION = [
+      'USER_ID',
+      'USER_NAME',
+      'GIVEN_NAME',
+      {FIELD_NAME: 'COMPANY_ID', ALIAS: 'Company', RELATION_ID: 'r_employee'},
+      {FIELD_NAME: 'HEIGHT', RELATION_ID: 'person'}
+    ];
+    queryObject.FILTER = [
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH001'
+      },
+      {
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH002'
+      },
+      {
+        RELATION_ID: 'r_personalization',
+        FIELD_NAME: 'USER_ID',
+        OPERATOR: 'EQ',
+        LOW: 'DH001'
+      },
+    ];
+    query.run(queryObject, function (errs, rows) {
+      should(errs).eql(null);
+      rows.length.should.eql(1);
+      console.log(rows);
+      done();
+    });
+  });
+
+
   after('Close the MDB', function (done) {
     entityDB.closeMDB(done);
   })

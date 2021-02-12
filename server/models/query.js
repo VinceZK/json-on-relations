@@ -181,6 +181,7 @@ function run(queryObject, callback) {
       errorMessages.push(message.report('QUERY', 'INVALID_FILTER', 'E'));
       return callback(errorMessages);
     }
+    queryObject.FILTER.sort();
     async.forEachOfSeries(queryObject.FILTER, function (selectOption, i, callback) {
       if (!selectOption.FIELD_NAME) {
         errorMessages.push(message.report('QUERY', 'FILTER_MISS_FIELD_NAME', 'E'));
@@ -200,7 +201,7 @@ function run(queryObject, callback) {
       entityDB.getRelationMeta(relation, function (errs, relationMeta) {
         if (errs) return callback(errs);
         if (!relationMeta) {
-          errorMessages.push(message.report('QUERY', 'INVALID_RELATION', 'E', queryObject.RELATION_ID));
+          errorMessages.push(message.report('QUERY', 'INVALID_RELATION', 'E', relation));
           return callback(null);
         }
         const index = relationMeta.ATTRIBUTES.findIndex(function (attribute) {
@@ -210,7 +211,14 @@ function run(queryObject, callback) {
           errorMessages.push(message.report('QUERY', 'INVALID_FIELD', 'E', selectOption.FIELD_NAME, relation));
           return callback(null);
         }
-        if (i !== 0) filterString += " AND ";
+        if (i > 0) {
+          if (queryObject.FILTER[i-1].RELATION_ID || selectOption.RELATION_ID) {
+            filterString += (queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME &&
+              queryObject.FILTER[i-1].RELATION_ID ===  selectOption.RELATION_ID)? ' OR ' : ' AND ';
+          } else {
+            filterString += queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME? ' OR ' : ' AND ';
+          }
+        }
         switch (selectOption.OPERATOR) {
           case 'EQ':
             filterString += entityDB.pool.escapeId(relation) + '.' + entityDB.pool.escapeId(selectOption.FIELD_NAME)
