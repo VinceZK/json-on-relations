@@ -55,10 +55,11 @@ With the attribute UI control, you can save a lot of effort in providing multi-l
 
 ### How to Use
 You need to provide 4 parameters to the UI control **dk-app-attribute-form2**
-1. **attributeControl**: It has the type `AtributeBase` which contains all the meta information to describe the UI control.
-2. **formGroup**: It has the type `FormGroup` which is the parent Angular reactive form group that the field belongs to.
-3. **readonly**: It is a boolean parameter to indicate whether the field in UI is readonly or editable.
-4. **isSmallSize**: It is a boolean parameter to indicate whether the field in UI is displayed in small size or normal size;
+1. **[attributeControl]**: It has the type `AtributeBase` which contains all the meta information to describe the UI control.
+2. **[formGroup]**: It has the type `FormGroup` which is the parent Angular reactive form group that the field belongs to.
+3. **[readonly]**: It is a boolean parameter to indicate whether the field in UI is readonly or editable.
+4. **[isSmallSize]**: It is a boolean parameter to indicate whether the field in UI is displayed in small size or normal size.
+5. **(change)**: You can pass a method to the change event so that it can be invoked once the value is changed.
 
 A utility method `this.attributeControlService.toAttributeControl` is provided to 
 convert attributes' meta data into AttributeControl. 

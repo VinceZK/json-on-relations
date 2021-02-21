@@ -9,19 +9,22 @@
              [id]="attributeControl.key"
              [maxlength]="attributeControl.maxLength"
              [pattern]="attributeControl.pattern"
-             [readonly]="isReadonly" >
+             (change) = "onChange($event)"
+             [readonly]="isReadonly">
       <input *ngSwitchCase="'text_capital'" type="text" class="form-control"
              [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"
              [id]="attributeControl.key"
              [maxlength]="attributeControl.maxLength"
              (keyup)="onKeyup(attributeControl.name)"
+             (change) = "onChange($event)"
              [readonly]="isReadonly" >
       <input *ngSwitchCase="'integer'" type="number" class="form-control"
              [class.form-control-sm] = "isSmallSize"
              [formControlName]="attributeControl.name"
              [id]="attributeControl.key"
              [pattern]="attributeControl.pattern"
+             (change) = "onChange($event)"
              [readonly]="isReadonly" >
       <div *ngIf="attributeControl.searchHelpId || attributeControl.domainRelationId" class="input-group-append">
         <button class="btn btn-outline-secondary btn-sm" type="button" (click)="onSearchHelp(attributeControl)">
@@ -36,35 +39,42 @@
            [step]="attributeControl.step"
            [placeholder]="attributeControl.placeholder"
            [pattern]="attributeControl.pattern"
+           (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <input *ngSwitchCase="'checkbox'" type="checkbox" class="mb-1 ml-1"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
+           (change) = "onChange($event)"
            [id]="attributeControl.key">
     <input *ngSwitchCase="'textarea'" type="textarea" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
+           (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <input *ngSwitchCase="'file'" type="file" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
+           (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <input *ngSwitchCase="'date'" type="date" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
+           (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <input *ngSwitchCase="'timestamp'" type="text" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
+           (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <select *ngSwitchCase="'dropdown'" class="form-control"
             [class.form-control-sm] = "isSmallSize"
             [formControlName]="attributeControl.name"
-            [id]="attributeControl.key">
+            [id]="attributeControl.key"
+            (change) = "onChange($event)">
       <option *ngFor="let opt of attributeControl.dropdownList" [value]="opt.key">{{opt.value}}</option>
     </select>
   </div>

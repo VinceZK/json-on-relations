@@ -1,8 +1,9 @@
-import {Component, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, Output, ViewChild} from '@angular/core';
 import {AttributeBase} from './attribute-base';
 import {FormGroup} from '@angular/forms';
 import {SearchHelpComponent} from '../search-help/search-help.component';
 import { v4 as uuid } from 'uuid';
+import { EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'dk-app-attribute',
@@ -15,6 +16,7 @@ export class AttributeComponent implements OnInit, OnChanges{
   @Input() readonly: boolean;
   @Input() isSmallSize: boolean;
   @Input() noErrorMsg: boolean;
+  @Output() change = new EventEmitter<any>();
   @ViewChild(SearchHelpComponent, {static: false})
   private searchHelpComponent !: SearchHelpComponent;
 
@@ -94,5 +96,9 @@ export class AttributeComponent implements OnInit, OnChanges{
         attributeControl.domainEntityId, attributeControl.domainRelationId, this.formGroup, this.readonly,
         attributeControl.name, attributeControl.domainId);
     }
+  }
+
+  onChange(event) {
+    this.change.emit(event);
   }
 }
