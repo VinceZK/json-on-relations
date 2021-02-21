@@ -54,7 +54,7 @@ Then it is rendered as a drop-down list automatically.
 With the attribute UI control, you can save a lot of effort in providing multi-languages, value helps, and validations.
 
 ### How to Use
-You need to provide 4 parameters to the UI control **dk-app-attribute-form2**
+You need to provide 5 parameters to the UI control **dk-app-attribute-form2**
 1. **[attributeControl]**: It has the type `AtributeBase` which contains all the meta information to describe the UI control.
 2. **[formGroup]**: It has the type `FormGroup` which is the parent Angular reactive form group that the field belongs to.
 3. **[readonly]**: It is a boolean parameter to indicate whether the field in UI is readonly or editable.
