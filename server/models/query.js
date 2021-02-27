@@ -102,8 +102,8 @@ function run(queryObject, callback) {
         selectSQL = 'select ' + projectionString + ' from ' + entityDB.pool.escapeId(queryObject.RELATION_ID);
       }
       selectSQL += joinString;
-      if (filterString) selectSQL += ' where ' + filterString +
-        ' and `ENTITY_INSTANCES`.`ENTITY_ID` = ' + entityDB.pool.escape(queryObject.ENTITY_ID);
+      if (filterString) selectSQL += ' where (' + filterString +
+        ') and `ENTITY_INSTANCES`.`ENTITY_ID` = ' + entityDB.pool.escape(queryObject.ENTITY_ID);
       if (sortString) selectSQL += ' order by ' + sortString;
       entityDB.executeSQL(selectSQL, function (err, rows) {
         if (err) callback([message.report('QUERY', 'GENERAL_ERROR', 'E', err)]);
@@ -213,10 +213,11 @@ function run(queryObject, callback) {
         }
         if (i > 0) {
           if (queryObject.FILTER[i-1].RELATION_ID || selectOption.RELATION_ID) {
-            filterString += (queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME &&
-              queryObject.FILTER[i-1].RELATION_ID ===  selectOption.RELATION_ID)? ' OR ' : ' AND ';
+            filterString +=
+              (queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME &&
+              queryObject.FILTER[i-1].RELATION_ID ===  selectOption.RELATION_ID)? ' or ' : ') and (';
           } else {
-            filterString += queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME? ' OR ' : ' AND ';
+            filterString += queryObject.FILTER[i-1].FIELD_NAME === selectOption.FIELD_NAME? ' or ' : ') and (';
           }
         }
         switch (selectOption.OPERATOR) {
