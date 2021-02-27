@@ -54,6 +54,12 @@ const msgArray = [
     }
   },
   { msgCat: "ENTITY",
+    msgName: "MULTIPLE_DELETION_ON_11CARDINALITY",
+    msgText: {
+      EN: {shortText: "Multiple deletions on cardinality 1..1 relation: %s", longText: "dummy"}
+    }
+  },
+  { msgCat: "ENTITY",
     msgName: "ATTRIBUTE_NOT_VALID",
     msgText: {
       EN: {shortText: "Entity: '%s' doesn't have attribute: '%s'", longText: "dummy"}

@@ -4,7 +4,7 @@
 const entity = require('../server/models/entity.js');
 const _ = require('underscore');
 
-describe('entity tests', function () {
+describe.only('entity tests', function () {
   let instance =
     { ENTITY_ID: 'person',
       person: {HEIGHT: 1.70, GENDER: 'Male', FINGER_PRINT: 'CA67DE15727C72961EB4B6B59B76743E', HOBBY:'Reading, Movie, Coding',
@@ -490,6 +490,134 @@ describe('entity tests', function () {
           msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
           msgType: 'E'
         }]);
+        done();
+      })
+    });
+
+    it('should fail: [1..1] relation cannot be deleted', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_user : {action: 'delete', USER_ID: 'DH999'}
+      };
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'MANDATORY_RELATION_MISSING',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should fail: [1..1] relation has multiple deletions', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_user : [
+          {action: 'delete', USER_ID: 'DH999'},
+          {action: 'delete', USER_ID: 'DH997'},
+          {action: 'add', USER_ID: 'DH999', DISPLAY_NAME: 'Zhang Kai2', FAMILY_NAME: 'Zhang'},
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'MULTIPLE_DELETION_ON_11CARDINALITY',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should fail: [1..1] relation has a combined add and wrong deletion', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_user : [
+          {action: 'delete', USER_ID: 'DH998'},
+          {action: 'add', USER_ID: 'DH999', DISPLAY_NAME: 'Zhang Kai2', FAMILY_NAME: 'Zhang'},
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should success: [1..1] relation has a combined add and delete', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_user : [
+          {action: 'delete', USER_ID: 'DH999'},
+          {action: 'add', USER_ID: 'DH999', DISPLAY_NAME: 'Zhang Kai2', FAMILY_NAME: 'Zhang'},
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should fail: [0..1] relation has already a persisted entry', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_personalization : {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'ZH'}};
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should fail: [0..1] relation has multiple adding actions', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_personalization : [
+          {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'EN'},
+          {USER_ID: 'DH997', TIMEZONE: 'UTC+8', LANGUAGE: 'EN'},
+          {action: 'delete', USER_ID: 'DH999'},
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        err.should.containDeep([{
+          msgCat: 'ENTITY',
+          msgName: 'RELATION_NOT_ALLOW_MULTIPLE_VALUE',
+          msgType: 'E'
+        }]);
+        done();
+      })
+    });
+
+    it('should success: [0..1] relation has a combined add and delete actions', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_personalization : [
+          {action: 'delete', USER_ID: 'DH999'},
+          {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'EN'}
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should success: [0..1] relation can be deleted', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_personalization : [
+          {action: 'delete', USER_ID: 'DH999'}
+        ]
+      };
+      entity.changeInstance(instance3, function(err){
+        should(err).eql(null);
+        done();
+      })
+    });
+
+    it('should success: [0..1] relation is restored', function (done) {
+      let instance3 = {ENTITY_ID: 'person', INSTANCE_GUID: instance.INSTANCE_GUID,
+        r_personalization : {USER_ID: 'DH999', TIMEZONE: 'UTC+8', LANGUAGE: 'EN'}
+      };
+      entity.changeInstance(instance3, function(err){
+        should(err).eql(null);
         done();
       })
     });

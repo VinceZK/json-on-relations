@@ -4,7 +4,7 @@
 const entityDB = require('../server/models/connections/sql_mdb.js');
 const query = require('../server/models/query.js');
 
-describe.only('query tests', function () {
+describe('query tests', function () {
   let queryObject =
     {
       ENTITY_ID: 'person',

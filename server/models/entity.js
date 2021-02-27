@@ -860,6 +860,7 @@ function changeInstance(instance, callback, noCommit) {
       const updateSQLs = [];
       const foreignRelations = [];
       const add01Relations = [];
+      const delete11Relations = [];
       const delete1nRelations = [];
       const relationshipInstances = [];
       const valueCheckDomains = [];
@@ -883,7 +884,7 @@ function changeInstance(instance, callback, noCommit) {
             });
         } else {
           _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, entityRelation,
-            add01Relations, delete1nRelations, valueCheckDomains, instance, function (results) {
+            add01Relations, delete11Relations, delete1nRelations, valueCheckDomains, instance, function (results) {
               _hasErrors(results)? _mergeResults(errorMessages, results) : _mergeResults(updateSQLs, results);
               callback(null);
             });
@@ -916,6 +917,16 @@ function changeInstance(instance, callback, noCommit) {
           function (callback) {//Check adding [0..1] relations
             async.map(add01Relations, function(relation, callback){
               _checkAdd01Relation(relation, instance['INSTANCE_GUID'], callback)
+            }, function (errs, results) {
+              if(errs) return callback(errs); // Already message array
+              const errMsgs = _condenseErrorMessages(results);
+              if(errMsgs.length > 0) callback(errMsgs); //The results should already be error messages
+              else callback(null);
+            })
+          },
+          function (callback) {//Check deleting [1..1] relations
+            async.map(delete11Relations, function(relation, callback){
+              _checkDelete11Relation(relation, instance['INSTANCE_GUID'], callback)
             }, function (errs, results) {
               if(errs) return callback(errs); // Already message array
               const errMsgs = _condenseErrorMessages(results);
@@ -1490,8 +1501,9 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, va
  * @param entityMeta
  * @param foreignRelations: record relations that have foreign key check associations
  * @param entityRelation: entityRelation values
- * @param add01Relations: record relations that have cardinality [0..1] and are asked for adding
- * @param delete1nRelations: record relations that have cardinality [1..n] and are asked for deletion
+ * @param add01Relations: record relations that have cardinality [0..1] and [1..1], and are required for adding
+ * @param delete11Relations: record relations that have cardinality [1..1],
+ * @param delete1nRelations: record relations that have cardinality [1..n], and are required for deletion
  * @param valueCheckDomains: record fields whose domain need value checks
  * @param instance
  * @param callback(errs)
@@ -1499,7 +1511,7 @@ function _generateCreateRelationSQL(value, key, entityMeta, foreignRelations, va
  * @private
  */
 function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, entityRelation,
-                                    add01Relations, delete1nRelations, valueCheckDomains, instance, callback){
+                                    add01Relations, delete11Relations, delete1nRelations, valueCheckDomains, instance, callback){
   const errorMessages = [];
   let results;
 
@@ -1537,18 +1549,7 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, en
         results = _generateUpdateSingleRelationSQL(relationMeta, value, entityMeta, instance, instanceGUID, foreignRelations, valueCheckDomains);
         break;
       case 'delete':
-        if(roleRelationMeta.CARDINALITY === '[1..1]')
-          errorMessages.push(
-            message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', roleRelationMeta.RELATION_ID, entityMeta.ENTITY_ID));
-        if(roleRelationMeta.CARDINALITY === '[1..n]'){
-          let deleteRelation = delete1nRelations.find(function (element) {
-            return element.RELATION_ID === roleRelationMeta.RELATION_ID;
-          });
-          if(deleteRelation)
-            deleteRelation.COUNT = deleteRelation.COUNT + 1;
-          else
-            delete1nRelations.push({RELATION_ID:roleRelationMeta.RELATION_ID, COUNT: 1});
-        }
+        __validateForDeletion(relationMeta, value);
         results = _generateDeleteSingleRelationSQL(relationMeta, value);
         break;
       default:
@@ -1559,14 +1560,28 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, en
   }
 
   function __validateForAdd(relationMeta, value) {
-    // Even with cardinality [1..1], you can still not tell
-    // whether it can be added or not with out checking the DB.
-    // Because role is attribute-based.
+    // For cardinality [1..1], there must be an entry in DB. But it can be first deleted then added.
+    // For cardinality [0..1], it would be an existing entry in DB.
+    // We need to record the relation ID into add01Relations to check with DB before saving.
     if(roleRelationMeta.CARDINALITY === '[0..1]' || roleRelationMeta.CARDINALITY === '[1..1]'){
       if(add01Relations.includes(roleRelationMeta.RELATION_ID))
         errorMessages.push(message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', roleRelationMeta.RELATION_ID));
-      else add01Relations.push(roleRelationMeta.RELATION_ID);
+      else {
+        const currentRelationValues = instance[relationMeta.RELATION_ID];
+        if ( Array.isArray(currentRelationValues)
+             && currentRelationValues.length === 2
+             && currentRelationValues.findIndex( value => value.action === 'delete' ) > -1) {
+          // If the corresponding relation has a deletion operation, then we don't record the adding.
+          // The adding and deletion combination will be checked in __validateForDeletion
+        } else {
+          add01Relations.push(roleRelationMeta.RELATION_ID);
+        }
+      }
     }
+    // For cardinality [1..n], we need to make sure at least 1 entry is recorded in DB.
+    // Each add causes the deletion count minus 1.
+    // At the end, check the DB for the existing counts with the total deletion counts.
+    // If existing counts is less than or equal to the total deletion counts, then reports the error.
     if(roleRelationMeta.CARDINALITY === '[1..n]'){
       let deleteRelation = delete1nRelations.find(function (element) {
         return element.RELATION_ID === roleRelationMeta.RELATION_ID;
@@ -1576,8 +1591,12 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, en
       else
         delete1nRelations.push({RELATION_ID:roleRelationMeta.RELATION_ID, COUNT: -1});
     }
+    // Check the foreign key dependency.
+    // The new added value must pass the foreign key dependency check.
     relationMeta.ASSOCIATIONS.forEach(association => {
       if (!association.FOREIGN_KEY_CHECK) return;
+      // First run an instance level check.
+      // If the instance level check is passed, the DB level check will be bypassed.
       const rightRelationValue = instance[association.RIGHT_RELATION_ID];
       if (rightRelationValue) {
         if (Array.isArray(rightRelationValue)) {
@@ -1592,8 +1611,45 @@ function _generateChangeRelationSQL(value, key, entityMeta, foreignRelations, en
           }
         }
       }
+      // Otherwise, record down to run a DB level check afterwards.
       foreignRelations.push({relationID: relationMeta.RELATION_ID, relationRow: value, association: association});
     });
+  }
+  function __validateForDeletion(relationMeta, value) {
+    // For cardinality [0..1] and [1..1], we must make sure no more than 1 entry is stored in DB
+    // If there is a combined add action along with the deletion action,
+    // then we need record the deletion action to check with DB whether the to-be-deleted entry is exactly the one in DB.
+    if(roleRelationMeta.CARDINALITY === '[1..1]' || roleRelationMeta.CARDINALITY === '[0..1]') {
+      const currentRelationValues = instance[relationMeta.RELATION_ID];
+      if (Array.isArray(currentRelationValues) &&
+        currentRelationValues.findIndex( value => !value.action || value.action === 'add' ) > -1 ) {
+        let deleteRelation = delete11Relations.find(function (element) {
+          return element.relationID === roleRelationMeta.RELATION_ID;
+        });
+        if(deleteRelation)
+          errorMessages.push(message.report(
+            'ENTITY', 'MULTIPLE_DELETION_ON_11CARDINALITY', 'E', roleRelationMeta.RELATION_ID));
+        else
+          delete11Relations.push({relationID: relationMeta.RELATION_ID, primaryKeyValue: value});
+      } else { // Deletion without any adding, report error directly
+        if (roleRelationMeta.CARDINALITY === '[1..1]')
+          errorMessages.push(message.report(
+          'ENTITY', 'MANDATORY_RELATION_MISSING', 'E', roleRelationMeta.RELATION_ID, entityMeta.ENTITY_ID));
+      }
+    }
+    // For cardinality [1..n], count each deletion on the relation ID.
+    // Later, it will check the total deletion counts with the counts in DB.
+    // If the DB counts is less or equal then the total deletion, then reports error.
+    if(roleRelationMeta.CARDINALITY === '[1..n]'){
+      let deleteRelation = delete1nRelations.find(function (element) {
+        return element.RELATION_ID === roleRelationMeta.RELATION_ID;
+      });
+      if(deleteRelation)
+        deleteRelation.COUNT = deleteRelation.COUNT + 1;
+      else
+        delete1nRelations.push({RELATION_ID:roleRelationMeta.RELATION_ID, COUNT: 1});
+    }
+    //TODO: check foreign key dependency. If other relations have association on this one, then deletion is disallowed.
   }
 }
 
@@ -1962,23 +2018,43 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
 }
 
 function _checkAdd01Relation(relationID, instanceGUID, callback) {
-  let selectSQL = "select * from " + entityDB.pool.escapeId(relationID)
+  let selectSQL = "select count(*) as total from " + entityDB.pool.escapeId(relationID)
     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
     if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
-    if (results.length > 0) callback(null, message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', relationID));
-    else callback(null, null);
+    if (results[0].total > 0)
+      callback(null,
+        message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', relationID));
+    else
+      callback(null, null);
   })
 }
-
+function _checkDelete11Relation(deleteRelation, instanceGUID, callback) {
+  let selectSQL = "select count(*) as total from "  + entityDB.pool.escapeId(deleteRelation.relationID) +
+    " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
+  for (const key in deleteRelation.primaryKeyValue) {
+    if (key === 'action') { continue }
+    selectSQL += " and " + entityDB.pool.escapeId(key) + " = " + entityDB.pool.escape(deleteRelation.primaryKeyValue[key]);
+  }
+  entityDB.executeSQL(selectSQL, function (err, results) {
+    if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
+    if (results[0].total !== 1)
+      callback(null,
+        message.report('ENTITY', 'RELATION_NOT_ALLOW_MULTIPLE_VALUE', 'E', deleteRelation.relationID));
+    else
+      callback(null, null);
+  })
+}
 function _checkDelete1nRelation(deleteRelation, instanceGUID, callback) {
-  let selectSQL = "select * from " + entityDB.pool.escapeId(deleteRelation.RELATION_ID)
+  let selectSQL = "select count(*) as total from " + entityDB.pool.escapeId(deleteRelation.RELATION_ID)
     + " where INSTANCE_GUID = " + entityDB.pool.escape(instanceGUID);
   entityDB.executeSQL(selectSQL, function (err, results) {
     if (err) return callback([message.report('ENTITY', 'GENERAL_ERROR', 'E', err)]);
-    if (results.length <= deleteRelation.COUNT)
-      callback(null, message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', deleteRelation.RELATION_ID));
-    else callback(null, null);
+    if (results[0].total <= deleteRelation.COUNT)
+      callback(null,
+        message.report('ENTITY', 'MANDATORY_RELATION_MISSING', 'E', deleteRelation.RELATION_ID));
+    else
+      callback(null, null);
   })
 }
 /**
