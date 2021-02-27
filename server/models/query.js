@@ -188,7 +188,8 @@ function run(queryObject, callback) {
         return callback(null);
       }
 
-      if (!selectOption.LOW) { return callback(null); } // If low value is not given, bypass.
+      if (selectOption.LOW === '' || selectOption.LOW === null || selectOption.LOW === undefined)
+      { return callback(null); } // If low value is not given, bypass.
 
       let relation;
       if(!selectOption.RELATION_ID || selectOption.RELATION_ID === queryObject.RELATION_ID) {
