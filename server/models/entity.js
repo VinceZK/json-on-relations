@@ -956,7 +956,7 @@ function changeInstance(instance, callback, noCommit) {
           },
           function (callback) {//Relationship update/add check
             async.map(relationshipInstances, function (relationshipInstance, callback){
-              _checkRelationshipValueValidity(instance['INSTANCE_GUID'], relationshipInstance, callback)
+              _checkRelationshipValueValidity(instance['INSTANCE_GUID'], relationshipInstance, relationshipInstances, callback)
             }, function (errs) {
               if(errs) callback(errs); // Already message array
               else callback(null);
@@ -1300,7 +1300,7 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
             SQLs.push(updateSQL);
           }
         }
-        else if (value.action === 'add'){
+        else if (value.action === 'add') {
           let insertFields = " ( `INSTANCE_GUID`" ;
           let insertValues = " ( " + entityDB.pool.escape(value.RELATIONSHIP_INSTANCE_GUID);
 
@@ -1337,37 +1337,37 @@ function _generateRelationshipsSQL(relationships, entityMeta, instanceGUID, rela
         }
 
         // Overlap checks should be done when they are updated in DB
-        if(relationshipInstances) {
-          let relationshipInstance =
-            { RELATIONSHIP_ID: relationship['RELATIONSHIP_ID'],
-              RELATIONSHIP_INSTANCE_GUID: value['RELATIONSHIP_INSTANCE_GUID'],
-              IS_TIME_DEPENDENT: relationshipMeta.VALID_PERIOD > 0, // For time-dependency relationship (VALID_PERIOD is set and larger than 0)
-              SINGLETON: relationshipMeta.SINGLETON,
-              VALID_FROM: value['VALID_FROM'],
-              VALID_TO: value['VALID_TO'],
-              action: value.action
-            };
+        // if(relationshipInstances) {
+        let relationshipInstance =
+          { RELATIONSHIP_ID: relationship['RELATIONSHIP_ID'],
+            RELATIONSHIP_INSTANCE_GUID: value['RELATIONSHIP_INSTANCE_GUID'],
+            IS_TIME_DEPENDENT: relationshipMeta.VALID_PERIOD > 0, // For time-dependency relationship (VALID_PERIOD is set and larger than 0)
+            SINGLETON: relationshipMeta.SINGLETON,
+            VALID_FROM: value['VALID_FROM'],
+            VALID_TO: value['VALID_TO'],
+            action: value.action
+          };
 
-          if(value['PARTNER_INSTANCES']){ //Add operation
-            value['PARTNER_INSTANCES'].forEach(function (partnerInstance) {
-              let relationshipInstanceClone = _.clone(relationshipInstance);
-              relationshipInstanceClone.SELF_ROLE_ID = roleMeta.ROLE_ID;
-              relationshipInstanceClone.PARTNER_ENTITY_ID = partnerInstance.ENTITY_ID;
-              relationshipInstanceClone.PARTNER_ROLE_ID = partnerInstance.ROLE_ID;
-              relationshipInstanceClone.PARTNER_INSTANCE_GUID = partnerInstance.INSTANCE_GUID;
-              relationshipInstanceClone.noExistingCheck = partnerInstance.NO_EXISTING_CHECK;
-              let involveMeta = relationshipMeta.INVOLVES.find(
-                function (involve) {return involve.ROLE_ID === partnerInstance.ROLE_ID;});
-              if (involveMeta) relationshipInstanceClone.PARTNER_ROLE_CARDINALITY = involveMeta.CARDINALITY;
-              involveMeta = relationshipMeta.INVOLVES.find(
-                function (involve) {return involve.ROLE_ID === roleMeta.ROLE_ID;});
-              if (involveMeta) relationshipInstanceClone.SELF_ROLE_CARDINALITY = involveMeta.CARDINALITY;
-              relationshipInstances.push(relationshipInstanceClone);
-            });
-          }else{
-            relationshipInstances.push(relationshipInstance); //Other operations
-          }
+        if(value['PARTNER_INSTANCES']){ //Add operation
+          value['PARTNER_INSTANCES'].forEach(function (partnerInstance) {
+            let relationshipInstanceClone = _.clone(relationshipInstance);
+            relationshipInstanceClone.SELF_ROLE_ID = roleMeta.ROLE_ID;
+            relationshipInstanceClone.PARTNER_ENTITY_ID = partnerInstance.ENTITY_ID;
+            relationshipInstanceClone.PARTNER_ROLE_ID = partnerInstance.ROLE_ID;
+            relationshipInstanceClone.PARTNER_INSTANCE_GUID = partnerInstance.INSTANCE_GUID;
+            relationshipInstanceClone.noExistingCheck = partnerInstance.NO_EXISTING_CHECK;
+            let involveMeta = relationshipMeta.INVOLVES.find(
+              function (involve) {return involve.ROLE_ID === partnerInstance.ROLE_ID;});
+            if (involveMeta) relationshipInstanceClone.PARTNER_ROLE_CARDINALITY = involveMeta.CARDINALITY;
+            involveMeta = relationshipMeta.INVOLVES.find(
+              function (involve) {return involve.ROLE_ID === roleMeta.ROLE_ID;});
+            if (involveMeta) relationshipInstanceClone.SELF_ROLE_CARDINALITY = involveMeta.CARDINALITY;
+            relationshipInstances.push(relationshipInstanceClone);
+          });
+        }else{
+          relationshipInstances.push(relationshipInstance); //Other operations
         }
+        // }
       }); // Loop values end
       if (errorMessages.length > 0) return callback(errorMessages);
 
@@ -1959,7 +1959,7 @@ function _checkEntityExist(relationshipInstance, callback) {
   })
 }
 
-function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
+function _checkRelationshipValueValidity(selfGUID, relationship, relationshipsInChanging, callback) {
   let selectSQL = "select * from " + entityDB.pool.escapeId(relationship.RELATIONSHIP_ID);
   if (relationship.action === 'add'){
     if (relationship.PARTNER_ROLE_CARDINALITY === '[1..1]') {
@@ -1998,7 +1998,9 @@ function _checkRelationshipValueValidity(selfGUID, relationship, callback) {
         results.find(function (result) { return (relationship.VALID_FROM < result.VALID_TO && relationship.VALID_TO > result.VALID_FROM);}) :
         results[0];
 
-      if (line) {
+      if (line &&
+        relationshipsInChanging.findIndex( // Check if the adding relationship is deleted in the same transaction
+          r => r.action === 'delete' && r.RELATIONSHIP_INSTANCE_GUID === line.INSTANCE_GUID) === -1) {
         return callback([message.report('ENTITY', 'RELATIONSHIP_INSTANCE_OVERLAP', 'E', relationship.RELATIONSHIP_ID)]);
       }
     } else {
