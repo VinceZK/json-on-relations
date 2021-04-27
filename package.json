@@ -90,7 +90,7 @@
     "angular"
   ],
   "author": "vincezk",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/VinceZK/json-on-relations/issues"
   },
