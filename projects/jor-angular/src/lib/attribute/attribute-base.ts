@@ -17,6 +17,7 @@ export class AttributeBase {
   primaryKey: boolean;
   autoIncrement: boolean;
   dropdownList: DropdownList[] = [];
+  rows: number;
 }
 
 class DropdownList {

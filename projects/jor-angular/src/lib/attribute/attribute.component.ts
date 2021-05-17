@@ -66,9 +66,10 @@ export class AttributeComponent implements OnInit, OnChanges{
     }
   }
 
-  get invalid() { return this.formGroup.controls[this.attributeControl.name].invalid; }
+  get invalid() { return this.formGroup.controls[this.attributeControl.name]?.invalid; }
   get errorMessage() {
     const fieldCtrl = this.formGroup.get(this.attributeControl.name);
+    if (!fieldCtrl) { return; }
     if (fieldCtrl.getError('pattern')) {
       return 'The pattern is not correct';
     } else if (fieldCtrl.getError('required')) {

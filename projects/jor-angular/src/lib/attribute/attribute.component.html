@@ -46,12 +46,13 @@
            [formControlName]="attributeControl.name"
            (change) = "onChange($event)"
            [id]="attributeControl.key">
-    <input *ngSwitchCase="'textarea'" type="textarea" class="form-control"
-           [class.form-control-sm] = "isSmallSize"
-           [formControlName]="attributeControl.name"
-           [id]="attributeControl.key"
-           (change) = "onChange($event)"
-           [readonly]="isReadonly" >
+    <textarea *ngSwitchCase="'textarea'" class="form-control"
+              [class.form-control-sm] = "isSmallSize"
+              [formControlName]="attributeControl.name"
+              [id]="attributeControl.key"
+              [rows]="attributeControl.rows"
+              (change) = "onChange($event)"
+              [readonly]="isReadonly"></textarea>
     <input *ngSwitchCase="'file'" type="file" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
@@ -65,6 +66,12 @@
            (change) = "onChange($event)"
            [readonly]="isReadonly" >
     <input *ngSwitchCase="'timestamp'" type="text" class="form-control"
+           [class.form-control-sm] = "isSmallSize"
+           [formControlName]="attributeControl.name"
+           [id]="attributeControl.key"
+           (change) = "onChange($event)"
+           [readonly]="isReadonly" >
+    <input *ngSwitchCase="'password'" type="password" class="form-control"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"
