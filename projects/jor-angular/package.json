@@ -1,6 +1,6 @@
 {
   "name": "jor-angular",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "peerDependencies": {
     "@angular/common": "^10.1.6",
     "@angular/core": "^10.1.6"
@@ -10,13 +10,14 @@
     "url": "git+https://github.com/VinceZK/json-on-relations.git"
   },
   "keywords": [
-    "JSON",
-    "Relational DB",
-    "Message Driven",
+    "Entity",
     "CRUD",
-    "API",
-    "nodejs",
-    "angular"
+    "Form",
+    "Low Code",
+    "UI Control",
+    "Search Help",
+    "Value Help",
+    "Angular"
   ],
   "author": "vincezk",
   "license": "MIT",

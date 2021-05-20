@@ -19,10 +19,11 @@ export class AttributeForm2Component implements OnInit {
 
   }
 
-  get invalid() { return this.formGroup.controls[this.attributeControl.name].invalid; }
+  get invalid() { return this.formGroup.controls[this.attributeControl.name]?.invalid; }
 
   get errorMessage() {
     const fieldCtrl = this.formGroup.get(this.attributeControl.name);
+    if (!fieldCtrl) { return null; }
     if (fieldCtrl.getError('pattern')) {
       return 'The pattern is not correct';
     } else if (fieldCtrl.getError('required')) {
