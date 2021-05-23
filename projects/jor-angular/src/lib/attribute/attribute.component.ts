@@ -10,7 +10,7 @@ import { EventEmitter } from '@angular/core';
   templateUrl: './attribute.component.html',
   styleUrls: ['./attribute.component.css']
 })
-export class AttributeComponent implements OnInit, OnChanges{
+export class AttributeComponent implements OnInit, OnChanges {
   @Input() attributeControl: AttributeBase;
   @Input() formGroup: FormGroup;
   @Input() readonly: boolean;
@@ -28,19 +28,14 @@ export class AttributeComponent implements OnInit, OnChanges{
       case 'timestamp':
         if (!this.readonly && !fieldCtrl.value) {
           const currentTimestamp = new Date();
-          fieldCtrl.setValue(
-            currentTimestamp.getFullYear() + '-' + ('0' + (currentTimestamp.getMonth() + 1)).slice(-2) + '-'
-            + ('0' + currentTimestamp.getDate()).slice(-2) + ' ' + ('0' + currentTimestamp.getHours()).slice(-2) +
-            ':' + ('0' + currentTimestamp.getMinutes()).slice(-2) + ':' + ('0' + currentTimestamp.getSeconds()).slice(-2));
+          fieldCtrl.setValue(currentTimestamp.toISOString().slice(0, 19).replace('T', ' '));
           fieldCtrl.markAsDirty();
         }
         break;
       case 'date':
         if (!this.readonly && !fieldCtrl.value) {
           const currentDate = new Date();
-          fieldCtrl.setValue(
-            currentDate.getFullYear() + '-' + ('0' + (currentDate.getMonth() + 1)).slice(-2) + '-'
-            + ('0' + currentDate.getDate()).slice(-2));
+          fieldCtrl.setValue(currentDate.toISOString().slice(0, 10));
           fieldCtrl.markAsDirty();
         }
         break;

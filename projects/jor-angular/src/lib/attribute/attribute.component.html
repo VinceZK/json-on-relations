@@ -65,7 +65,7 @@
            [id]="attributeControl.key"
            (change) = "onChange($event)"
            [readonly]="isReadonly" >
-    <input *ngSwitchCase="'timestamp'" type="text" class="form-control"
+    <input *ngSwitchCase="'timestamp'" type="datetime-local" class="form-control" step="1"
            [class.form-control-sm] = "isSmallSize"
            [formControlName]="attributeControl.name"
            [id]="attributeControl.key"

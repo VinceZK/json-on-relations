@@ -59,8 +59,4 @@ export class EntityRelationComponent implements OnInit {
       }
     });
   }
-
-  onChange(event): void {
-    console.log(event);
-  }
 }
