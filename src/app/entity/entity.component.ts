@@ -600,15 +600,15 @@ export class EntityComponent implements OnInit {
           entity[entityRelation.RELATION_ID] ? entity[entityRelation.RELATION_ID] : [];
       }
     });
-    this.formGroup.setValue(formGroupValues);
+    this.formGroup.reset(formGroupValues);
   }
 
   canDeactivate(): Observable<boolean> | boolean {
     if (this.formGroup && this.formGroup.dirty) {
+      // @ts-ignore
       return this.dialogService.confirm('Discard changes?');
     } else {
       return true;
     }
   }
-
 }

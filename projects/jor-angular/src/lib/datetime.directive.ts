@@ -1,29 +1,22 @@
 /**
- * Convert the date in local timezone(system/browser timezone) to the UTC timezone.
- * Meanwhile, convert the format between "yyyy-MM-ddThh:mm:ss" and  "yyyy-MM-dd HH:mm:ss".
+ * Convert the date object to a string in format "yyyy-MM-ddThh:mm:ss".
  */
-import {Directive, HostBinding, HostListener, OnInit} from '@angular/core';
-import {AbstractControl, NgControl} from '@angular/forms';
+import {Directive, EventEmitter, HostBinding, HostListener, Input, Output} from '@angular/core';
 @Directive({
   // tslint:disable-next-line:directive-selector
   selector: 'input[type=datetime-local]',
 })
-export class DatetimeDirective implements OnInit {
+export class DatetimeDirective {
+  @Input() set localDatetime(d: Date) { this.localString = this.toLocalDateString(d); }
+  @Output() dateChange: EventEmitter<Date>;
   @HostBinding('value') localString = '';
-  abstractControl: AbstractControl;
 
-  constructor(private control: NgControl) { }
-
-  ngOnInit() {
-    this.abstractControl = this.control.control;
-    this.localString = this.abstractControl && this.toLocalDateString(this.abstractControl.value);
+  constructor() {
+    this.dateChange = new EventEmitter();
   }
 
-  private toLocalDateString(utcString: string): string {
-    if (!utcString) { return ''; }
-    if (utcString.includes('T')) { return utcString; }
-    // to support Safari and Firefox, the dateStr format 'yyyy-MM-dd HH:mm:ss' needs to be converted to 'yyyy/MM/dd HH:mm:ss'
-    const timeUTC = new Date(utcString.replace(/-/g, '/') + ' UTC');
+  private toLocalDateString(timeUTC: Date): string {
+    if (!timeUTC) { return ''; }
     if (isNaN(timeUTC.getTime())) {
       return '';
     } else {
@@ -32,15 +25,11 @@ export class DatetimeDirective implements OnInit {
     }
   }
 
-  private toUTCString(localeString: string): string {
-    const localeDate = new Date(localeString);
-    return isNaN(localeDate.getTime()) ? '' : localeDate.toISOString().slice(0, 19).replace('T', ' ');
-  }
-
-  @HostListener('change', ['$event.target.value']) onDateChange(value: string): void {
+  @HostListener('change', ['$event.target.value'])
+  onDateChange(value: string): void {
     if (value !== this.localString) {
       this.localString = value;
-      this.abstractControl.setValue(this.toUTCString(this.localString));
+      this.dateChange.emit(new Date(value));
     }
   }
 }

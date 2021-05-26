@@ -30,7 +30,14 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "core-js", "rxjs", "uuid"
-            ]
+            ],
+            "aot": false,
+            "vendorChunk": true,
+            "extractLicenses": false,
+            "buildOptimizer": false,
+            "sourceMap": true,
+            "optimization": false,
+            "namedChunks": true
           },
           "configurations": {
             "production": {

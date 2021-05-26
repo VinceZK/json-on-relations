@@ -8,7 +8,6 @@ import {AttributeComponent} from './attribute/attribute.component';
 import {AttributeFormComponent} from './attribute/attribute-form/attribute-form.component';
 import {AttributeTableComponent} from './attribute/attribute-table/attribute-table.component';
 import { AttributeForm2Component } from './attribute/attribute-form2/attribute-form2.component';
-import {DateDirective} from './date.directive';
 import {DatetimeDirective} from './datetime.directive';
 
 @NgModule({
@@ -19,7 +18,6 @@ import {DatetimeDirective} from './datetime.directive';
     AttributeFormComponent,
     AttributeTableComponent,
     AttributeForm2Component,
-    DateDirective,
     DatetimeDirective
   ],
   imports: [
