@@ -41,9 +41,9 @@
     "node-uuid": "^1.4.8",
     "path": "^0.12.7",
     "rxjs": "^6.6.3",
-    "ui-logon-angular": "^1.4.0",
+    "ui-logon-angular": "^1.5.1",
     "ui-message": "^1.2.0",
-    "ui-message-angular": "^1.3.2",
+    "ui-message-angular": "^1.4.1",
     "underscore": "^1.9.1",
     "zone.js": "~0.11.4"
   },
