@@ -1,11 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import * as Handsontable from 'handsontable';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {EntityService, Attribute, QueryObject, RelationMeta, Selection, Entity} from 'jor-angular';
 import {HotTableRegisterer} from '@handsontable/angular';
 import {ActivatedRoute, ParamMap, Router} from '@angular/router';
 import {MessageService} from 'ui-message-angular';
-import {switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-list',
@@ -60,7 +59,7 @@ export class ListComponent implements OnInit {
       manualRowResize: true,
       manualColumnResize: true,
       rowHeaders: true,
-      afterOnCellMouseDown: (TD, coords) => {
+      afterOnCellMouseDown: (e, coords, TD) => {
         const hotInstance = this.hotRegisterer.getInstance(this.instance);
         // @ts-ignore
         const regResult = this.entityIDPattern.exec(hotInstance.getDataAtCell( coords.row, coords.col));
